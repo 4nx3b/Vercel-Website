@@ -370,24 +370,61 @@
 <section id="contact">
 <div class="section-glow-top"></div>
 <div class="contact-headline fade-in">
-<span>LET'S</span><span>TALK.</span>
+<span>ASK ME ANYTHING</span>
 </div>
 <div class="contact-sub-txt fade-in fade-in-delay-1">
-    U CAN CHOOSE ANY OF THESE WAYS TO CONNECT WITH ME.
+  Drop a question, collab idea, ROM request, or module bug report.
+</div>
+
+<!-- ASK ME ANYTHING -->
+<div class="ama-wrap fade-in fade-in-delay-3" id="ama-widget">
+  <div class="ama-topline">
+    <div class="ama-title">ASK ME ANYTHING</div>
+    <div class="ama-used" id="ama-used">Used 0/5 today</div>
+    <button class="ama-owner-btn" id="ama-owner-btn" type="button" aria-label="Owner login" title="Owner login">
+      <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="18"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M8 9h.01M12 9h.01M16 9h.01M8 15h8"></path></svg>
+    </button>
   </div>
-<!-- MESSAGE FORM -->
-<div class="contact-form-wrap fade-in fade-in-delay-3">
-<h3>Send a message</h3>
-<p>Have a project, collab idea, or just want to connect? Drop a message below and I'll get back to you.</p>
-<div class="form-row"><input class="form-field" id="f-name" placeholder="Name" type="text"/></div>
-<div class="form-row"><input class="form-field" id="f-email" placeholder="Email" type="email"/></div>
-<div class="form-row"><input class="form-field" id="f-subject" placeholder="Subject (optional)" type="text"/></div>
-<div class="form-row"><textarea class="form-textarea" id="f-message" placeholder="Your message..." rows="5"></textarea></div>
-<button class="form-send-btn" id="send-btn" onclick="sendMessage()">
+
+  <div class="ama-list" id="ama-list">
+    <div class="ama-loading">Loading questions...</div>
+  </div>
+
+  <form class="ama-question-row" id="ama-question-form">
+    <input id="ama-question-input" maxlength="280" autocomplete="off" placeholder="Drop a question..." type="text" />
+    <button id="ama-question-next" type="submit" aria-label="Continue">
+      <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+    </button>
+  </form>
+  <div class="ama-status" id="ama-status"></div>
+</div>
+
+<!-- Name popup -->
+<div class="ama-modal" id="ama-name-modal" aria-hidden="true">
+  <div class="ama-modal-card" role="dialog" aria-modal="true" aria-labelledby="ama-name-title">
+    <button class="ama-modal-close" id="ama-name-close" type="button" aria-label="Close">×</button>
+    <div class="ama-modal-kicker">almost done</div>
+    <h3 id="ama-name-title">What's your name?</h3>
+    <p>Your question will be sent after you enter your name.</p>
+    <input class="ama-modal-input" id="ama-name-input" maxlength="60" autocomplete="name" placeholder="Name" type="text" />
+    <button class="ama-modal-send" id="ama-final-send" type="button" disabled>
       SEND
-      <svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-</button>
-<div class="form-status" id="form-status"></div>
+      <svg fill="none" height="17" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="17"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </button>
+  </div>
+</div>
+
+<!-- Owner/admin popup -->
+<div class="ama-modal" id="ama-admin-modal" aria-hidden="true">
+  <div class="ama-modal-card ama-admin-card" role="dialog" aria-modal="true" aria-labelledby="ama-admin-title">
+    <button class="ama-modal-close" id="ama-admin-close" type="button" aria-label="Close">×</button>
+    <div class="ama-modal-kicker">owner only</div>
+    <h3 id="ama-admin-title">Answer questions</h3>
+    <p>Sign in with the Google account allowed in your backend settings.</p>
+    <div id="ama-google-wrap" class="ama-google-wrap"></div>
+    <button class="ama-admin-logout" id="ama-admin-logout" type="button" style="display:none">Logout</button>
+    <div class="ama-admin-list" id="ama-admin-list"></div>
+  </div>
 </div>
 </section>
 <!-- ONLINE PRESENCE -->
