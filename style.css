@@ -6163,3 +6163,89 @@ body:not(.music-playing) .sp-play-btn #sp-icon-pause{
   opacity:0!important;
   pointer-events:none!important;
 }
+
+/* ===== USER REQUEST FIX v21 2026-07-01: compact AMA popup above keyboard + remove topbar dots/miniplayer flash ===== */
+#ama-name-modal.open{
+  position:fixed!important;
+  inset:0!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  padding:calc(64px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom))!important;
+  background:rgba(5,5,5,.72)!important;
+  overflow:auto!important;
+  z-index:2147483647!important;
+}
+#ama-name-modal .ama-modal-card{
+  width:min(620px,calc(100vw - 24px))!important;
+  max-height:min(500px,52dvh)!important;
+  overflow:auto!important;
+  padding:18px!important;
+  padding-top:68px!important;
+  border-radius:28px!important;
+  background:#151514!important;
+  box-sizing:border-box!important;
+  gap:7px!important;
+}
+#ama-name-modal .ama-modal-close,
+#ama-name-modal #ama-name-close{
+  top:14px!important;
+  right:14px!important;
+  width:44px!important;
+  height:44px!important;
+  z-index:50!important;
+}
+#ama-name-modal #ama-compose-question-label,
+#ama-name-modal #ama-compose-name-label{
+  margin:0 0 7px!important;
+  font-size:14px!important;
+  line-height:1.1!important;
+}
+#ama-name-modal #ama-compose-name-label{margin-top:10px!important;}
+#ama-name-modal .ama-popup-question{
+  min-height:74px!important;
+  max-height:92px!important;
+  height:84px!important;
+  padding:12px!important;
+  border-radius:18px!important;
+  margin:0 0 8px!important;
+}
+#ama-name-modal #ama-name-input{
+  min-height:44px!important;
+  height:44px!important;
+  max-height:44px!important;
+  padding:0 13px!important;
+  border-radius:18px!important;
+  margin:0 0 8px!important;
+  background:#0f0f0e!important;
+}
+#ama-name-modal #ama-final-send{
+  min-height:46px!important;
+  height:46px!important;
+  margin-top:4px!important;
+}
+@media(max-width:520px){
+  #ama-name-modal.open{padding-top:calc(54px + env(safe-area-inset-top))!important;}
+  #ama-name-modal .ama-modal-card{max-height:50dvh!important;padding:16px!important;padding-top:64px!important;}
+  #ama-name-modal .ama-popup-question{height:78px!important;min-height:70px!important;max-height:84px!important;}
+}
+/* Never show the old mini-player and remove the three-dot opener from the topbar. */
+#slide-music-player,
+#slide-music-player.active,
+.slide-player-panel,
+.slide-player-panel.active{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+  transform:scale(0)!important;
+}
+.topbar-music-widget .tb-music-dots,
+.tb-music-dots,
+#tb-three-dots{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+.topbar-music-widget{padding-right:8px!important;}
