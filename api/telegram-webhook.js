@@ -77,6 +77,7 @@ async function googleAccessToken() {
       assertion: `${unsigned}.${signature}`,
     }),
   });
+
   const data = await response.json().catch(() => null);
   if (!response.ok || !data?.access_token) {
     throw new Error(data?.error_description || data?.error || `Google token error ${response.status}`);
@@ -97,7 +98,7 @@ async function firestore(method, url, body) {
 }
 
 function mask(fields) {
-  return fields.map(f => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');
+  return fields.map((f) => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');
 }
 
 async function answerQuestion(questionId, answer) {
@@ -134,6 +135,7 @@ function fromFirestoreDoc(doc) {
     answered: !!f.answered?.booleanValue,
     dismissed: !!f.dismissed?.booleanValue,
     createdAt: f.createdAt?.stringValue || '',
+    answeredAt: f.answeredAt?.stringValue || '',
   };
 }
 
@@ -143,45 +145,99 @@ function questionState(q) {
   return 'UNANSWERED';
 }
 
-async function listQuestionsForRefresh() {
+async function listAllQuestions() {
   const url = `https://firestore.googleapis.com/v1/projects/${projectId()}/databases/(default)/documents/${FIRESTORE_COLLECTION}?pageSize=200`;
   const data = await firestore('GET', url);
-  const items = (data.documents || [])
-    .map(fromFirestoreDoc)
-    .filter(q => q.question && (questionState(q) === 'UNANSWERED' || questionState(q) === 'DISMISSED'));
-  items.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-  return items;
+  return (data.documents || []).map(fromFirestoreDoc).filter((q) => q.question);
 }
 
-async function editQuestionText(questionId, text) {
-  return firestore('PATCH', `${docPath(FIRESTORE_COLLECTION, questionId)}?${mask(['question'])}`, {
-    fields: { question: { stringValue: text.slice(0, 280) } },
-  });
+async function listQuestionsForRefresh() {
+  const items = await listAllQuestions();
+  return items
+    .filter((q) => questionState(q) === 'UNANSWERED' || questionState(q) === 'DISMISSED')
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 }
 
-async function saveEditSession(chatId, questionId) {
-  return firestore('PATCH', docPath(EDIT_SESSION_COLLECTION, String(chatId)), {
-    fields: {
-      chatId: { stringValue: String(chatId) },
-      questionId: { stringValue: String(questionId) },
-      createdAt: { stringValue: new Date().toISOString() },
+async function listAnsweredQuestions() {
+  const items = await listAllQuestions();
+  return items
+    .filter((q) => questionState(q) === 'ANSWERED')
+    .sort((a, b) => new Date(b.answeredAt || b.createdAt || 0) - new Date(a.answeredAt || a.createdAt || 0));
+}
+
+function sessionArray(ids = []) {
+  return {
+    arrayValue: {
+      values: ids.map((id) => ({ stringValue: String(id) })),
     },
-  });
+  };
 }
 
-async function getEditSession(chatId) {
-  try { return await firestore('GET', docPath(EDIT_SESSION_COLLECTION, String(chatId))); }
-  catch (e) { return null; }
+async function patchSession(chatId, fields, fieldMask) {
+  const allFields = {
+    chatId: { stringValue: String(chatId) },
+    updatedAt: { stringValue: new Date().toISOString() },
+    ...fields,
+  };
+  const defaultMask = ['chatId', 'updatedAt', ...Object.keys(fields)];
+  const queryMask = mask(fieldMask || defaultMask);
+  return firestore('PATCH', `${docPath(EDIT_SESSION_COLLECTION, String(chatId))}?${queryMask}`, { fields: allFields });
 }
 
-async function clearEditSession(chatId) {
-  try { await firestore('DELETE', docPath(EDIT_SESSION_COLLECTION, String(chatId))); } catch (e) {}
+async function getSession(chatId) {
+  try {
+    const doc = await firestore('GET', docPath(EDIT_SESSION_COLLECTION, String(chatId)));
+    const f = doc.fields || {};
+    return {
+      pendingQuestionId:
+        f.pendingQuestionId?.stringValue ||
+        f.questionId?.stringValue ||
+        '',
+      pendingMode: f.pendingMode?.stringValue || (f.questionId?.stringValue ? 'edit-answer' : ''),
+      lastAnsweredIds: (f.lastAnsweredIds?.arrayValue?.values || []).map((v) => v.stringValue).filter(Boolean),
+    };
+  } catch (e) {
+    return { pendingQuestionId: '', pendingMode: '', lastAnsweredIds: [] };
+  }
+}
+
+async function saveAnsweredListSession(chatId, ids) {
+  return patchSession(chatId, { lastAnsweredIds: sessionArray(ids) }, ['chatId', 'updatedAt', 'lastAnsweredIds']);
+}
+
+async function startAnswerEditSession(chatId, questionId) {
+  return patchSession(chatId, {
+    pendingQuestionId: { stringValue: String(questionId) },
+    pendingMode: { stringValue: 'edit-answer' },
+  }, ['chatId', 'updatedAt', 'pendingQuestionId', 'pendingMode']);
+}
+
+async function clearPendingEditSession(chatId) {
+  return patchSession(chatId, {
+    pendingQuestionId: { nullValue: null },
+    pendingMode: { stringValue: '' },
+  }, ['chatId', 'updatedAt', 'pendingQuestionId', 'pendingMode']);
 }
 
 function extractQuestionId(replyText = '') {
   const text = String(replyText || '');
-  const match = text.match(/\bID:\s*([A-Za-z0-9_-]{8,80})/i);
+  const match = text.match(/\bID:\s*([A-Za-z0-9_-]{8,120})/i);
   return match ? match[1] : '';
+}
+
+function preview(text = '', max = 72) {
+  const compact = String(text).replace(/\s+/g, ' ').trim();
+  if (!compact) return '—';
+  return compact.length > max ? `${compact.slice(0, max - 1)}…` : compact;
+}
+
+function normalizedCommand(token = '') {
+  return String(token).toLowerCase().split('@')[0];
+}
+
+function parseEditNumber(text = '') {
+  const match = String(text).trim().match(/^\/edit(?:@\w+)?\s+(\d+)$/i);
+  return match ? Number(match[1]) : null;
 }
 
 async function sendTelegram(chatId, text, replyToMessageId) {
@@ -198,6 +254,29 @@ async function sendTelegram(chatId, text, replyToMessageId) {
       allow_sending_without_reply: true,
     }),
   }).catch(() => null);
+}
+
+async function sendChunkedLines(chatId, replyToMessageId, title, lines) {
+  if (!lines.length) {
+    await sendTelegram(chatId, title, replyToMessageId);
+    return 1;
+  }
+
+  let chunk = `${title}\n\n`;
+  let sent = 0;
+  for (const line of lines) {
+    if ((chunk + line + '\n\n').length > 3600) {
+      await sendTelegram(chatId, chunk.trim(), replyToMessageId);
+      sent += 1;
+      chunk = '';
+    }
+    chunk += line + '\n\n';
+  }
+  if (chunk.trim()) {
+    await sendTelegram(chatId, chunk.trim(), replyToMessageId);
+    sent += 1;
+  }
+  return sent;
 }
 
 module.exports = async function handler(req, res) {
@@ -224,7 +303,24 @@ module.exports = async function handler(req, res) {
     const text = String(message.text || message.caption || '').trim();
     if (!text) return res.status(200).json({ ok: true, ignored: 'empty' });
 
-    if (text.split(/\s+/)[0].toLowerCase() === '/refresh') {
+    const session = await getSession(chatId);
+    if (session.pendingMode === 'edit-answer' && session.pendingQuestionId && !text.startsWith('/')) {
+      await answerQuestion(session.pendingQuestionId, text);
+      await clearPendingEditSession(chatId);
+      await sendTelegram(
+        chatId,
+        `Edited answer for <code>${escapeHtml(session.pendingQuestionId)}</code>. Refresh the website question box to see it.`,
+        message.message_id,
+      );
+      return res.status(200).json({ ok: true, editedAnswer: session.pendingQuestionId });
+    }
+
+    const firstToken = text.split(/\s+/)[0] || '';
+    const command = normalizedCommand(firstToken);
+    const originalText = message.reply_to_message?.text || message.reply_to_message?.caption || '';
+    const repliedQuestionId = extractQuestionId(originalText);
+
+    if (command === '/refresh') {
       const items = await listQuestionsForRefresh();
       if (!items.length) {
         await sendTelegram(chatId, 'No unanswered or dismissed questions right now.', message.message_id);
@@ -234,69 +330,97 @@ module.exports = async function handler(req, res) {
         const tag = questionState(q);
         return `${i + 1}. <b>[${tag}]</b> ${escapeHtml(q.name)}\nQ: ${escapeHtml(q.question)}\nID: <code>${escapeHtml(q.id)}</code>`;
       });
-      let chunk = '<b>Current unanswered/dismissed questions</b>\n\n';
-      let sent = 0;
-      for (const line of lines) {
-        if ((chunk + line + '\n\n').length > 3600) {
-          await sendTelegram(chatId, chunk.trim(), message.message_id);
-          sent++;
-          chunk = '';
-        }
-        chunk += line + '\n\n';
-      }
-      if (chunk.trim()) { await sendTelegram(chatId, chunk.trim(), message.message_id); sent++; }
+      const sent = await sendChunkedLines(chatId, message.message_id, '<b>Current unanswered/dismissed questions</b>', lines);
       return res.status(200).json({ ok: true, refreshCount: items.length, messages: sent });
     }
 
-    // If /edit was started, the next normal message becomes the edited question text.
-    const pending = await getEditSession(chatId);
-    const pendingQuestionId = pending?.fields?.questionId?.stringValue;
-    if (pendingQuestionId && !text.startsWith('/')) {
-      await editQuestionText(pendingQuestionId, text);
-      await clearEditSession(chatId);
-      await sendTelegram(chatId, `Edited question <code>${escapeHtml(pendingQuestionId)}</code>. Refresh the website question box.`, message.message_id);
-      return res.status(200).json({ ok: true, edited: pendingQuestionId });
+    if (command === '/listall') {
+      const items = await listAnsweredQuestions();
+      if (!items.length) {
+        await sendTelegram(chatId, 'No answered questions yet.', message.message_id);
+        return res.status(200).json({ ok: true, answeredCount: 0 });
+      }
+
+      await saveAnsweredListSession(chatId, items.map((q) => q.id));
+      const lines = items.map((q, i) => (
+        `${i + 1}. <b>${escapeHtml(q.name)}</b>\n` +
+        `Q: ${escapeHtml(preview(q.question, 90))}\n` +
+        `A: ${escapeHtml(preview(q.answer, 90))}\n` +
+        `ID: <code>${escapeHtml(q.id)}</code>`
+      ));
+      const sent = await sendChunkedLines(
+        chatId,
+        message.message_id,
+        '<b>Answered questions</b>\nUse <code>/edit 2</code> to edit the answer for question 2 from this list.',
+        lines,
+      );
+      return res.status(200).json({ ok: true, answeredCount: items.length, messages: sent });
     }
 
-    const originalText = message.reply_to_message?.text || message.reply_to_message?.caption || '';
-    const questionId = extractQuestionId(originalText);
-    const command = text.split(/\s+/)[0].toLowerCase();
+    if (command === '/edit') {
+      const listIndex = parseEditNumber(text);
+      if (Number.isInteger(listIndex)) {
+        if (!session.lastAnsweredIds.length) {
+          await sendTelegram(chatId, 'Use <code>/listall</code> first, then send something like <code>/edit 2</code>.', message.message_id);
+          return res.status(200).json({ ok: true, ignored: 'missing answered list session' });
+        }
+        if (listIndex < 1 || listIndex > session.lastAnsweredIds.length) {
+          await sendTelegram(chatId, `That list number is out of range. Send <code>/listall</code> again, then use <code>/edit 1</code> to <code>/edit ${session.lastAnsweredIds.length}</code>.`, message.message_id);
+          return res.status(200).json({ ok: true, ignored: 'invalid edit list index' });
+        }
+        const questionId = session.lastAnsweredIds[listIndex - 1];
+        await startAnswerEditSession(chatId, questionId);
+        await sendTelegram(chatId, `Send the edited answer text now for question ${listIndex} (<code>${escapeHtml(questionId)}</code>).`, message.message_id);
+        return res.status(200).json({ ok: true, editMode: questionId, source: 'list', index: listIndex });
+      }
+
+      if (repliedQuestionId) {
+        await startAnswerEditSession(chatId, repliedQuestionId);
+        await sendTelegram(chatId, `Send the edited answer text now for <code>${escapeHtml(repliedQuestionId)}</code>.`, message.message_id);
+        return res.status(200).json({ ok: true, editMode: repliedQuestionId, source: 'reply' });
+      }
+
+      await sendTelegram(
+        chatId,
+        'To edit an answer, either reply to a question message with <code>/edit</code>, or use <code>/listall</code> and then <code>/edit 2</code>.',
+        message.message_id,
+      );
+      return res.status(200).json({ ok: true, ignored: 'edit usage shown' });
+    }
 
     if (text.startsWith('/')) {
-      if (!questionId) {
-        await sendTelegram(chatId, 'Reply to a question message that contains an ID line, then use /delete, /dismiss, or /edit.', message.message_id);
+      if (!repliedQuestionId) {
+        await sendTelegram(
+          chatId,
+          'Reply to a question message that contains an ID line, then use <code>/delete</code> or <code>/dismiss</code>. For answer edits, use <code>/listall</code> and then <code>/edit 2</code>, or reply with <code>/edit</code>.',
+          message.message_id,
+        );
         return res.status(200).json({ ok: true, ignored: 'command missing question id' });
       }
 
       if (command === '/delete') {
-        await deleteQuestion(questionId);
-        await sendTelegram(chatId, `Deleted question <code>${escapeHtml(questionId)}</code>. Tap Load questions in the website admin popup to refresh the list.`, message.message_id);
-        return res.status(200).json({ ok: true, deleted: questionId });
+        await deleteQuestion(repliedQuestionId);
+        await sendTelegram(chatId, `Deleted question <code>${escapeHtml(repliedQuestionId)}</code>. Tap Load questions in the website admin popup to refresh the list.`, message.message_id);
+        return res.status(200).json({ ok: true, deleted: repliedQuestionId });
       }
 
       if (command === '/dismiss') {
-        await dismissQuestion(questionId);
-        await sendTelegram(chatId, `Dismissed question <code>${escapeHtml(questionId)}</code>.`, message.message_id);
-        return res.status(200).json({ ok: true, dismissed: questionId });
-      }
-
-      if (command === '/edit') {
-        await saveEditSession(chatId, questionId);
-        await sendTelegram(chatId, `Send the edited question text now for <code>${escapeHtml(questionId)}</code>.`, message.message_id);
-        return res.status(200).json({ ok: true, editMode: questionId });
+        await dismissQuestion(repliedQuestionId);
+        await sendTelegram(chatId, `Dismissed question <code>${escapeHtml(repliedQuestionId)}</code>.`, message.message_id);
+        return res.status(200).json({ ok: true, dismissed: repliedQuestionId });
       }
 
       return res.status(200).json({ ok: true, ignored: 'unknown command' });
     }
 
-    if (!questionId) {
-      await sendTelegram(chatId, 'Could not find the question ID. Reply to the bot message that contains an ID line.', message.message_id);
+    if (!repliedQuestionId) {
+      await sendTelegram(chatId, 'Could not find the question ID. Reply to the bot question message that contains an ID line.', message.message_id);
       return res.status(200).json({ ok: true, ignored: 'missing question id' });
     }
 
-    await answerQuestion(questionId, text);
-    await sendTelegram(chatId, `Saved answer for <code>${escapeHtml(questionId)}</code>. Refresh the website question box to see it.`, message.message_id);
-    return res.status(200).json({ ok: true, answered: questionId });
+    await answerQuestion(repliedQuestionId, text);
+    await sendTelegram(chatId, `Saved answer for <code>${escapeHtml(repliedQuestionId)}</code>. Refresh the website question box to see it.`, message.message_id);
+    return res.status(200).json({ ok: true, answered: repliedQuestionId });
   } catch (error) {
     console.error('Telegram webhook failed:', error);
     return res.status(200).json({ ok: false, error: error.message || 'Webhook failed' });
