@@ -5319,3 +5319,50 @@ body.gx-game-mode #gx-game-page{
   pointer-events:none !important;
   visibility:hidden !important;
 }
+
+/* ===== USER REQUEST PATCH 2026-07-01: popup games, AMA inline pager, credits ===== */
+/* Re-enable the game modal after the previous "kill leftover popups" override. */
+html body #final-game-modal.arena-game-modal,
+html body #final-game-modal.arena-game-modal.open{
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147483600!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:clamp(14px,3vw,34px)!important;
+  background:rgba(5,5,5,.48)!important;
+  backdrop-filter:blur(22px) saturate(1.14)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.14)!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+}
+html body #final-game-modal.arena-game-modal:not(.open){display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
+#final-game-modal.arena-game-modal .fgm-panel{width:min(720px,calc(100vw - 28px))!important;height:auto!important;max-height:min(860px,92dvh)!important;background:rgba(18,18,17,.92)!important;border:2px solid rgba(230,226,203,.18)!important;border-radius:30px!important;box-shadow:0 38px 130px rgba(0,0,0,.68)!important;overflow:hidden!important;}
+#final-game-modal.arena-game-modal .fgm-body{padding:clamp(12px,3vw,20px)!important;overflow:auto!important;}
+#final-game-modal.arena-game-modal .fgm-game{max-width:520px!important;width:100%!important;}
+body.arena-game-open{overflow:hidden!important;}
+body.arena-game-open > *:not(#final-game-modal):not(.topbar-container):not(header.topbar-container):not(script):not(style){filter:blur(3px);transition:filter .25s ease;}
+#final-game-modal.arena-game-modal .fgm-canvas{max-width:min(420px,86vw)!important;}
+#final-game-modal.arena-game-modal .fgm-controls{grid-template-columns:repeat(3,58px)!important;gap:10px!important;}
+#final-game-modal.arena-game-modal .fgm-controls button{font-size:20px!important;font-weight:900!important;}
+
+/* AMA: categories and page number pills on one perfectly aligned row. */
+.ama-public-controls--top{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:.55rem!important;flex-wrap:nowrap!important;}
+.ama-public-controls--top .ama-sort-pills{display:flex!important;align-items:center!important;gap:.45rem!important;flex-wrap:nowrap!important;min-width:0!important;}
+.ama-public-controls--top .ama-page-pills{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:.38rem!important;margin-left:auto!important;flex:0 0 auto!important;}
+.ama-public-controls--bottom{display:none!important;}
+@media(max-width:420px){
+  .ama-public-controls--top{gap:.35rem!important;padding-left:.55rem!important;padding-right:.55rem!important;}
+  .ama-sort-pill{padding:0 .58rem!important;}
+  .ama-page-pill{min-width:28px!important;height:28px!important;padding:0 .5rem!important;}
+}
+
+/* Credits: section headers and clickable AI badges. */
+#site-credit-card .site-credit-title{font-family:var(--mono,monospace)!important;font-size:.78rem!important;letter-spacing:.18em!important;text-transform:uppercase!important;color:rgba(245,242,233,.62)!important;margin:.15rem 0 .55rem!important;}
+#site-credit-card .site-credit-title + .site-credit-row{margin-bottom:.75rem!important;}
+#site-credit-card .site-credit-row.made-using-row{gap:.55rem!important;}
+#site-credit-card a.credit-badge{text-decoration:none!important;color:inherit!important;}
+#site-credit-card .credit-badge{display:inline-flex!important;align-items:center!important;gap:.42rem!important;}
+#site-credit-card .credit-badge svg{width:18px!important;height:18px!important;fill:currentColor!important;flex:0 0 auto!important;}
