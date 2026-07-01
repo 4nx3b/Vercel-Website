@@ -5837,3 +5837,49 @@ body.music-playing #tb-three-dots{
 .gx-changelog-filter:hover{background:rgba(255,255,255,.08)!important;color:#f5f2e9!important;}
 .gx-changelog-filter.active:hover{background:#f5f2e9!important;color:#111!important;}
 @media(max-width:520px){.gx-changelog-controls{margin-right:46px!important}.gx-changelog-filter{font-size:10px!important;min-height:31px!important;padding:0 10px!important}}
+
+/* ===== USER REQUEST FIX v16 2026-07-01: AMA compose popup + stable mini-player icons ===== */
+#ama-name-modal .ama-popup-question{
+  width:100%!important;
+  min-height:128px!important;
+  resize:vertical!important;
+  margin:0 0 12px!important;
+  background:rgba(0,0,0,.22)!important;
+  border:2px solid rgba(230,226,203,.16)!important;
+  border-radius:18px!important;
+  color:#f5f2e9!important;
+  font-family:var(--mono,monospace)!important;
+  font-size:16px!important;
+  line-height:1.5!important;
+  padding:15px!important;
+  outline:0!important;
+  box-shadow:none!important;
+}
+#ama-name-modal .ama-popup-question::placeholder,
+#ama-name-modal #ama-name-input::placeholder{color:rgba(245,242,233,.38)!important;}
+#ama-name-modal #ama-name-title{font-size:clamp(32px,7vw,52px)!important;}
+#ama-name-modal .ama-modal-input{margin-top:0!important;}
+body.music-playing #sp-icon-play,
+body.music-playing .sp-play-btn #sp-icon-play{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+}
+body.music-playing #sp-icon-pause,
+body.music-playing .sp-play-btn #sp-icon-pause{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+body:not(.music-playing) #sp-icon-play,
+body:not(.music-playing) .sp-play-btn #sp-icon-play{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+body:not(.music-playing) #sp-icon-pause,
+body:not(.music-playing) .sp-play-btn #sp-icon-pause{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+}
