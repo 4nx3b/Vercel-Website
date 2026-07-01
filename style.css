@@ -4852,7 +4852,6 @@ html{overflow-y:auto!important}body:not(.ama-modal-open):not(.gx-changelog-open)
   animation: arenaModalBackdropIn .32s ease both !important;
 }
 
-#ama-owner-v4-modal.open,
 .gx-changelog-modal.open {
   animation: arenaModalFadeIn .32s ease both !important;
 }
@@ -4868,7 +4867,6 @@ html{overflow-y:auto!important}body:not(.ama-modal-open):not(.gx-changelog-open)
   animation: arenaModalCardIn .48s cubic-bezier(.18,.88,.32,1.16) both !important;
 }
 
-#ama-owner-v4-modal.open .ama-v2-card,
 .gx-changelog-modal.open .gx-changelog-card {
   will-change: transform, opacity;
   transform-origin: 50% 12%;
@@ -5591,7 +5589,8 @@ html body.gx-playground-open #gx-game-page.gx-page-opening *{
 #force-game-modal .fgm-over{position:absolute!important;inset:0!important;z-index:20!important;display:flex!important;align-items:center!important;justify-content:center!important;background:rgba(7,7,7,.42)!important;backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;border-radius:22px!important;}
 #force-game-modal .fgm-retry{min-height:58px!important;padding:0 30px!important;border-radius:999px!important;background:#f5f2e9!important;color:#10100f!important;border:0!important;font-weight:900!important;letter-spacing:.13em!important;text-transform:uppercase!important;}
 body.force-popup-open{overflow:hidden!important;}
-#ama-name-modal.open,#ama-owner-v4-modal.open{position:fixed!important;inset:0!important;z-index:2147483645!important;display:flex!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;align-items:center!important;justify-content:center!important;}
+#ama-name-modal.open{position:fixed!important;inset:0!important;z-index:2147483645!important;display:flex!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;align-items:center!important;justify-content:center!important;}
+#ama-owner-v4-modal.open{position:fixed!important;inset:0!important;z-index:2147483645!important;visibility:visible!important;pointer-events:auto!important;align-items:center!important;justify-content:center!important;}
 #ama-name-modal.open input,#ama-owner-v4-modal.open input,#ama-owner-v4-modal.open textarea{font-size:16px!important;}
 
 /* ===== USER REQUEST FIX v7 2026-07-01: stable game popup + hard page lock ===== */
@@ -5648,7 +5647,7 @@ body.force-popup-open > *:not(#force-game-modal):not(script):not(style){
   touch-action:none!important;
 }
 #ama-owner-v4-modal.open .ama-v2-card{
-  transform:translateY(-4vh)!important;
+  --admin-card-y: -4vh;
   margin:auto!important;
   max-height:min(820px,88dvh)!important;
   overflow:auto!important;
@@ -5657,7 +5656,7 @@ body.force-popup-open > *:not(#force-game-modal):not(script):not(style){
   overscroll-behavior:contain!important;
 }
 @media(max-height:680px){
-  #ama-owner-v4-modal.open .ama-v2-card{transform:translateY(-1vh)!important;max-height:90dvh!important;}
+  #ama-owner-v4-modal.open .ama-v2-card{ --admin-card-y: -1vh; max-height:90dvh!important;}
 }
 /* Keep the music mini player usable even when popup-lock classes are present. */
 #slide-music-player.active{
@@ -6638,24 +6637,6 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   animation: none !important;
 }
 
-/* ===== USER REQUEST FIX v31 2026-07-02: Admin ("Answer questions") popup uses the exact same
-   no-blur open/close animation style as the Changelogs popup. The card itself no longer
-   plays its own scale/slide box animation (it appears instantly, matching Changelogs);
-   only the inner text (kicker/title/fields) fades in via the shared arenaFadeRiseNoBlur
-   animation. Unscoped from .open so it also holds during the shared 'closing' animation. */
-#ama-owner-v4-modal {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  filter: none !important;
-  -webkit-filter: none !important;
-}
-
-#ama-owner-v4-modal.open {
-  background: rgba(5,5,5,0.7) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
 /* Close button sits inside the card's top-right corner so it always tracks
    the card, regardless of the card's height or vertical position. */
 .gx-changelog-close {
@@ -6703,14 +6684,12 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
    three back in line with a single, light, consistent blur value — placed
    last so it wins the cascade over every earlier conflicting declaration. */
 #ama-name-modal,
-#ama-owner-v4-modal,
 .gx-changelog-modal {
   backdrop-filter: blur(10px) saturate(1.08) !important;
   -webkit-backdrop-filter: blur(10px) saturate(1.08) !important;
 }
 
 #ama-name-modal.open,
-#ama-owner-v4-modal.open,
 .gx-changelog-modal.open {
   background: rgba(5, 5, 5, 0.62) !important;
   backdrop-filter: blur(10px) saturate(1.08) !important;
@@ -6719,8 +6698,66 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
 
 /* The cards themselves stay perfectly sharp — only the backdrop behind them is blurred. */
 #ama-name-modal.open .ama-modal-card,
-#ama-owner-v4-modal.open .ama-v2-card,
 .gx-changelog-modal.open .gx-changelog-card {
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ===== USER REQUEST FIX v33 2026-07-02: Admin popup — rebuilt open/close animation from scratch =====
+   Root cause of the earlier "broken" animation: a couple of older rules
+   elsewhere in this file set static `opacity: 1 !important` and
+   `transform: translateY(-4vh) !important` directly on this modal/card.
+   Per the CSS cascade, a static !important declaration ALWAYS beats a CSS
+   animation trying to animate that same property, no matter how the
+   animation was written or where it was placed — so previous fixes to the
+   animation itself could never have worked while those static rules
+   remained. Those two declarations have been removed/converted (search
+   "v9" and the opacity:1 rule above), and this block below now owns the
+   open/close motion entirely, via its own keyframes and ID-scoped
+   selectors so nothing else can quietly collide with it again. */
+@keyframes adminPopupBackdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes adminPopupBackdropOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes adminPopupCardIn {
+  from { opacity: 0; transform: translate3d(0, calc(var(--admin-card-y, -4vh) + 16px), 0) scale(.96); }
+  to   { opacity: 1; transform: translate3d(0, var(--admin-card-y, -4vh), 0) scale(1); }
+}
+@keyframes adminPopupCardOut {
+  from { opacity: 1; transform: translate3d(0, var(--admin-card-y, -4vh), 0) scale(1); }
+  to   { opacity: 0; transform: translate3d(0, calc(var(--admin-card-y, -4vh) + 10px), 0) scale(.97); }
+}
+
+#ama-owner-v4-modal.open {
+  display: flex !important;
+  animation: adminPopupBackdropIn .3s ease both !important;
+  background: rgba(5, 5, 5, 0.62) !important;
+  backdrop-filter: blur(10px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.08) !important;
+}
+#ama-owner-v4-modal.closing {
+  display: flex !important;
+  animation: adminPopupBackdropOut .28s ease both !important;
+  background: rgba(5, 5, 5, 0.62) !important;
+  backdrop-filter: blur(10px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.08) !important;
+}
+
+#ama-owner-v4-modal.open .ama-v2-card {
+  animation: adminPopupCardIn .38s cubic-bezier(.22,1,.36,1) both !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#ama-owner-v4-modal.closing .ama-v2-card {
+  animation: adminPopupCardOut .26s cubic-bezier(.4,0,1,1) both !important;
   filter: none !important;
   -webkit-filter: none !important;
   backdrop-filter: none !important;
