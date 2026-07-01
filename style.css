@@ -6343,3 +6343,30 @@ html body .slide-player-panel.active{
 .gx-changelog-entry{
   overflow:visible!important;
 }
+
+/* ===== USER REQUEST FIX v23 2026-07-01: AMA question trigger as button + no-caret + reinforced blur ===== */
+
+/* Outer "Your question" field should read and behave like a tappable button, not a text input. */
+#ama-question-input.ama-question-trigger-btn,
+.ama-wrap #ama-question-input{
+  cursor:pointer!important;
+  caret-color:transparent!important;
+  -webkit-user-select:none!important;
+  user-select:none!important;
+  -webkit-touch-callout:none!important;
+}
+#ama-question-input.ama-question-trigger-btn:focus,
+.ama-wrap #ama-question-input:focus{
+  outline:0!important;
+  caret-color:transparent!important;
+}
+/* Hide any blinking caret/selection while it is acting as a button. */
+#ama-question-input.ama-question-trigger-btn::selection{background:transparent!important;}
+
+/* Reinforced blurred backdrop behind the AMA compose popup. */
+#ama-name-modal.open,
+body > .ama-modal#ama-name-modal.open{
+  background:rgba(6,6,6,.55)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(1.15)!important;
+  backdrop-filter:blur(26px) saturate(1.15)!important;
+}
