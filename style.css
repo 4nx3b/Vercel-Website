@@ -5436,3 +5436,57 @@ html body #final-game-modal.arena-game-modal-v2:not(.open){display:none!importan
 #final-game-modal.arena-game-modal-v2 .fgm-canvas{touch-action:none!important;display:block!important;width:100%!important;max-width:min(430px,86vw)!important;margin:0 auto!important;}
 #final-game-modal.arena-game-modal-v2 .fgm-canvas.fgm-wide{max-width:min(520px,86vw)!important;aspect-ratio:3/2!important;}
 #final-game-modal.arena-game-modal-v2 .fgm-status{font-size:clamp(14px,3.6vw,18px)!important;margin:12px 0!important;}
+
+/* ===== USER REQUEST FIX v3 2026-07-01: safe playground route, no home-page disappearing ===== */
+/* Use a dedicated playground overlay class instead of relying on gx-game-mode,
+   because older gx-game-mode rules hide nearly every body child. */
+html body.gx-playground-open{
+  overflow:hidden!important;
+  height:100dvh!important;
+}
+html body.gx-playground-open #gx-game-page{
+  display:block!important;
+  position:fixed!important;
+  inset:0!important;
+  z-index:8500!important;
+  width:100vw!important;
+  max-width:none!important;
+  height:100dvh!important;
+  margin:0!important;
+  padding:calc(104px + env(safe-area-inset-top)) 28px 72px!important;
+  overflow:auto!important;
+  -webkit-overflow-scrolling:touch!important;
+  background:var(--bg,#000)!important;
+  color:#f7f4e9!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  transform:none!important;
+  filter:none!important;
+  animation:none!important;
+}
+html body.gx-playground-open .topbar-container,
+html body.gx-playground-open header.topbar-container{
+  display:flex!important;
+  z-index:9999!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+/* If an older handler briefly adds gx-game-mode, do NOT let it erase the home DOM. */
+html body.gx-playground-open.gx-game-mode > *:not(script):not(style){
+  display:revert!important;
+}
+html body.gx-playground-open.gx-game-mode #gx-game-page{display:block!important;}
+html body.gx-playground-open #gx-game-page.gx-page-opening,
+html body.gx-playground-open #gx-game-page.gx-page-opening *{
+  animation:none!important;
+  transition:none!important;
+  opacity:1!important;
+  transform:none!important;
+  filter:none!important;
+}
+@media(max-width:640px){
+  html body.gx-playground-open #gx-game-page{
+    padding:calc(96px + env(safe-area-inset-top)) 24px 70px!important;
+  }
+}
