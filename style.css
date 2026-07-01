@@ -5728,3 +5728,112 @@ body:not(.music-playing) #tb-eq-bars.playing{
 body:not(.music-playing) #tb-three-dots{
   display:flex!important;
 }
+
+/* ===== USER REQUEST FIX v14 2026-07-01: smoother topbar music pulse/equalizer ===== */
+#tb-eq-bars.tb-eq-bars{
+  width:18px!important;
+  height:16px!important;
+  gap:3px!important;
+  align-items:flex-end!important;
+  justify-content:center!important;
+  contain:layout paint!important;
+}
+body:not(.music-playing) #tb-eq-bars,
+body:not(.music-playing) #tb-eq-bars.playing{
+  display:none!important;
+}
+body.music-playing #tb-eq-bars{
+  display:flex!important;
+}
+#tb-eq-bars .bar{
+  width:3px!important;
+  height:14px!important;
+  min-height:14px!important;
+  max-height:14px!important;
+  border-radius:999px!important;
+  transform-origin:50% 100%!important;
+  will-change:transform,opacity!important;
+  background:linear-gradient(180deg,#f5f2e9 0%,#d8d0bd 58%,#23d18b 100%)!important;
+  box-shadow:0 0 8px rgba(245,242,233,.18),0 0 10px rgba(35,209,139,.12)!important;
+  opacity:.88!important;
+  animation:arenaMusicBarsSmooth 1.18s cubic-bezier(.45,0,.25,1) infinite!important;
+  backface-visibility:hidden!important;
+}
+#tb-eq-bars .bar1{animation-delay:0s!important;}
+#tb-eq-bars .bar2{animation-delay:.18s!important;}
+#tb-eq-bars .bar3{animation-delay:.36s!important;}
+body:not(.music-playing) #tb-eq-bars .bar{
+  animation:none!important;
+  transform:scale3d(1,.38,1)!important;
+  opacity:.55!important;
+}
+@keyframes arenaMusicBarsSmooth{
+  0%,100%{transform:scale3d(1,.36,1);opacity:.62;}
+  28%{transform:scale3d(1,.78,1);opacity:.86;}
+  52%{transform:scale3d(1,1,1);opacity:1;}
+  76%{transform:scale3d(1,.58,1);opacity:.78;}
+}
+@media (prefers-reduced-motion: reduce){
+  #tb-eq-bars .bar{animation:none!important;transform:scale3d(1,.72,1)!important;}
+}
+
+/* ===== USER REQUEST FIX v15 2026-07-01: remove topbar pulse/equalizer animation ===== */
+#tb-eq-bars,
+#tb-eq-bars.playing,
+body.music-playing #tb-eq-bars,
+body.music-playing #tb-eq-bars.playing{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+#tb-eq-bars .bar,
+body.music-playing #tb-eq-bars .bar{
+  animation:none!important;
+  transform:none!important;
+  box-shadow:none!important;
+}
+#tb-three-dots,
+body.music-playing #tb-three-dots{
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+/* Keep album/disc static too; no pulse/spin visual noise. */
+#tb-music-disc,
+#tb-music-disc.spinning,
+#sp-vinyl,
+#sp-vinyl.spinning{
+  animation:none!important;
+}
+
+/* Changelog recent/oldest filter controls */
+.gx-changelog-controls{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  flex-wrap:wrap!important;
+  margin:0 52px 18px 0!important;
+}
+.gx-changelog-filter{
+  min-height:34px!important;
+  padding:0 13px!important;
+  border-radius:999px!important;
+  border:1.5px solid rgba(230,226,203,.16)!important;
+  background:rgba(255,255,255,.045)!important;
+  color:#aaa79f!important;
+  font-family:var(--mono,monospace)!important;
+  font-size:11px!important;
+  font-weight:900!important;
+  letter-spacing:.12em!important;
+  text-transform:uppercase!important;
+  cursor:pointer!important;
+}
+.gx-changelog-filter.active{
+  background:#f5f2e9!important;
+  border-color:#f5f2e9!important;
+  color:#111!important;
+}
+.gx-changelog-filter:hover{background:rgba(255,255,255,.08)!important;color:#f5f2e9!important;}
+.gx-changelog-filter.active:hover{background:#f5f2e9!important;color:#111!important;}
+@media(max-width:520px){.gx-changelog-controls{margin-right:46px!important}.gx-changelog-filter{font-size:10px!important;min-height:31px!important;padding:0 10px!important}}
