@@ -5366,3 +5366,73 @@ body.arena-game-open > *:not(#final-game-modal):not(.topbar-container):not(heade
 #site-credit-card a.credit-badge{text-decoration:none!important;color:inherit!important;}
 #site-credit-card .credit-badge{display:inline-flex!important;align-items:center!important;gap:.42rem!important;}
 #site-credit-card .credit-badge svg{width:18px!important;height:18px!important;fill:currentColor!important;flex:0 0 auto!important;}
+
+/* ===== USER REQUEST FIX v2 2026-07-01: AMA one-line controls, stable games, no delayed playground title ===== */
+html body .ama-wrap #ama-list .ama-public-controls.ama-public-controls--top{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  column-gap:.52rem!important;
+  row-gap:0!important;
+  flex-wrap:nowrap!important;
+  justify-content:normal!important;
+  width:100%!important;
+}
+html body .ama-wrap #ama-list .ama-public-controls--top .ama-sort-pills{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:.42rem!important;
+  flex-wrap:nowrap!important;
+  min-width:0!important;
+  width:100%!important;
+}
+html body .ama-wrap #ama-list .ama-public-controls--top .ama-page-pills{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:.35rem!important;
+  flex-wrap:nowrap!important;
+  min-width:max-content!important;
+  margin:0!important;
+}
+html body .ama-wrap #ama-list .ama-public-controls--bottom{display:none!important;}
+@media(max-width:520px){
+  html body .ama-wrap #ama-list .ama-public-controls.ama-public-controls--top{grid-template-columns:minmax(0,1fr) auto!important;column-gap:.34rem!important;padding:.46rem .54rem .38rem!important;}
+  html body .ama-wrap #ama-list .ama-sort-pill{min-height:25px!important;padding:0 .48rem!important;font-size:.62rem!important;}
+  html body .ama-wrap #ama-list .ama-page-pill{min-width:26px!important;height:26px!important;padding:0 .44rem!important;font-size:.62rem!important;border-radius:9px!important;}
+}
+
+/* Kill the delayed playground header/card intro on the games page. */
+#gx-game-page.gx-page-opening,
+#gx-game-page.gx-page-opening .gx-game-page-title,
+#gx-game-page.gx-page-opening .gx-game-page-sub,
+#gx-game-page.gx-page-opening .gx-play-card,
+#gx-game-page.gx-page-opening .gx-game-return,
+#gx-game-page .gx-game-page-title,
+#gx-game-page .gx-game-page-sub,
+#gx-game-page .gx-game-return{
+  opacity:1!important;
+  transform:none!important;
+  filter:none!important;
+  animation:none!important;
+  transition:none!important;
+}
+
+/* Stable final game modal sizing and touch behavior. */
+html body #final-game-modal.arena-game-modal-v2,
+html body #final-game-modal.arena-game-modal-v2.open{
+  display:flex!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+  position:fixed!important;inset:0!important;z-index:2147483640!important;
+  align-items:center!important;justify-content:center!important;
+  padding:clamp(12px,3vw,28px)!important;
+  background:rgba(5,5,5,.54)!important;
+  backdrop-filter:blur(24px) saturate(1.12)!important;
+  -webkit-backdrop-filter:blur(24px) saturate(1.12)!important;
+}
+html body #final-game-modal.arena-game-modal-v2:not(.open){display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
+#final-game-modal.arena-game-modal-v2 .fgm-panel{width:min(720px,calc(100vw - 26px))!important;max-height:92dvh!important;height:auto!important;background:rgba(18,18,17,.94)!important;}
+#final-game-modal.arena-game-modal-v2 .fgm-game{max-width:560px!important;}
+#final-game-modal.arena-game-modal-v2 .fgm-canvas{touch-action:none!important;display:block!important;width:100%!important;max-width:min(430px,86vw)!important;margin:0 auto!important;}
+#final-game-modal.arena-game-modal-v2 .fgm-canvas.fgm-wide{max-width:min(520px,86vw)!important;aspect-ratio:3/2!important;}
+#final-game-modal.arena-game-modal-v2 .fgm-status{font-size:clamp(14px,3.6vw,18px)!important;margin:12px 0!important;}
