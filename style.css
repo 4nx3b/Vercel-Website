@@ -5713,3 +5713,18 @@ body:not(.music-playing) .sp-vinyl.spinning{
 body:not(.music-playing) .tb-eq-bars .bar{
   animation:none!important;
 }
+
+/* ===== USER REQUEST FIX v13 2026-07-01: never pulse unless authoritative audio is playing ===== */
+body:not(.music-playing) .tb-music-disc,
+body:not(.music-playing) .tb-music-disc.spinning,
+body:not(.music-playing) #sp-vinyl,
+body:not(.music-playing) #sp-vinyl.spinning{
+  animation:none!important;
+}
+body:not(.music-playing) #tb-eq-bars,
+body:not(.music-playing) #tb-eq-bars.playing{
+  display:none!important;
+}
+body:not(.music-playing) #tb-three-dots{
+  display:flex!important;
+}
