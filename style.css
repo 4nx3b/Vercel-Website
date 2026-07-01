@@ -6569,3 +6569,13 @@ html body.ama-compose-open #ama-name-modal.open .ama-modal-card{
   .gx-changelog-list{max-height:calc(100dvh - 285px)!important;}
   .gx-changelog-page-pill{min-width:34px!important;height:34px!important;font-size:12px!important;}
 }
+
+/* ===== USER REQUEST FIX v29 2026-07-01: intro/welcome screen emergency enter fix ===== */
+#intro-overlay.intro-force-hidden,
+#intro-overlay[data-force-dismissed="1"]{
+  display:none!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  transform:translate3d(0,-120vh,0)!important;
+}
