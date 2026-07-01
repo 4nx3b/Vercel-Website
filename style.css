@@ -6039,3 +6039,65 @@ body:not(.music-playing) .sp-play-btn #sp-icon-pause{
   #ama-name-modal .ama-modal-card{width:calc(100vw - 28px)!important;max-height:82dvh!important;padding:22px!important;border-radius:28px!important;}
   #ama-name-modal .ama-popup-question{min-height:130px!important;}
 }
+
+/* ===== USER REQUEST FIX v19 2026-07-01: compact AMA compose popup, name field visible ===== */
+#ama-name-modal.open{
+  z-index:2147483647!important;
+  align-items:flex-start!important;
+  padding-top:calc(76px + env(safe-area-inset-top))!important;
+  overflow:auto!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+#ama-name-modal .ama-modal-card{
+  width:min(620px,calc(100vw - 28px))!important;
+  max-height:calc(100dvh - 112px)!important;
+  min-height:0!important;
+  overflow:auto!important;
+  padding:20px!important;
+  gap:8px!important;
+  background:#151514!important;
+  opacity:1!important;
+}
+#ama-name-modal .ama-popup-question{
+  min-height:96px!important;
+  max-height:132px!important;
+  padding:14px!important;
+  margin:0 0 6px!important;
+}
+#ama-name-modal .ama-compose-label{
+  margin:8px 0 6px!important;
+  font-size:15px!important;
+  line-height:1.1!important;
+}
+#ama-name-modal #ama-name-input{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  min-height:50px!important;
+  height:50px!important;
+  max-height:50px!important;
+  padding:0 14px!important;
+  margin:0 0 8px!important;
+  position:relative!important;
+  z-index:3!important;
+}
+#ama-name-modal #ama-final-send{
+  min-height:52px!important;
+  margin-top:6px!important;
+  display:flex!important;
+}
+@media(max-width:520px){
+  #ama-name-modal.open{padding-top:calc(58px + env(safe-area-inset-top))!important;}
+  #ama-name-modal .ama-modal-card{max-height:calc(100dvh - 88px)!important;padding:18px!important;}
+  #ama-name-modal .ama-popup-question{min-height:88px!important;max-height:110px!important;}
+}
+
+/* Stop changelog list visual flicker from repeated legacy reveal animations/reorders. */
+#gx-changelog-modal .gx-changelog-entry,
+#gx-changelog-modal.open .gx-changelog-entry{
+  animation:none!important;
+  opacity:1!important;
+  transform:none!important;
+  filter:none!important;
+  transition:none!important;
+}
