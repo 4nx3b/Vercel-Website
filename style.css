@@ -6376,7 +6376,9 @@ body > .ama-modal#ama-name-modal.open{
    ============================================================ */
 
 /* 1) Make sure the modal sits above everything when open, and apply a
-      robust backdrop blur on the modal itself. */
+      robust backdrop blur on the modal itself.
+      Position/height are set dynamically by the position-fix JS based
+      on the visualViewport (so it works correctly above the keyboard). */
 #ama-name-modal.open {
   position: fixed !important;
   inset: 0 !important;
@@ -6384,18 +6386,16 @@ body > .ama-modal#ama-name-modal.open{
   height: 100dvh !important;
   z-index: 2147483645 !important;
   display: flex !important;
-  align-items: flex-start !important;
+  align-items: center !important;
   justify-content: center !important;
-  padding: calc(72px + env(safe-area-inset-top, 0px)) 16px 16px !important;
+  padding: 16px !important;
   background: rgba(5, 5, 5, 0.6) !important;
   backdrop-filter: blur(26px) saturate(1.18) !important;
   -webkit-backdrop-filter: blur(26px) saturate(1.18) !important;
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
-}
-@media (min-width: 761px) {
-  #ama-name-modal.open { align-items: center !important; padding: 24px !important; }
+  transition: top 0.2s ease, height 0.2s ease !important;
 }
 
 /* 2) The card inside the modal stays sharp & clickable. */
