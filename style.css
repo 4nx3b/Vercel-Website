@@ -4848,11 +4848,11 @@ html{overflow-y:auto!important}body:not(.ama-modal-open):not(.gx-changelog-open)
   to { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
 }
 
-#ama-name-modal.open,
-#ama-owner-v4-modal.open {
+#ama-name-modal.open {
   animation: arenaModalBackdropIn .32s ease both !important;
 }
 
+#ama-owner-v4-modal.open,
 .gx-changelog-modal.open {
   animation: arenaModalFadeIn .32s ease both !important;
 }
@@ -4862,13 +4862,13 @@ html{overflow-y:auto!important}body:not(.ama-modal-open):not(.gx-changelog-open)
   to { opacity: 1; }
 }
 
-#ama-name-modal.open .ama-modal-card,
-#ama-owner-v4-modal.open .ama-v2-card {
+#ama-name-modal.open .ama-modal-card {
   will-change: transform, opacity, filter;
   transform-origin: 50% 12%;
   animation: arenaModalCardIn .48s cubic-bezier(.18,.88,.32,1.16) both !important;
 }
 
+#ama-owner-v4-modal.open .ama-v2-card,
 .gx-changelog-modal.open .gx-changelog-card {
   will-change: transform, opacity;
   transform-origin: 50% 12%;
@@ -6635,6 +6635,33 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   /* No animation filter */
+  animation: none !important;
+}
+
+/* ===== USER REQUEST FIX v31 2026-07-02: Admin ("Answer questions") popup uses the exact same
+   no-blur open/close animation style as the Changelogs popup. The card itself no longer
+   plays its own scale/slide box animation (it appears instantly, matching Changelogs);
+   only the inner text (kicker/title/fields) fades in via the shared arenaFadeRiseNoBlur
+   animation. Unscoped from .open so it also holds during the shared 'closing' animation. */
+#ama-owner-v4-modal {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+}
+
+#ama-owner-v4-modal.open {
+  background: rgba(5,5,5,0.7) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#ama-owner-v4-modal .ama-v2-card {
+  position: relative !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   animation: none !important;
 }
 
