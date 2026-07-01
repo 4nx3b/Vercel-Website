@@ -5613,3 +5613,43 @@ body.force-popup-open > *:not(#force-game-modal):not(script):not(style){
 @media(max-height:680px){
   #force-game-modal.force-game-modal.open .fgm-panel{transform:translateY(-1vh)!important;}
 }
+
+/* ===== USER REQUEST FIX v9 2026-07-01: stable centered owner popup + restored mini player ===== */
+#ama-owner-v4-modal.open{
+  align-items:center!important;
+  justify-content:center!important;
+  padding:clamp(14px,3vh,28px) 14px!important;
+  overflow:hidden!important;
+  overscroll-behavior:contain!important;
+  touch-action:none!important;
+}
+#ama-owner-v4-modal.open .ama-v2-card{
+  transform:translateY(-4vh)!important;
+  margin:auto!important;
+  max-height:min(820px,88dvh)!important;
+  overflow:auto!important;
+  -webkit-overflow-scrolling:touch!important;
+  touch-action:auto!important;
+  overscroll-behavior:contain!important;
+}
+@media(max-height:680px){
+  #ama-owner-v4-modal.open .ama-v2-card{transform:translateY(-1vh)!important;max-height:90dvh!important;}
+}
+/* Keep the music mini player usable even when popup-lock classes are present. */
+#slide-music-player.active{
+  display:flex!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  transform:translate3d(0,0,0) scale(1)!important;
+  filter:blur(0)!important;
+  z-index:2147483647!important;
+}
+#slide-music-player.active .sp-controls,
+#slide-music-player.active .sp-play-btn,
+#slide-music-player.active .sp-link-btn{
+  display:inline-flex!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+}
