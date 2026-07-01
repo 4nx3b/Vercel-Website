@@ -6436,7 +6436,7 @@ body > .ama-modal#ama-name-modal.open{
       NOTE: The blur is light (3px) because heavy blurs on many
       page elements cause severe lag. The modal's own backdrop-filter
       does most of the visual heavy lifting. */
-body.ama-modal-open *:not(#ama-name-modal):not(#ama-name-modal *):not(.topbar-container):not(.topbar-container *):not(script):not(style) {
+body.ama-modal-open *:not(#ama-name-modal):not(#ama-name-modal *):not(.gx-changelog-modal):not(.gx-changelog-modal *):not(.topbar-container):not(.topbar-container *):not(script):not(style) {
   filter: blur(3px) saturate(1.05) brightness(0.9) !important;
   -webkit-filter: blur(3px) saturate(1.05) brightness(0.9) !important;
   transition: filter 0.28s ease, -webkit-filter 0.28s ease !important;
@@ -6552,44 +6552,44 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
 }
 
 
-/* ===== USER REQUEST FIX v28 2026-07-02: Move popup down 30px + Remove all changelog blur ===== */
-
-/* AMA "Your name" popup - 30px lower than before */
+/* ===== USER REQUEST FIX v29 2026-07-02: Correctly center the AMA "Your name" send popup =====
+   The previous fix pushed the card down with a large top padding + margin-top,
+   which fought with the JS visualViewport positioning (adjustModalToViewport
+   in script.js) that already shrinks/repositions the modal above the keyboard.
+   The combination left a big empty gap above the card and pushed it low on
+   screen. Centering it with normal, small padding fixes this. */
 #ama-name-modal.open {
   align-items: center !important;
   justify-content: center !important;
-  padding: calc(90px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)) !important;
-  margin-top: 30px !important;
+  padding: 16px !important;
+  margin-top: 0 !important;
 }
 
 #ama-name-modal.open .ama-modal-card {
   width: min(430px, calc(100vw - 32px)) !important;
-  max-height: calc(100dvh - 120px) !important;
-  padding-top: 56px !important;
-  padding-bottom: 20px !important;
+  max-height: min(86dvh, 600px) !important;
+  padding: 28px !important;
   margin-top: 0 !important;
 }
 
-/* Close button - fixed at top */
+/* Close button sits inside the top-right corner of the card itself. */
 #ama-name-modal #ama-name-close,
 #ama-name-modal .ama-modal-close {
-  position: fixed !important;
-  top: calc(42px + env(safe-area-inset-top)) !important;
+  position: absolute !important;
+  top: 14px !important;
   right: 16px !important;
   z-index: 10 !important;
 }
 
 @media (max-width: 760px) {
   #ama-name-modal.open {
-    padding-top: calc(80px + env(safe-area-inset-top)) !important;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important;
-    margin-top: 20px !important;
+    padding: 16px !important;
   }
-  
+
   #ama-name-modal.open .ama-modal-card {
     width: calc(100vw - 32px) !important;
-    max-height: calc(100dvh - 100px) !important;
-    padding-top: 52px !important;
+    max-height: min(80dvh, 560px) !important;
+    padding: 24px 20px !important;
   }
 }
 
@@ -6598,6 +6598,8 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   /* Completely remove all backdrop blur from the modal itself */
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  -webkit-filter: none !important;
 }
 
 .gx-changelog-modal.open {
