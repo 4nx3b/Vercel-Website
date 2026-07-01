@@ -6327,3 +6327,19 @@ html body .slide-player-panel.active{
   overflow:hidden!important;
   transform:translate3d(-9999px,-9999px,0) scale(0)!important;
 }
+
+/* ===== USER REQUEST FIX v21 2026-07-01: raise Changelogs popup + fix clipped last-entry outline ===== */
+.gx-changelog-modal{
+  padding-top:calc(40px + env(safe-area-inset-top))!important;
+}
+@media(max-width:760px){
+  .gx-changelog-modal{
+    padding-top:calc(28px + env(safe-area-inset-top))!important;
+  }
+}
+.gx-changelog-list{
+  padding-bottom:6px!important;
+}
+.gx-changelog-entry{
+  overflow:visible!important;
+}
