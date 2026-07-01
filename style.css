@@ -5343,7 +5343,7 @@ html body #final-game-modal.arena-game-modal:not(.open){display:none!important;o
 #final-game-modal.arena-game-modal .fgm-body{padding:clamp(12px,3vw,20px)!important;overflow:auto!important;}
 #final-game-modal.arena-game-modal .fgm-game{max-width:520px!important;width:100%!important;}
 body.arena-game-open{overflow:hidden!important;}
-body.arena-game-open > *:not(#final-game-modal):not(.topbar-container):not(header.topbar-container):not(script):not(style){filter:blur(3px);transition:filter .25s ease;}
+body.arena-game-open > *:not(#final-game-modal):not(#force-game-modal):not(.topbar-container):not(header.topbar-container):not(script):not(style){filter:blur(3px);transition:filter .25s ease;}
 #final-game-modal.arena-game-modal .fgm-canvas{max-width:min(420px,86vw)!important;}
 #final-game-modal.arena-game-modal .fgm-controls{grid-template-columns:repeat(3,58px)!important;gap:10px!important;}
 #final-game-modal.arena-game-modal .fgm-controls button{font-size:20px!important;font-weight:900!important;}
