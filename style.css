@@ -6434,3 +6434,70 @@ body:has(#ama-name-modal.open) > *:not(#ama-name-modal):not(script):not(style){
   #ama-name-modal.open .ama-modal-card{width:calc(100vw - 24px)!important;max-height:82dvh!important;padding:20px!important;padding-top:70px!important;}
   #ama-name-modal.open .ama-popup-question{height:118px!important;min-height:108px!important;max-height:138px!important;}
 }
+
+/* ===== USER REQUEST FIX v27 2026-07-01: force AMA modal above everything + real blur layer + empty placeholders ===== */
+#ama-compose-backdrop-v27{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  z-index:2147483645!important;
+  display:none!important;
+  background:rgba(5,5,5,.68)!important;
+  backdrop-filter:blur(28px) saturate(1.12)!important;
+  -webkit-backdrop-filter:blur(28px) saturate(1.12)!important;
+  pointer-events:auto!important;
+}
+body.ama-compose-open #ama-compose-backdrop-v27{display:block!important;}
+body.ama-compose-open > *:not(#ama-name-modal):not(#ama-compose-backdrop-v27):not(script):not(style){
+  filter:blur(14px) brightness(.42)!important;
+  opacity:.38!important;
+  pointer-events:none!important;
+  user-select:none!important;
+  z-index:0!important;
+}
+body.ama-compose-open .topbar-container,
+body.ama-compose-open header.topbar-container,
+body.ama-compose-open .online-presence,
+body.ama-compose-open .online-presence-list,
+body.ama-compose-open #gx-widgets,
+body.ama-compose-open section,
+body.ama-compose-open footer{
+  z-index:0!important;
+}
+html body #ama-name-modal.open{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  z-index:2147483647!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:18px 12px!important;
+  background:transparent!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  pointer-events:auto!important;
+}
+html body #ama-name-modal.open .ama-modal-card{
+  position:relative!important;
+  z-index:2147483647!important;
+  width:min(660px,calc(100vw - 26px))!important;
+  max-height:min(560px,72dvh)!important;
+  overflow:auto!important;
+  background:#151514!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+  box-shadow:0 38px 130px rgba(0,0,0,.82)!important;
+  border:2px solid rgba(230,226,203,.22)!important;
+}
+html body #ama-name-modal.open .ama-popup-question::placeholder,
+html body #ama-name-modal.open #ama-name-input::placeholder{
+  color:transparent!important;
+  -webkit-text-fill-color:transparent!important;
+  opacity:0!important;
+}
