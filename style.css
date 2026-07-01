@@ -4849,17 +4849,36 @@ html{overflow-y:auto!important}body:not(.ama-modal-open):not(.gx-changelog-open)
 }
 
 #ama-name-modal.open,
-#ama-owner-v4-modal.open,
-.gx-changelog-modal.open{
+#ama-owner-v4-modal.open {
   animation: arenaModalBackdropIn .32s ease both !important;
 }
 
+.gx-changelog-modal.open {
+  animation: arenaModalFadeIn .32s ease both !important;
+}
+
+@keyframes arenaModalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 #ama-name-modal.open .ama-modal-card,
-#ama-owner-v4-modal.open .ama-v2-card,
-.gx-changelog-modal.open .gx-changelog-card{
+#ama-owner-v4-modal.open .ama-v2-card {
   will-change: transform, opacity, filter;
   transform-origin: 50% 12%;
   animation: arenaModalCardIn .48s cubic-bezier(.18,.88,.32,1.16) both !important;
+}
+
+.gx-changelog-modal.open .gx-changelog-card {
+  will-change: transform, opacity;
+  transform-origin: 50% 12%;
+  animation: arenaModalCardNoBlur .48s cubic-bezier(.18,.88,.32,1.16) both !important;
+}
+
+@keyframes arenaModalCardNoBlur {
+  0% { opacity: 0; transform: translate3d(0, 22px, 0) scale(.94); }
+  55% { opacity: 1; transform: translate3d(0, -4px, 0) scale(1.01); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 #ama-name-modal.open .ama-modal-kicker,
@@ -4876,9 +4895,14 @@ html{overflow-y:auto!important}body:not(.ama-modal-open):not(.gx-changelog-open)
 #ama-owner-v4-modal.open #ama-v4-list,
 .gx-changelog-modal.open .gx-changelog-kicker,
 .gx-changelog-modal.open #gx-changelog-title,
-.gx-changelog-modal.open .gx-changelog-entry{
+.gx-changelog-modal.open .gx-changelog-entry {
   opacity: 0;
-  animation: arenaFadeRise .44s cubic-bezier(.22,1,.36,1) forwards;
+  animation: arenaFadeRiseNoBlur .44s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+@keyframes arenaFadeRiseNoBlur {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 #ama-name-modal.open .ama-modal-kicker{ animation-delay: .08s; }
@@ -6627,143 +6651,6 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   overscroll-behavior: contain !important;
   -webkit-overflow-scrolling: touch !important;
 }
-
-.gx-changelog-list {
-  /* Allow list to scroll within the card */
-  max-height: calc(100dvh - 200px) !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-}
-
-/* Mobile adjustments - ensure close button and send/action buttons are always visible */
-@media (max-width: 760px) {
-  .gx-changelog-modal {
-    padding-top: calc(50px + env(safe-area-inset-top)) !important;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important;
-    align-items: flex-start !important;
-  }
-  
-  .gx-changelog-card {
-    width: calc(100vw - 32px) !important;
-    max-height: calc(100dvh - 80px) !important;
-    /* Ensure close button area is always at top */
-    padding-top: 52px !important;
-  }
-  
-  .gx-changelog-close {
-    top: calc(10px + env(safe-area-inset-top)) !important;
-  }
-  
-  .gx-changelog-list {
-    max-height: calc(100dvh - 160px) !important;
-  }
-}
-
-/* Ensure the changelog modal stays above everything when open */
-body.gx-changelog-open .gx-changelog-modal {
-  z-index: 2147483647 !important;
-}
-
-/* ===== USER REQUEST FIX v26 2026-07-02: AMA popup lower + Changelog NO BLUR ===== */
-
-/* 1) AMA "Your name" popup - position lower so it doesn't get cut off at top */
-#ama-name-modal.open {
-  align-items: flex-end !important;
-  padding-top: 0 !important;
-  padding-bottom: calc(24px + env(safe-area-inset-bottom)) !important;
-}
-
-/* Ensure the card stays fully visible and has enough top padding for close button */
-#ama-name-modal.open .ama-modal-card {
-  width: min(430px, calc(100vw - 32px)) !important;
-  margin-top: 0 !important;
-  padding-top: 64px !important;
-  max-height: calc(100dvh - 60px) !important;
-  transform: none !important;
-}
-
-/* Close button - fixed position at top */
-#ama-name-modal #ama-name-close,
-#ama-name-modal .ama-modal-close {
-  position: fixed !important;
-  top: calc(16px + env(safe-area-inset-top)) !important;
-  right: 16px !important;
-  z-index: 10 !important;
-}
-
-@media (max-width: 760px) {
-  #ama-name-modal.open .ama-modal-card {
-    width: calc(100vw - 32px) !important;
-    max-height: calc(100dvh - 40px) !important;
-  }
-}
-
-/* 2) Changelog popup - COMPLETELY remove ALL blur from card and all children */
-.gx-changelog-modal.open,
-.gx-changelog-modal.open * {
-  filter: blur(0) !important;
-  -webkit-filter: blur(0) !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-}
-
-.gx-changelog-modal {
-  /* Use flex-end to push popup to bottom, above keyboard */
-  align-items: flex-end !important;
-  padding-top: 0 !important;
-  padding-bottom: calc(24px + env(safe-area-inset-bottom)) !important;
-  background: rgba(5,5,5,0.72) !important;
-  /* Remove backdrop blur - only blur the backdrop overlay, not the card */
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-.gx-changelog-card {
-  width: min(760px, calc(100vw - 32px)) !important;
-  max-height: calc(100dvh - 60px) !important;
-  padding-top: 64px !important;
-  /* Ensure card itself has NO blur */
-  filter: blur(0) !important;
-  -webkit-filter: blur(0) !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  overflow-y: auto !important;
-  overscroll-behavior: contain !important;
-  -webkit-overflow-scrolling: touch !important;
-}
-
-.gx-changelog-close {
-  position: fixed !important;
-  top: calc(16px + env(safe-area-inset-top)) !important;
-  right: 16px !important;
-  z-index: 10 !important;
-}
-
-.gx-changelog-list {
-  filter: blur(0) !important;
-  -webkit-filter: blur(0) !important;
-  max-height: none !important;
-  overflow-y: visible !important;
-}
-
-.gx-changelog-entry,
-.gx-changelog-kicker,
-.gx-changelog-card h3,
-.gx-changelog-date,
-.gx-changelog-entry ul,
-.gx-changelog-entry li {
-  filter: blur(0) !important;
-  -webkit-filter: blur(0) !important;
-}
-
-@media (max-width: 760px) {
-  .gx-changelog-card {
-    width: calc(100vw - 32px) !important;
-    max-height: calc(100dvh - 40px) !important;
-    padding: 64px 20px 24px !important;
-  }
-}
-
 /* ===== USER REQUEST FIX v27 2026-07-02: AMA popup above keyboard + Changelog no blur ===== */
 
 /* 1) AMA "Your name" popup - centered with top padding, above keyboard */
