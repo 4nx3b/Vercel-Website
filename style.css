@@ -6249,3 +6249,41 @@ body:not(.music-playing) .sp-play-btn #sp-icon-pause{
   pointer-events:none!important;
 }
 .topbar-music-widget{padding-right:8px!important;}
+
+/* ===== USER REQUEST FIX v22 2026-07-01: AMA backdrop blur + hard-remove mini player ===== */
+#ama-name-modal.open{
+  background:rgba(5,5,5,.62)!important;
+  backdrop-filter:blur(24px) saturate(1.12)!important;
+  -webkit-backdrop-filter:blur(24px) saturate(1.12)!important;
+}
+#ama-name-modal.open::before{
+  content:""!important;
+  position:fixed!important;
+  inset:0!important;
+  z-index:-1!important;
+  background:rgba(5,5,5,.34)!important;
+  backdrop-filter:blur(24px) saturate(1.12)!important;
+  -webkit-backdrop-filter:blur(24px) saturate(1.12)!important;
+  pointer-events:none!important;
+}
+/* Absolute mini-player kill switch: even if old JS toggles .active, it cannot render. */
+html body #slide-music-player,
+html body #slide-music-player.active,
+html body .slide-player-panel,
+html body .slide-player-panel.active{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+  width:0!important;
+  height:0!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-width:0!important;
+  max-height:0!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  overflow:hidden!important;
+  transform:translate3d(-9999px,-9999px,0) scale(0)!important;
+}
