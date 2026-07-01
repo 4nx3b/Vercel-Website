@@ -5611,3 +5611,31 @@ body.force-popup-open{overflow:hidden!important;}
 #tb-eq-bars[style*="flex"]{
   display:flex!important;
 }
+
+/* ===== USER REQUEST FIX v8 2026-07-01: welcome screen can never trap the site ===== */
+#intro-overlay{
+  animation:introOverlayFailsafeExit .01s linear 2.4s forwards!important;
+}
+#intro-overlay.intro-force-hide,
+#intro-overlay[data-force-dismissed="1"]{
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  touch-action:auto!important;
+  transform:translate3d(0,-110vh,0)!important;
+  transition:opacity .18s ease, transform .22s cubic-bezier(.22,1,.36,1), visibility .18s ease!important;
+}
+@keyframes introOverlayFailsafeExit{
+  to{
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    touch-action:auto;
+    transform:translate3d(0,-110vh,0);
+  }
+}
+html,
+body:not(.ama-modal-open):not(.gx-changelog-open):not(.arena-popup-lock):not(.force-popup-open){
+  overflow-y:auto!important;
+  touch-action:auto!important;
+}
