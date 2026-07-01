@@ -5676,3 +5676,14 @@ body.force-popup-open > *:not(#force-game-modal):not(script):not(style){
 @media(max-width:480px){
   #slide-music-player.slide-player-panel{top:66px!important;width:min(86vw,340px)!important;}
 }
+
+/* ===== USER REQUEST FIX v11 2026-07-01: game popup animation restored, same position ===== */
+@keyframes forceGameBackdropIn{from{opacity:0}to{opacity:1}}
+@keyframes forceGamePanelIn{from{opacity:0;transform:translateY(-4vh) scale(.94);filter:blur(10px)}to{opacity:1;transform:translateY(-4vh) scale(1);filter:blur(0)}}
+#force-game-modal.force-game-modal.open{animation:forceGameBackdropIn .24s ease both!important;}
+#force-game-modal.force-game-modal.open .fgm-panel{animation:forceGamePanelIn .34s cubic-bezier(.18,1.18,.32,1) both!important;}
+@media(max-height:680px){
+  @keyframes forceGamePanelIn{from{opacity:0;transform:translateY(-1vh) scale(.94);filter:blur(10px)}to{opacity:1;transform:translateY(-1vh) scale(1);filter:blur(0)}}
+}
+/* Ensure the mini player opens even if older rules tried to hide it. */
+#slide-music-player.slide-player-panel.active{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;}
