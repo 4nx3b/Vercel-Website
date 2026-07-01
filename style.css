@@ -6353,3 +6353,84 @@ body.ama-compose-open #ama-name-modal.open{
 .ama-question-row:has(#ama-question-open){
   cursor:pointer!important;
 }
+
+/* ===== USER REQUEST FIX v26 2026-07-01: AMA compose behaves like game popup ===== */
+html:has(#ama-name-modal.open),
+body:has(#ama-name-modal.open){
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+}
+#ama-name-modal.open{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  z-index:2147483647!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:clamp(14px,3vw,34px)!important;
+  background:rgba(5,5,5,.64)!important;
+  backdrop-filter:blur(26px) saturate(1.12)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(1.12)!important;
+  overflow:hidden!important;
+  pointer-events:auto!important;
+}
+#ama-name-modal.open::before{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:0!important;
+  background:rgba(5,5,5,.28)!important;
+  backdrop-filter:blur(26px) saturate(1.12)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(1.12)!important;
+  pointer-events:none!important;
+}
+#ama-name-modal.open .ama-modal-card{
+  position:relative!important;
+  z-index:1!important;
+  width:min(680px,calc(100vw - 28px))!important;
+  max-height:min(760px,88dvh)!important;
+  margin:0!important;
+  padding:clamp(22px,4vw,34px)!important;
+  padding-top:76px!important;
+  overflow:auto!important;
+  border-radius:30px!important;
+  background:#151514!important;
+  border:2px solid rgba(230,226,203,.18)!important;
+  box-shadow:0 38px 130px rgba(0,0,0,.68)!important;
+}
+#ama-name-modal.open .ama-modal-close,
+#ama-name-modal.open #ama-name-close{
+  top:18px!important;
+  right:18px!important;
+  width:50px!important;
+  height:50px!important;
+  z-index:5!important;
+}
+#ama-name-modal.open .ama-popup-question{
+  height:130px!important;
+  min-height:120px!important;
+  max-height:160px!important;
+}
+#ama-name-modal.open #ama-name-input{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  height:54px!important;
+  min-height:54px!important;
+  max-height:54px!important;
+}
+#ama-name-modal.open #ama-final-send{
+  height:56px!important;
+  min-height:56px!important;
+}
+body:has(#ama-name-modal.open) > *:not(#ama-name-modal):not(script):not(style){
+  pointer-events:none!important;
+  user-select:none!important;
+}
+@media(max-width:520px){
+  #ama-name-modal.open{padding:18px 12px!important;align-items:center!important;}
+  #ama-name-modal.open .ama-modal-card{width:calc(100vw - 24px)!important;max-height:82dvh!important;padding:20px!important;padding-top:70px!important;}
+  #ama-name-modal.open .ama-popup-question{height:118px!important;min-height:108px!important;max-height:138px!important;}
+}
