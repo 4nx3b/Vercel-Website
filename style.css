@@ -5653,3 +5653,26 @@ body.force-popup-open > *:not(#force-game-modal):not(script):not(style){
   visibility:visible!important;
   pointer-events:auto!important;
 }
+
+/* ===== USER REQUEST FIX v10 2026-07-01: mini player actually visible below topbar ===== */
+#slide-music-player.slide-player-panel{
+  position:fixed!important;
+  top:76px!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:min(78vw,420px)!important;
+  max-width:420px!important;
+  z-index:2147483647!important;
+}
+#slide-music-player.slide-player-panel.active{
+  display:flex!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  transform:translate3d(-50%,0,0) scale(1)!important;
+  filter:blur(0)!important;
+}
+@media(max-width:480px){
+  #slide-music-player.slide-player-panel{top:66px!important;width:min(86vw,340px)!important;}
+}
