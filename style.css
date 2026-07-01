@@ -6408,10 +6408,13 @@ body > .ama-modal#ama-name-modal.open{
 }
 
 /* 3) Visually blur the page content (everything inside <body>
-      except the modal and the topbar). */
+      except the modal and the topbar).
+      NOTE: The blur is light (3px) because heavy blurs on many
+      page elements cause severe lag. The modal's own backdrop-filter
+      does most of the visual heavy lifting. */
 body.ama-modal-open *:not(#ama-name-modal):not(#ama-name-modal *):not(.topbar-container):not(.topbar-container *):not(script):not(style) {
-  filter: blur(7px) saturate(1.05) brightness(0.85) !important;
-  -webkit-filter: blur(7px) saturate(1.05) brightness(0.85) !important;
+  filter: blur(3px) saturate(1.05) brightness(0.9) !important;
+  -webkit-filter: blur(3px) saturate(1.05) brightness(0.9) !important;
   transition: filter 0.28s ease, -webkit-filter 0.28s ease !important;
 }
 
