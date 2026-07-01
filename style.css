@@ -6458,11 +6458,9 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   background: transparent !important;
 }
 
-/* 2) Belt-and-braces: even if v20 sneaks a label past the JS monkey-
-      patch, force it offscreen with !important inline-style overrides
-      via CSS. Specificity 1,1,1 + !important beats v20's
-      display:block!important... actually inline wins. So this rule
-      is mostly cosmetic; the real fix is in the JS file. */
+/* 2) Hide any leftover injected labels / textarea (the JS
+      monkey-patch already blocks new injections; this is a
+      belt-and-braces CSS hide). */
 #ama-name-modal #ama-popup-question-input,
 #ama-name-modal #ama-compose-question-label,
 #ama-name-modal #ama-compose-name-label,
@@ -6479,7 +6477,7 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   overflow: hidden !important;
 }
 
-/* 3) Restore the original kicker / title / paragraph text styles. */
+/* 3) Restore the original kicker / title / paragraph styles. */
 #ama-name-modal .ama-modal-kicker {
   display: block !important;
   font-size: 12px !important;
@@ -6500,7 +6498,6 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   color: #f5f2e9 !important;
   -webkit-text-fill-color: #f5f2e9 !important;
   text-transform: none !important;
-  /* Reserve room for the close button */
   margin-right: 56px !important;
 }
 #ama-name-modal .ama-modal-card > p {
@@ -6514,17 +6511,14 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   letter-spacing: normal !important;
 }
 
-/* 4) Make sure the SEND button stays visible. v18 hid it until both
-      fields were filled — but with the question textarea gone, only
-      the name field matters. */
+/* 4) Make sure the SEND button is visible. */
 #ama-name-modal #ama-final-send {
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
 }
 
-/* 5) The popup should be the simple "almost done / What's your name?"
-      layout. Tighten the card a bit since there's less content now. */
+/* 5) Compact popup card. */
 #ama-name-modal.open .ama-modal-card {
   width: min(430px, calc(100vw - 32px)) !important;
   max-height: min(86dvh, 600px) !important;
