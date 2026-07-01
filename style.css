@@ -6435,18 +6435,12 @@ body.ama-modal-open .topbar-container * {
 /* 6) Prevent body scroll while the modal is open. */
 body.ama-modal-open { overflow: hidden !important; touch-action: none !important; }
 /* ============================================================
-   RESTORE SIMPLE AMA POPUP — undo v23 + v18 + v16 UI changes
+   RESTORE SIMPLE AMA POPUP — undo v23 + v18 + v16 + v20 UI
    Paste this at the END of style.css
-   ============================================================
-   - Removes the button-style cursor on #ama-question-input so it's
-     a normal text input again.
-   - Hides the in-popup question textarea + "Your Question" label
-     that the v18/v16 patches added, restoring the original popup:
-     just the "What's your name?" header + name input + SEND button.
-   - Leaves the existing blur + background-lock rules intact.
    ============================================================ */
 
-/* Restore the inline "Drop a question..." field to a real input */
+/* 1) Restore the inline "Drop a question..." field as a real text
+      input (no button styling). */
 #ama-question-input {
   cursor: text !important;
   caret-color: auto !important;
@@ -6458,18 +6452,34 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   outline: 0 !important;
   caret-color: auto !important;
 }
+#ama-question-input[readonly] {
+  cursor: text !important;
+  caret-color: auto !important;
+  background: transparent !important;
+}
 
-/* Hide the in-popup question textarea + "Your Question" label
-   that v18/v16 added. The popup reverts to: title + paragraph +
-   name input + SEND button. */
+/* 2) Belt-and-braces: even if v20 sneaks a label past the JS monkey-
+      patch, force it offscreen with !important inline-style overrides
+      via CSS. Specificity 1,1,1 + !important beats v20's
+      display:block!important... actually inline wins. So this rule
+      is mostly cosmetic; the real fix is in the JS file. */
 #ama-name-modal #ama-popup-question-input,
 #ama-name-modal #ama-compose-question-label,
 #ama-name-modal #ama-compose-name-label,
 #ama-name-modal .ama-compose-label {
   display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  width: 0 !important;
+  font-size: 0 !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
 }
 
-/* Restore the original kicker, title, and paragraph text */
+/* 3) Restore the original kicker / title / paragraph text styles. */
 #ama-name-modal .ama-modal-kicker {
   display: block !important;
   font-size: 12px !important;
@@ -6477,6 +6487,7 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   text-transform: uppercase !important;
   color: #aaa79f !important;
   margin-bottom: 12px !important;
+  font-weight: 400 !important;
 }
 #ama-name-modal #ama-name-title {
   display: block !important;
@@ -6489,6 +6500,8 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   color: #f5f2e9 !important;
   -webkit-text-fill-color: #f5f2e9 !important;
   text-transform: none !important;
+  /* Reserve room for the close button */
+  margin-right: 56px !important;
 }
 #ama-name-modal .ama-modal-card > p {
   display: block !important;
@@ -6501,8 +6514,18 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   letter-spacing: normal !important;
 }
 
-/* Make sure the original SEND button stays visible (v18 hid it
-   when question was empty) */
+/* 4) Make sure the SEND button stays visible. v18 hid it until both
+      fields were filled — but with the question textarea gone, only
+      the name field matters. */
 #ama-name-modal #ama-final-send {
   display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* 5) The popup should be the simple "almost done / What's your name?"
+      layout. Tighten the card a bit since there's less content now. */
+#ama-name-modal.open .ama-modal-card {
+  width: min(430px, calc(100vw - 32px)) !important;
+  max-height: min(86dvh, 600px) !important;
 }
