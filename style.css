@@ -6703,3 +6703,35 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
     padding: 24px 20px !important;
   }
 }
+
+/* ===== USER REQUEST FIX v32 2026-07-02: One unified, light backdrop blur across all three popups =====
+   The "Your name" send popup previously carried a very heavy backdrop-filter
+   (blur(26px) saturate(1.18)), set across several older, layered patches
+   earlier in this file. The admin popup and Changelogs popup had their
+   backdrop blur removed entirely in earlier fixes. This block brings all
+   three back in line with a single, light, consistent blur value — placed
+   last so it wins the cascade over every earlier conflicting declaration. */
+#ama-name-modal,
+#ama-owner-v4-modal,
+.gx-changelog-modal {
+  backdrop-filter: blur(10px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.08) !important;
+}
+
+#ama-name-modal.open,
+#ama-owner-v4-modal.open,
+.gx-changelog-modal.open {
+  background: rgba(5, 5, 5, 0.62) !important;
+  backdrop-filter: blur(10px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.08) !important;
+}
+
+/* The cards themselves stay perfectly sharp — only the backdrop behind them is blurred. */
+#ama-name-modal.open .ama-modal-card,
+#ama-owner-v4-modal.open .ama-v2-card,
+.gx-changelog-modal.open .gx-changelog-card {
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
