@@ -5811,9 +5811,15 @@ body.music-playing #tb-three-dots{
 .gx-changelog-controls{
   display:flex!important;
   align-items:center!important;
+  justify-content:space-between!important;
   gap:8px!important;
   flex-wrap:wrap!important;
   margin:0 52px 18px 0!important;
+}
+.gx-changelog-controls .gx-changelog-page-pills{
+  margin-top:0!important;
+  padding-top:0!important;
+  border-top:none!important;
 }
 .gx-changelog-filter{
   min-height:34px!important;
