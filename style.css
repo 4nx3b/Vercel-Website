@@ -6439,11 +6439,10 @@ body > .ama-modal#ama-name-modal.open{
 body.ama-modal-open *:not(#ama-name-modal):not(#ama-name-modal *):not(#ama-owner-v4-modal):not(#ama-owner-v4-modal *):not(.gx-changelog-modal):not(.gx-changelog-modal *):not(.topbar-container):not(.topbar-container *):not(script):not(style) {
   filter: blur(3px) saturate(1.05) brightness(0.9) !important;
   -webkit-filter: blur(3px) saturate(1.05) brightness(0.9) !important;
-  transition: filter 0.28s ease, -webkit-filter 0.28s ease !important;
 }
 
 /* 4) Block clicks on background direct children of <body>. */
-body.ama-modal-open > *:not(#ama-name-modal):not(#ama-name-modal *):not(#ama-owner-v4-modal):not(#ama-owner-v4-modal *):not(.topbar-container):not(.topbar-container *):not(script):not(style) {
+body.ama-modal-open > *:not(#ama-name-modal):not(#ama-name-modal *):not(#ama-owner-v4-modal):not(#ama-owner-v4-modal *):not(.gx-changelog-modal):not(.gx-changelog-modal *):not(.topbar-container):not(.topbar-container *):not(script):not(style) {
   pointer-events: none !important;
   user-select: none !important;
 }
