@@ -5883,3 +5883,159 @@ body:not(.music-playing) .sp-play-btn #sp-icon-pause{
   visibility:hidden!important;
   opacity:0!important;
 }
+
+/* ===== USER REQUEST FIX v17 2026-07-01: replace flickering mini-player SVGs with one stable icon ===== */
+#slide-music-player .sp-play-btn,
+#sp-play-btn{
+  position:relative!important;
+  font-size:0!important;
+  line-height:1!important;
+}
+#slide-music-player .sp-play-btn svg,
+#sp-play-btn svg,
+#sp-icon-play,
+#sp-icon-pause{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+}
+#slide-music-player .sp-play-btn::before,
+#sp-play-btn::before{
+  content:"▶"!important;
+  display:grid!important;
+  place-items:center!important;
+  width:100%!important;
+  height:100%!important;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  font-size:18px!important;
+  font-weight:900!important;
+  color:#f5f2e9!important;
+  text-indent:2px!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+#slide-music-player .sp-play-btn.ap-playing::before,
+#sp-play-btn.ap-playing::before{
+  content:"Ⅱ"!important;
+  text-indent:0!important;
+  font-size:19px!important;
+  letter-spacing:-.18em!important;
+  transform:translateX(-1px)!important;
+}
+
+/* ===== USER REQUEST FIX v18 2026-07-01: clear AMA compose popup layout ===== */
+#ama-name-modal.open{
+  align-items:center!important;
+  justify-content:center!important;
+  padding:clamp(14px,3vh,28px) 14px!important;
+}
+#ama-name-modal .ama-modal-card{
+  width:min(640px,calc(100vw - 32px))!important;
+  max-height:min(760px,88dvh)!important;
+  overflow:auto!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:12px!important;
+  padding:clamp(22px,5vw,34px)!important;
+  background:#151514!important;
+  border:2px solid rgba(230,226,203,.18)!important;
+  border-radius:30px!important;
+  color:#f5f2e9!important;
+}
+#ama-name-modal .ama-modal-kicker,
+#ama-name-modal .ama-modal-card > p{
+  display:none!important;
+}
+#ama-name-modal #ama-name-title{
+  display:block!important;
+  margin:0 56px 6px 0!important;
+  font-family:var(--mono,monospace)!important;
+  font-size:clamp(18px,4.6vw,26px)!important;
+  line-height:1.15!important;
+  letter-spacing:.12em!important;
+  text-transform:uppercase!important;
+  color:#f5f2e9!important;
+  -webkit-text-fill-color:#f5f2e9!important;
+}
+#ama-name-modal .ama-compose-label{
+  display:block!important;
+  margin:8px 0 0!important;
+  font-family:var(--mono,monospace)!important;
+  font-size:clamp(14px,3.8vw,18px)!important;
+  font-weight:900!important;
+  letter-spacing:.12em!important;
+  text-transform:uppercase!important;
+  color:#d8d4c8!important;
+  -webkit-text-fill-color:#d8d4c8!important;
+}
+#ama-name-modal #ama-compose-question-label{display:none!important;}
+#ama-name-modal .ama-popup-question,
+#ama-name-modal #ama-name-input{
+  width:100%!important;
+  background:#0f0f0e!important;
+  border:2px solid rgba(230,226,203,.18)!important;
+  border-radius:22px!important;
+  color:#f5f2e9!important;
+  -webkit-text-fill-color:#f5f2e9!important;
+  font-family:var(--mono,monospace)!important;
+  font-size:16px!important;
+  line-height:1.5!important;
+  outline:0!important;
+  box-shadow:none!important;
+  box-sizing:border-box!important;
+}
+#ama-name-modal .ama-popup-question{
+  min-height:150px!important;
+  padding:17px!important;
+  resize:vertical!important;
+  margin:0 0 4px!important;
+}
+#ama-name-modal #ama-name-input{
+  min-height:56px!important;
+  padding:0 17px!important;
+  margin:0 0 8px!important;
+}
+#ama-name-modal .ama-popup-question:focus,
+#ama-name-modal #ama-name-input:focus{
+  border-color:rgba(245,242,233,.36)!important;
+  box-shadow:0 0 0 4px rgba(245,242,233,.055)!important;
+}
+#ama-name-modal .ama-popup-question::placeholder,
+#ama-name-modal #ama-name-input::placeholder{
+  color:rgba(245,242,233,.34)!important;
+  -webkit-text-fill-color:rgba(245,242,233,.34)!important;
+}
+#ama-name-modal #ama-final-send{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:10px!important;
+  width:100%!important;
+  min-height:58px!important;
+  margin:8px 0 0!important;
+  border-radius:999px!important;
+  border:2px solid #f5f2e9!important;
+  background:#f5f2e9!important;
+  color:#11110f!important;
+  -webkit-text-fill-color:#11110f!important;
+  font-family:var(--mono,monospace)!important;
+  font-size:14px!important;
+  font-weight:900!important;
+  letter-spacing:.16em!important;
+  text-transform:uppercase!important;
+  cursor:pointer!important;
+  opacity:1!important;
+}
+#ama-name-modal #ama-final-send:disabled{
+  opacity:.45!important;
+  cursor:not-allowed!important;
+  background:rgba(245,242,233,.18)!important;
+  border-color:rgba(245,242,233,.18)!important;
+  color:#aaa79f!important;
+  -webkit-text-fill-color:#aaa79f!important;
+}
+#ama-name-modal #ama-final-send svg{width:17px!important;height:17px!important;stroke:currentColor!important;}
+@media(max-width:520px){
+  #ama-name-modal .ama-modal-card{width:calc(100vw - 28px)!important;max-height:82dvh!important;padding:22px!important;border-radius:28px!important;}
+  #ama-name-modal .ama-popup-question{min-height:130px!important;}
+}
