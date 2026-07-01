@@ -5589,7 +5589,7 @@ html body.gx-playground-open #gx-game-page.gx-page-opening *{
 #force-game-modal .fgm-over{position:absolute!important;inset:0!important;z-index:20!important;display:flex!important;align-items:center!important;justify-content:center!important;background:rgba(7,7,7,.42)!important;backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;border-radius:22px!important;}
 #force-game-modal .fgm-retry{min-height:58px!important;padding:0 30px!important;border-radius:999px!important;background:#f5f2e9!important;color:#10100f!important;border:0!important;font-weight:900!important;letter-spacing:.13em!important;text-transform:uppercase!important;}
 body.force-popup-open{overflow:hidden!important;}
-#ama-name-modal.open{position:fixed!important;inset:0!important;z-index:2147483645!important;display:flex!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;align-items:center!important;justify-content:center!important;}
+#ama-name-modal.open{position:fixed!important;inset:0!important;z-index:2147483645!important;display:flex!important;visibility:visible!important;pointer-events:auto!important;align-items:center!important;justify-content:center!important;}
 #ama-owner-v4-modal.open{position:fixed!important;inset:0!important;z-index:2147483645!important;visibility:visible!important;pointer-events:auto!important;align-items:center!important;justify-content:center!important;}
 #ama-name-modal.open input,#ama-owner-v4-modal.open input,#ama-owner-v4-modal.open textarea{font-size:16px!important;}
 
@@ -6415,7 +6415,6 @@ body > .ama-modal#ama-name-modal.open{
   background: rgba(5, 5, 5, 0.6) !important;
   backdrop-filter: blur(26px) saturate(1.18) !important;
   -webkit-backdrop-filter: blur(26px) saturate(1.18) !important;
-  opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
   transition: top 0.2s ease, height 0.2s ease !important;
@@ -6762,4 +6761,103 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   -webkit-filter: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+}
+
+/* ===== USER REQUEST FIX v34 2026-07-02: "Your name" popup + Changelogs popup —
+   same rebuilt open/close animation as the admin popup (v33) =====
+   Both modals had the exact same root cause as the admin popup did before v33:
+   older layered patches left static `opacity: 1 !important` declarations on
+   #ama-name-modal.open (two separate rules, ~line 5592 and inside the "FINAL
+   FIX v3" block). A static author !important declaration always wins over a
+   CSS animation trying to animate that same property, no matter where the
+   animation is defined — so the fade-in for the name popup could never
+   actually play, and closing had no animation at all (no .closing rules
+   existed for either modal), causing an instant, jarring open/dismiss and a
+   mismatch between when the animation "should" finish and when the popup
+   actually appears/disappears (perceived as a delay).
+
+   Both modals are centered (align-items/justify-content: center), unlike the
+   admin popup which is top-anchored, so no vertical offset variable is
+   needed here — the card animates in place with a small rise + scale. */
+@keyframes namePopupBackdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes namePopupBackdropOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes namePopupCardIn {
+  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(.96); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes namePopupCardOut {
+  from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  to   { opacity: 0; transform: translate3d(0, 10px, 0) scale(.97); }
+}
+
+#ama-name-modal.open,
+#ama-name-modal.closing {
+  display: flex !important;
+}
+#ama-name-modal.open {
+  animation: namePopupBackdropIn .3s ease both !important;
+}
+#ama-name-modal.closing {
+  animation: namePopupBackdropOut .28s ease both !important;
+}
+#ama-name-modal.open .ama-modal-card {
+  animation: namePopupCardIn .38s cubic-bezier(.22,1,.36,1) both !important;
+}
+#ama-name-modal.closing .ama-modal-card {
+  animation: namePopupCardOut .26s cubic-bezier(.4,0,1,1) both !important;
+}
+
+@keyframes changelogPopupBackdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes changelogPopupBackdropOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes changelogPopupCardIn {
+  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(.96); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes changelogPopupCardOut {
+  from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  to   { opacity: 0; transform: translate3d(0, 10px, 0) scale(.97); }
+}
+
+.gx-changelog-modal.open,
+.gx-changelog-modal.closing {
+  display: flex !important;
+}
+.gx-changelog-modal.open {
+  animation: changelogPopupBackdropIn .3s ease both !important;
+}
+.gx-changelog-modal.closing {
+  animation: changelogPopupBackdropOut .28s ease both !important;
+}
+.gx-changelog-modal.open .gx-changelog-card {
+  animation: changelogPopupCardIn .38s cubic-bezier(.22,1,.36,1) both !important;
+}
+.gx-changelog-modal.closing .gx-changelog-card {
+  animation: changelogPopupCardOut .26s cubic-bezier(.4,0,1,1) both !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #ama-name-modal.open,
+  #ama-name-modal.closing,
+  #ama-name-modal.open .ama-modal-card,
+  #ama-name-modal.closing .ama-modal-card,
+  .gx-changelog-modal.open,
+  .gx-changelog-modal.closing,
+  .gx-changelog-modal.open .gx-changelog-card,
+  .gx-changelog-modal.closing .gx-changelog-card {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
