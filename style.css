@@ -5569,3 +5569,33 @@ html body.gx-playground-open #gx-game-page.gx-page-opening *{
 body.force-popup-open{overflow:hidden!important;}
 #ama-name-modal.open,#ama-owner-v4-modal.open{position:fixed!important;inset:0!important;z-index:2147483645!important;display:flex!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;align-items:center!important;justify-content:center!important;}
 #ama-name-modal.open input,#ama-owner-v4-modal.open input,#ama-owner-v4-modal.open textarea{font-size:16px!important;}
+
+/* ===== USER REQUEST FIX v7 2026-07-01: stable game popup + hard page lock ===== */
+html.force-popup-open,
+body.force-popup-open{
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+  touch-action:none!important;
+}
+body.force-popup-open{
+  height:100dvh!important;
+}
+#force-game-modal.force-game-modal{
+  overscroll-behavior:contain!important;
+  touch-action:none!important;
+  pointer-events:auto!important;
+}
+#force-game-modal.force-game-modal .fgm-panel,
+#force-game-modal.force-game-modal .fgm-body,
+#force-game-modal.force-game-modal .fgm-game{
+  touch-action:auto!important;
+  overscroll-behavior:contain!important;
+}
+#force-game-modal.force-game-modal .fgm-body{
+  -webkit-overflow-scrolling:touch!important;
+}
+/* When the game modal is open, only the modal may receive clicks/touches. */
+body.force-popup-open > *:not(#force-game-modal):not(script):not(style){
+  pointer-events:none!important;
+  user-select:none!important;
+}
