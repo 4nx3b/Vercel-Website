@@ -6501,3 +6501,71 @@ html body #ama-name-modal.open #ama-name-input::placeholder{
   -webkit-text-fill-color:transparent!important;
   opacity:0!important;
 }
+
+/* ===== USER REQUEST FIX v28 2026-07-01: restore AMA popup visibility + changelog pages ===== */
+html body #ama-name-modal.open,
+html body.ama-compose-open #ama-name-modal.open{
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147483647!important;
+  align-items:center!important;
+  justify-content:center!important;
+  pointer-events:auto!important;
+}
+html body #ama-name-modal.open .ama-modal-card,
+html body.ama-compose-open #ama-name-modal.open .ama-modal-card{
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  flex-direction:column!important;
+  position:relative!important;
+  z-index:2147483647!important;
+  pointer-events:auto!important;
+  filter:none!important;
+}
+#ama-name-modal.open #ama-popup-question-input,
+#ama-name-modal.open #ama-name-input,
+#ama-name-modal.open #ama-final-send{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+#ama-name-modal.open #ama-final-send{display:flex!important;}
+.gx-changelog-page-controls{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  flex-wrap:wrap!important;
+  margin:16px 0 0!important;
+  padding-top:12px!important;
+  border-top:1px solid rgba(230,226,203,.10)!important;
+}
+.gx-changelog-page-pill{
+  min-width:36px!important;
+  height:36px!important;
+  border-radius:12px!important;
+  border:1.5px solid rgba(230,226,203,.16)!important;
+  background:rgba(255,255,255,.045)!important;
+  color:#aaa79f!important;
+  font-family:var(--mono,monospace)!important;
+  font-size:13px!important;
+  font-weight:900!important;
+  cursor:pointer!important;
+}
+.gx-changelog-page-pill.active{
+  background:#f5f2e9!important;
+  border-color:#f5f2e9!important;
+  color:#111!important;
+}
+.gx-changelog-list{
+  max-height:calc(100dvh - 300px)!important;
+  padding-bottom:4px!important;
+}
+@media(max-width:760px){
+  .gx-changelog-list{max-height:calc(100dvh - 285px)!important;}
+  .gx-changelog-page-pill{min-width:34px!important;height:34px!important;font-size:12px!important;}
+}
