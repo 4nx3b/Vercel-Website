@@ -6370,3 +6370,70 @@ body > .ama-modal#ama-name-modal.open{
   -webkit-backdrop-filter:blur(26px) saturate(1.15)!important;
   backdrop-filter:blur(26px) saturate(1.15)!important;
 }
+/* ============================================================
+   AMA MODAL — backdrop blur + background lock (FINAL FIX)
+   Paste this at the END of style.css
+   ============================================================ */
+
+/* 1) Make sure the modal sits above everything when open, and apply a
+      robust backdrop blur on the modal itself. */
+#ama-name-modal.open {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  z-index: 2147483645 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  padding: calc(72px + env(safe-area-inset-top, 0px)) 16px 16px !important;
+  background: rgba(5, 5, 5, 0.6) !important;
+  backdrop-filter: blur(26px) saturate(1.18) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(1.18) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+@media (min-width: 761px) {
+  #ama-name-modal.open { align-items: center !important; padding: 24px !important; }
+}
+
+/* 2) The card inside the modal stays sharp & clickable. */
+#ama-name-modal.open .ama-modal-card {
+  filter: none !important;
+  -webkit-filter: none !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* 3) Visually blur the entire page content (everything inside <body>
+      except the modal and the topbar). This works regardless of where
+      the elements live in the DOM. */
+body.ama-modal-open *:not(#ama-name-modal):not(#ama-name-modal *):not(.topbar-container):not(.topbar-container *):not(script):not(style) {
+  filter: blur(7px) saturate(1.05) brightness(0.85) !important;
+  -webkit-filter: blur(7px) saturate(1.05) brightness(0.85) !important;
+  transition: filter 0.28s ease, -webkit-filter 0.28s ease !important;
+}
+
+/* 4) Block clicks on background direct children of <body> (so even if
+      a child element somehow keeps pointer-events:auto, the JS handler
+      can still swallow the event). The JS file handles the actual
+      event interception for nested elements. */
+body.ama-modal-open > *:not(#ama-name-modal):not(#ama-name-modal *):not(.topbar-container):not(.topbar-container *):not(script):not(style) {
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+/* 5) Topbar stays interactive (so music can keep playing) but visually
+      dims so the popup is the focus. */
+body.ama-modal-open .topbar-pill,
+body.ama-modal-open .topbar-pill * {
+  filter: blur(4px) saturate(0.5) !important;
+  -webkit-filter: blur(4px) saturate(0.5) !important;
+  opacity: 0.55 !important;
+  pointer-events: auto !important;
+}
+
+/* 6) Prevent body scroll while the modal is open. */
+body.ama-modal-open { overflow: hidden !important; touch-action: none !important; }
