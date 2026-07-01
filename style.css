@@ -6526,3 +6526,140 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   width: min(430px, calc(100vw - 32px)) !important;
   max-height: min(86dvh, 600px) !important;
 }
+
+/* ===== USER REQUEST FIX v24 2026-07-02: Changelog popup blur fix + always above keyboard ===== */
+/* 1) Ensure the changelog card itself is NEVER blurred - explicit filter reset */
+.gx-changelog-modal.open,
+.gx-changelog-modal.open * {
+  filter: blur(0) !important;
+  -webkit-filter: blur(0) !important;
+}
+
+/* 2) Make the modal height responsive to the visual viewport (keyboard aware) */
+.gx-changelog-modal {
+  height: var(--ama-vh, 100dvh) !important;
+  max-height: var(--ama-vh, 100dvh) !important;
+}
+
+/* 3) Card should always stay fully visible above the keyboard */
+.gx-changelog-card {
+  filter: blur(0) !important;
+  -webkit-filter: blur(0) !important;
+  max-height: calc(var(--ama-vh, 100dvh) - 110px) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  touch-action: auto !important;
+}
+
+/* 4) Ensure the close button stays visible and accessible */
+.gx-changelog-close {
+  position: fixed !important;
+  top: calc(12px + env(safe-area-inset-top)) !important;
+  right: 16px !important;
+  z-index: 2147483647 !important;
+  pointer-events: auto !important;
+}
+
+/* 5) Mobile adjustments - ensure popup stays above keyboard with send button visible */
+@media (max-width: 760px) {
+  .gx-changelog-modal {
+    padding-top: calc(60px + env(safe-area-inset-top)) !important;
+    padding-bottom: env(safe-area-inset-bottom) !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+  }
+  
+  .gx-changelog-card {
+    width: calc(100vw - 32px) !important;
+    max-height: calc(var(--ama-vh, 100dvh) - 100px) !important;
+    margin-bottom: 0 !important;
+    padding: 24px 20px !important;
+  }
+  
+  .gx-changelog-close {
+    top: calc(14px + env(safe-area-inset-top)) !important;
+    right: 14px !important;
+  }
+}
+
+/* 6) Ensure list content is scrollable and doesn't get clipped */
+.gx-changelog-list {
+  filter: blur(0) !important;
+  -webkit-filter: blur(0) !important;
+  max-height: calc(var(--ama-vh, 100dvh) - 280px) !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+@media (max-width: 760px) {
+  .gx-changelog-list {
+    max-height: calc(var(--ama-vh, 100dvh) - 240px) !important;
+  }
+}
+
+/* ===== USER REQUEST FIX v25 2026-07-02: Revised changelog popup fix ===== */
+/* Remove previous v24 and use a cleaner approach */
+.gx-changelog-modal {
+  /* Keep using dynamic viewport height for keyboard awareness */
+  height: auto !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  position: fixed !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  /* Keep top padding but adjust for keyboard */
+  padding: calc(60px + env(safe-area-inset-top)) 16px calc(22px + env(safe-area-inset-bottom)) !important;
+}
+
+/* Ensure the card itself is never blurred */
+.gx-changelog-modal.open .gx-changelog-card,
+.gx-changelog-modal.open .gx-changelog-card * {
+  filter: blur(0) !important;
+  -webkit-filter: blur(0) !important;
+}
+
+.gx-changelog-card {
+  /* Use dynamic viewport height minus top padding for card */
+  max-height: calc(100dvh - 90px) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.gx-changelog-list {
+  /* Allow list to scroll within the card */
+  max-height: calc(100dvh - 200px) !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* Mobile adjustments - ensure close button and send/action buttons are always visible */
+@media (max-width: 760px) {
+  .gx-changelog-modal {
+    padding-top: calc(50px + env(safe-area-inset-top)) !important;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important;
+    align-items: flex-start !important;
+  }
+  
+  .gx-changelog-card {
+    width: calc(100vw - 32px) !important;
+    max-height: calc(100dvh - 80px) !important;
+    /* Ensure close button area is always at top */
+    padding-top: 52px !important;
+  }
+  
+  .gx-changelog-close {
+    top: calc(10px + env(safe-area-inset-top)) !important;
+  }
+  
+  .gx-changelog-list {
+    max-height: calc(100dvh - 160px) !important;
+  }
+}
+
+/* Ensure the changelog modal stays above everything when open */
+body.gx-changelog-open .gx-changelog-modal {
+  z-index: 2147483647 !important;
+}
