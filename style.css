@@ -6371,7 +6371,7 @@ body > .ama-modal#ama-name-modal.open{
   backdrop-filter:blur(26px) saturate(1.15)!important;
 }
 /* ============================================================
-   AMA MODAL — backdrop blur + background lock (FINAL FIX)
+   AMA MODAL — backdrop blur + background lock (FINAL FIX v3)
    Paste this at the END of style.css
    ============================================================ */
 
@@ -6407,33 +6407,102 @@ body > .ama-modal#ama-name-modal.open{
   z-index: 1 !important;
 }
 
-/* 3) Visually blur the entire page content (everything inside <body>
-      except the modal and the topbar). This works regardless of where
-      the elements live in the DOM. */
+/* 3) Visually blur the page content (everything inside <body>
+      except the modal and the topbar). */
 body.ama-modal-open *:not(#ama-name-modal):not(#ama-name-modal *):not(.topbar-container):not(.topbar-container *):not(script):not(style) {
   filter: blur(7px) saturate(1.05) brightness(0.85) !important;
   -webkit-filter: blur(7px) saturate(1.05) brightness(0.85) !important;
   transition: filter 0.28s ease, -webkit-filter 0.28s ease !important;
 }
 
-/* 4) Block clicks on background direct children of <body> (so even if
-      a child element somehow keeps pointer-events:auto, the JS handler
-      can still swallow the event). The JS file handles the actual
-      event interception for nested elements. */
+/* 4) Block clicks on background direct children of <body>. */
 body.ama-modal-open > *:not(#ama-name-modal):not(#ama-name-modal *):not(.topbar-container):not(.topbar-container *):not(script):not(style) {
   pointer-events: none !important;
   user-select: none !important;
 }
 
-/* 5) Topbar stays interactive (so music can keep playing) but visually
-      dims so the popup is the focus. */
-body.ama-modal-open .topbar-pill,
-body.ama-modal-open .topbar-pill * {
-  filter: blur(4px) saturate(0.5) !important;
-  -webkit-filter: blur(4px) saturate(0.5) !important;
-  opacity: 0.55 !important;
+/* 5) Topbar stays fully visible AND interactive (so music can keep
+      playing, topbar buttons still work). We only need to opt out of
+      the body-level blur and pointer-events locks here. */
+body.ama-modal-open .topbar-container,
+body.ama-modal-open .topbar-container * {
+  filter: none !important;
+  -webkit-filter: none !important;
+  opacity: 1 !important;
   pointer-events: auto !important;
 }
 
 /* 6) Prevent body scroll while the modal is open. */
 body.ama-modal-open { overflow: hidden !important; touch-action: none !important; }
+/* ============================================================
+   RESTORE SIMPLE AMA POPUP — undo v23 + v18 + v16 UI changes
+   Paste this at the END of style.css
+   ============================================================
+   - Removes the button-style cursor on #ama-question-input so it's
+     a normal text input again.
+   - Hides the in-popup question textarea + "Your Question" label
+     that the v18/v16 patches added, restoring the original popup:
+     just the "What's your name?" header + name input + SEND button.
+   - Leaves the existing blur + background-lock rules intact.
+   ============================================================ */
+
+/* Restore the inline "Drop a question..." field to a real input */
+#ama-question-input {
+  cursor: text !important;
+  caret-color: auto !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  pointer-events: auto !important;
+}
+#ama-question-input:focus {
+  outline: 0 !important;
+  caret-color: auto !important;
+}
+
+/* Hide the in-popup question textarea + "Your Question" label
+   that v18/v16 added. The popup reverts to: title + paragraph +
+   name input + SEND button. */
+#ama-name-modal #ama-popup-question-input,
+#ama-name-modal #ama-compose-question-label,
+#ama-name-modal #ama-compose-name-label,
+#ama-name-modal .ama-compose-label {
+  display: none !important;
+}
+
+/* Restore the original kicker, title, and paragraph text */
+#ama-name-modal .ama-modal-kicker {
+  display: block !important;
+  font-size: 12px !important;
+  letter-spacing: .16em !important;
+  text-transform: uppercase !important;
+  color: #aaa79f !important;
+  margin-bottom: 12px !important;
+}
+#ama-name-modal #ama-name-title {
+  display: block !important;
+  font-family: var(--sans, system-ui) !important;
+  font-size: 30px !important;
+  font-weight: 800 !important;
+  letter-spacing: -.04em !important;
+  line-height: 1 !important;
+  margin: 0 0 10px !important;
+  color: #f5f2e9 !important;
+  -webkit-text-fill-color: #f5f2e9 !important;
+  text-transform: none !important;
+}
+#ama-name-modal .ama-modal-card > p {
+  display: block !important;
+  font-family: var(--sans, system-ui) !important;
+  font-size: 15px !important;
+  line-height: 1.55 !important;
+  color: #aaa79f !important;
+  margin: 0 0 22px !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+/* Make sure the original SEND button stays visible (v18 hid it
+   when question was empty) */
+#ama-name-modal #ama-final-send {
+  display: flex !important;
+}
