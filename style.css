@@ -6593,7 +6593,14 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   }
 }
 
-/* Changelog popup - 30px lower + COMPLETELY NO BLUR */
+/* ===== USER REQUEST FIX v30 2026-07-02: Changelogs popup - fix stuck/unclickable state, restore proper centered positioning =====
+   The previous "30px lower" patch added a large top padding + margin-top to
+   the modal AND switched the close button to position:fixed at a hardcoded
+   offset. Since the card is vertically centered (and its height varies with
+   content), the fixed-position close button drifted out of sync with the
+   actual card position, making the popup feel stuck / unclickable. Reverting
+   to a simple centered modal with the close button anchored inside the card
+   (position:absolute, like the card's other internal elements) fixes this. */
 .gx-changelog-modal {
   /* Completely remove all backdrop blur from the modal itself */
   backdrop-filter: none !important;
@@ -6605,8 +6612,8 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
 .gx-changelog-modal.open {
   align-items: center !important;
   justify-content: center !important;
-  padding: calc(90px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)) !important;
-  margin-top: 30px !important;
+  padding: calc(40px + env(safe-area-inset-top)) 16px 24px !important;
+  margin-top: 0 !important;
   overflow: auto !important;
   -webkit-overflow-scrolling: touch !important;
   /* Double check - no blur */
@@ -6617,11 +6624,12 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
 
 .gx-changelog-modal.open .gx-changelog-card {
   width: min(760px, calc(100vw - 32px)) !important;
-  max-height: calc(100dvh - 120px) !important;
-  padding-top: 52px !important;
-  padding-bottom: 20px !important;
+  max-height: calc(100dvh - 80px) !important;
+  padding: 28px !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
+  position: relative !important;
+  margin-top: 0 !important;
   /* Card itself has NO blur */
   filter: none !important;
   -webkit-filter: none !important;
@@ -6631,9 +6639,11 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   animation: none !important;
 }
 
+/* Close button sits inside the card's top-right corner so it always tracks
+   the card, regardless of the card's height or vertical position. */
 .gx-changelog-close {
-  position: fixed !important;
-  top: calc(42px + env(safe-area-inset-top)) !important;
+  position: absolute !important;
+  top: 14px !important;
   right: 16px !important;
   z-index: 10 !important;
 }
@@ -6657,14 +6667,14 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
 
 @media (max-width: 760px) {
   .gx-changelog-modal.open {
-    padding-top: calc(80px + env(safe-area-inset-top)) !important;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important;
-    margin-top: 20px !important;
+    padding-top: calc(28px + env(safe-area-inset-top)) !important;
+    padding-bottom: 16px !important;
+    margin-top: 0 !important;
   }
   
   .gx-changelog-modal.open .gx-changelog-card {
     width: calc(100vw - 32px) !important;
-    max-height: calc(100dvh - 100px) !important;
-    padding: 52px 20px 20px !important;
+    max-height: calc(100dvh - 56px) !important;
+    padding: 24px 20px !important;
   }
 }
