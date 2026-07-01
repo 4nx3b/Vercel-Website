@@ -6101,3 +6101,65 @@ body:not(.music-playing) .sp-play-btn #sp-icon-pause{
   filter:none!important;
   transition:none!important;
 }
+
+/* ===== USER REQUEST FIX v20 2026-07-01: AMA labels, close spacing, remove mini player ===== */
+#ama-name-modal .ama-modal-card{
+  padding-top:76px!important;
+  gap:10px!important;
+}
+#ama-name-modal #ama-name-close,
+#ama-name-modal .ama-modal-close{
+  position:absolute!important;
+  top:18px!important;
+  right:18px!important;
+  width:48px!important;
+  height:48px!important;
+  z-index:20!important;
+}
+#ama-name-modal #ama-name-title{
+  display:none!important;
+}
+#ama-name-modal #ama-compose-question-label,
+#ama-name-modal #ama-compose-name-label,
+#ama-name-modal .ama-compose-label{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  margin:0 0 8px!important;
+  font-family:var(--mono,monospace)!important;
+  font-size:clamp(14px,3.9vw,18px)!important;
+  font-weight:900!important;
+  line-height:1.15!important;
+  letter-spacing:.14em!important;
+  text-transform:uppercase!important;
+  color:#f5f2e9!important;
+  -webkit-text-fill-color:#f5f2e9!important;
+}
+#ama-name-modal #ama-compose-name-label{
+  margin-top:14px!important;
+}
+#ama-name-modal .ama-popup-question{
+  margin:0 0 8px!important;
+  min-height:104px!important;
+  max-height:132px!important;
+}
+#ama-name-modal #ama-name-input{
+  margin:0 0 10px!important;
+}
+@media(max-width:520px){
+  #ama-name-modal .ama-modal-card{padding-top:72px!important;}
+  #ama-name-modal #ama-name-close,
+  #ama-name-modal .ama-modal-close{top:16px!important;right:16px!important;width:46px!important;height:46px!important;}
+  #ama-name-modal .ama-popup-question{min-height:96px!important;max-height:118px!important;}
+}
+
+/* Remove the mini player completely. Topbar music/autoplay still works through the topbar controls. */
+#slide-music-player,
+#slide-music-player.active,
+.slide-player-panel,
+.slide-player-panel.active{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
