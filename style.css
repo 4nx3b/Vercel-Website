@@ -6663,3 +6663,103 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
 body.gx-changelog-open .gx-changelog-modal {
   z-index: 2147483647 !important;
 }
+
+/* ===== USER REQUEST FIX v26 2026-07-02: AMA popup lower + Changelog NO BLUR ===== */
+
+/* 1) AMA "Your name" popup - position lower so it doesn't get cut off at top */
+#ama-name-modal.open {
+  align-items: flex-end !important;
+  padding-top: 0 !important;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom)) !important;
+}
+
+/* Ensure the card stays fully visible and has enough top padding for close button */
+#ama-name-modal.open .ama-modal-card {
+  width: min(430px, calc(100vw - 32px)) !important;
+  margin-top: 0 !important;
+  padding-top: 64px !important;
+  max-height: calc(100dvh - 60px) !important;
+  transform: none !important;
+}
+
+/* Close button - fixed position at top */
+#ama-name-modal #ama-name-close,
+#ama-name-modal .ama-modal-close {
+  position: fixed !important;
+  top: calc(16px + env(safe-area-inset-top)) !important;
+  right: 16px !important;
+  z-index: 10 !important;
+}
+
+@media (max-width: 760px) {
+  #ama-name-modal.open .ama-modal-card {
+    width: calc(100vw - 32px) !important;
+    max-height: calc(100dvh - 40px) !important;
+  }
+}
+
+/* 2) Changelog popup - COMPLETELY remove ALL blur from card and all children */
+.gx-changelog-modal.open,
+.gx-changelog-modal.open * {
+  filter: blur(0) !important;
+  -webkit-filter: blur(0) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.gx-changelog-modal {
+  /* Use flex-end to push popup to bottom, above keyboard */
+  align-items: flex-end !important;
+  padding-top: 0 !important;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom)) !important;
+  background: rgba(5,5,5,0.72) !important;
+  /* Remove backdrop blur - only blur the backdrop overlay, not the card */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.gx-changelog-card {
+  width: min(760px, calc(100vw - 32px)) !important;
+  max-height: calc(100dvh - 60px) !important;
+  padding-top: 64px !important;
+  /* Ensure card itself has NO blur */
+  filter: blur(0) !important;
+  -webkit-filter: blur(0) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.gx-changelog-close {
+  position: fixed !important;
+  top: calc(16px + env(safe-area-inset-top)) !important;
+  right: 16px !important;
+  z-index: 10 !important;
+}
+
+.gx-changelog-list {
+  filter: blur(0) !important;
+  -webkit-filter: blur(0) !important;
+  max-height: none !important;
+  overflow-y: visible !important;
+}
+
+.gx-changelog-entry,
+.gx-changelog-kicker,
+.gx-changelog-card h3,
+.gx-changelog-date,
+.gx-changelog-entry ul,
+.gx-changelog-entry li {
+  filter: blur(0) !important;
+  -webkit-filter: blur(0) !important;
+}
+
+@media (max-width: 760px) {
+  .gx-changelog-card {
+    width: calc(100vw - 32px) !important;
+    max-height: calc(100dvh - 40px) !important;
+    padding: 64px 20px 24px !important;
+  }
+}
