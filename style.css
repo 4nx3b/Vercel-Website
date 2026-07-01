@@ -5599,3 +5599,17 @@ body.force-popup-open > *:not(#force-game-modal):not(script):not(style){
   pointer-events:none!important;
   user-select:none!important;
 }
+
+/* ===== USER REQUEST FIX v8 2026-07-01: keep bottom game popup centered/slightly above center ===== */
+#force-game-modal.force-game-modal.open{
+  align-items:center!important;
+  justify-content:center!important;
+  padding:clamp(14px,3vh,26px) 12px!important;
+}
+#force-game-modal.force-game-modal.open .fgm-panel{
+  transform:translateY(-4vh)!important;
+  margin:auto!important;
+}
+@media(max-height:680px){
+  #force-game-modal.force-game-modal.open .fgm-panel{transform:translateY(-1vh)!important;}
+}
