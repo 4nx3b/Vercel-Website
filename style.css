@@ -6657,7 +6657,6 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
 .gx-changelog-entry li {
   filter: none !important;
   -webkit-filter: none !important;
-  animation: none !important;
 }
 
 .gx-changelog-list {
