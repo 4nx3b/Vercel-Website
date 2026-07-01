@@ -6656,15 +6656,6 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   -webkit-backdrop-filter: none !important;
 }
 
-#ama-owner-v4-modal .ama-v2-card {
-  position: relative !important;
-  filter: none !important;
-  -webkit-filter: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  animation: none !important;
-}
-
 /* Close button sits inside the card's top-right corner so it always tracks
    the card, regardless of the card's height or vertical position. */
 .gx-changelog-close {
