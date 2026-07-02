@@ -6974,3 +6974,78 @@ document.addEventListener('click', function(e){
   else applyBuildingAndroidHeadline();
 })();
 /* ====================================================================== */
+
+/* ======================================================================
+   USER REQUEST PATCH 2026-07-02b — headline styling + topbar theme toggle
+   ====================================================================== */
+(function(){
+  function styleBuildingHeadline(){
+    var h=document.querySelector('#hero .hero-h1');
+    if(!h) return;
+    var wanted='<span class="hero-build-line">Building Android</span><span class="hero-build-line hero-build-em">beyond stock</span>';
+    if(h.innerHTML.replace(/\s+/g,' ').trim()!==wanted.replace(/\s+/g,' ').trim()) h.innerHTML=wanted;
+    h.classList.add('hero-build-styled');
+  }
+
+  function setTheme(light){
+    document.documentElement.classList.toggle('light', !!light);
+    try{localStorage.setItem('theme', light ? 'light' : 'dark');}catch(e){}
+  }
+  window.toggleTheme=function(){setTheme(!document.documentElement.classList.contains('light'));};
+
+  function ensureThemeToggle(){
+    var widget=document.querySelector('.topbar-music-widget');
+    if(!widget) return;
+    var btn=document.getElementById('theme-toggle-btn');
+    if(!btn){
+      var divider=document.createElement('div');
+      divider.className='arena-theme-divider';
+      btn=document.createElement('button');
+      btn.id='theme-toggle-btn';
+      btn.className='tb-theme-btn';
+      btn.type='button';
+      btn.title='Toggle Light / Dark Mode';
+      btn.setAttribute('aria-label','Toggle theme');
+      btn.innerHTML='<svg class="icon-sun" fill="none" height="15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="15"><circle cx="12" cy="12" r="5"></circle><line x1="12" x2="12" y1="1" y2="3"></line><line x1="12" x2="12" y1="21" y2="23"></line><line x1="4.22" x2="5.64" y1="4.22" y2="5.64"></line><line x1="18.36" x2="19.78" y1="18.36" y2="19.78"></line><line x1="1" x2="3" y1="12" y2="12"></line><line x1="21" x2="23" y1="12" y2="12"></line><line x1="4.22" x2="5.64" y1="19.78" y2="18.36"></line><line x1="18.36" x2="19.78" y1="5.64" y2="4.22"></line></svg><svg class="icon-moon" fill="none" height="15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="15"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+      widget.appendChild(divider);
+      widget.appendChild(btn);
+    }
+    btn.onclick=function(e){e.preventDefault();e.stopPropagation();window.toggleTheme();};
+    btn.style.display='flex';
+  }
+
+  function restoreSavedTheme(){
+    try{ if(localStorage.getItem('theme')==='light') document.documentElement.classList.add('light'); }catch(e){}
+  }
+  function run(){restoreSavedTheme();styleBuildingHeadline();ensureThemeToggle();}
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
+  setInterval(function(){styleBuildingHeadline();ensureThemeToggle();},700);
+})();
+/* ====================================================================== */
+
+/* Keep the restored light/dark toggle from being removed by older dark-only boot code. */
+(function(){
+  var wanted=null;
+  var baseToggle=window.toggleTheme;
+  window.toggleTheme=function(){
+    wanted=document.documentElement.classList.contains('light') ? 'dark' : 'light';
+    document.documentElement.classList.toggle('light', wanted==='light');
+    try{localStorage.setItem('theme', wanted);}catch(e){}
+  };
+  var n=0;
+  var watchdog=setInterval(function(){
+    n++;
+    if(!wanted){ try{ wanted=localStorage.getItem('theme'); }catch(e){} }
+    if(wanted==='light') document.documentElement.classList.add('light');
+    if(wanted==='dark') document.documentElement.classList.remove('light');
+    try{ if(wanted) localStorage.setItem('theme', wanted); }catch(e){}
+    if(typeof window.toggleTheme!=='function' || window.toggleTheme===baseToggle){
+      window.toggleTheme=function(){
+        wanted=document.documentElement.classList.contains('light') ? 'dark' : 'light';
+        document.documentElement.classList.toggle('light', wanted==='light');
+        try{localStorage.setItem('theme', wanted);}catch(e){}
+      };
+    }
+    if(n>260) clearInterval(watchdog);
+  },100);
+})();
