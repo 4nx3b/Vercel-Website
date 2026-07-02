@@ -7378,3 +7378,16 @@ html.light .ama-modal-close,html.light .ama-v2-close,html.light .gx-changelog-cl
 html.light #force-game-modal .fgm-canvas,html.light #final-game-modal .fgm-canvas{background:#f3f1ff!important;border-color:rgba(60,55,115,.18)!important;}
 html.light #force-game-modal .fgm-controls button,html.light #force-game-modal .fgm-choice,html.light #force-game-modal .fgm-cell,html.light #force-game-modal .fgm-retry{background:#17172b!important;color:#fff!important;border-color:#17172b!important;}
 /* ====================================================================== */
+
+/* ======================================================================
+   FINAL FIX — make theme toggle receive taps above music controls
+   ====================================================================== */
+.topbar-music-widget .arena-inline-theme-toggle{
+  z-index:20!important;
+  pointer-events:auto!important;
+  position:relative!important;
+}
+.topbar-music-widget .arena-inline-theme-toggle *{
+  pointer-events:none!important;
+}
+/* ====================================================================== */

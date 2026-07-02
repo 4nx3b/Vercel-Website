@@ -7119,3 +7119,59 @@ document.addEventListener('click', function(e){
   },100);
 })();
 /* ====================================================================== */
+
+/* ======================================================================
+   FINAL FIX — theme toggle must not play/pause music
+   Stops theme-icon taps and restores music state if older handlers ran first.
+   ====================================================================== */
+(function(){
+  var beforePaused = null;
+  function audio(){
+    return document.getElementById('arena-single-music-audio') || document.querySelector('audio');
+  }
+  function isThemeTap(e){
+    return !!(e && e.target && e.target.closest && e.target.closest('#arena-inline-theme-toggle,.arena-inline-theme-toggle'));
+  }
+  function applyThemeToggle(){
+    var light = !document.documentElement.classList.contains('light');
+    document.documentElement.classList.toggle('light', light);
+    try{ localStorage.setItem('theme', light ? 'light' : 'dark'); }catch(err){}
+  }
+  function restoreMusicState(){
+    var a = audio();
+    if(!a || beforePaused === null) return;
+    try{
+      if(beforePaused && !a.paused) a.pause();
+      if(!beforePaused && a.paused) a.play().catch(function(){});
+    }catch(err){}
+    beforePaused = null;
+  }
+  function downGuard(e){
+    if(!isThemeTap(e)) return;
+    var a = audio();
+    beforePaused = a ? a.paused : null;
+    e.preventDefault();
+    e.stopPropagation();
+    if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+  }
+  function clickGuard(e){
+    if(!isThemeTap(e)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+    applyThemeToggle();
+    setTimeout(restoreMusicState,0);
+    setTimeout(restoreMusicState,80);
+    setTimeout(restoreMusicState,220);
+  }
+  ['pointerdown','mousedown','touchstart'].forEach(function(ev){
+    window.addEventListener(ev, downGuard, true);
+    document.addEventListener(ev, downGuard, true);
+  });
+  ['click','pointerup','touchend'].forEach(function(ev){
+    window.addEventListener(ev, clickGuard, true);
+    document.addEventListener(ev, clickGuard, true);
+  });
+  window.toggleTheme = applyThemeToggle;
+})();
+/* ====================================================================== */
