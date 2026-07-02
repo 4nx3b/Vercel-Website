@@ -7040,3 +7040,20 @@ body.gx-changelog-open .slide-player-panel {
   contain: layout paint !important;
   backface-visibility: hidden !important;
 }
+
+/* ===== USER REQUEST: restore a light blur behind the "Your name" popup,
+   the admin popup, and the Changelogs popup =====
+   Only the overlay itself is blurred (single cheap compositing layer,
+   small 6px radius, no saturate). The topbar pill / slide player already
+   have their own backdrop-filter switched off while these popups are open
+   (see the v10 fix above), so only one blur is ever compositing at a time.
+   The cards inside stay perfectly sharp. */
+#ama-name-modal.open,
+#ama-name-modal.closing,
+#ama-owner-v4-modal.open,
+#ama-owner-v4-modal.closing,
+.gx-changelog-modal.open,
+.gx-changelog-modal.closing {
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+}
