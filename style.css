@@ -4806,7 +4806,7 @@ body > .ama-modal textarea,
 .ama-v2-card{width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 96px);overflow:auto;-webkit-overflow-scrolling:touch;background:#151514;border:2px solid rgba(230,226,203,.18);border-radius:28px;padding:28px;box-shadow:0 18px 54px rgba(0,0,0,.5);position:relative}.ama-v2-close{position:absolute;right:16px;top:14px;width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(230,226,203,.2);background:rgba(255,255,255,.05);color:#f5f2e9;font-size:28px;line-height:1;cursor:pointer}.ama-v2-kicker{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#aaa79f;margin-bottom:12px}.ama-v2-card h3{font-family:var(--sans);font-size:clamp(34px,7vw,56px);line-height:1;letter-spacing:-.055em;margin:0 48px 14px 0;color:#f5f2e9}.ama-v2-sub{font-family:var(--sans);font-size:20px;line-height:1.45;color:#aaa79f;margin:0 0 24px}.ama-v2-login,.ama-v2-session{display:grid;gap:12px;margin:14px 0 20px}.ama-v2-input,.ama-v2-answer{width:100%;background:rgba(0,0,0,.22)!important;border:2px solid rgba(230,226,203,.16)!important;border-radius:18px!important;color:#f5f2e9!important;font-family:var(--mono)!important;font-size:16px!important;line-height:1.5!important;padding:15px!important;outline:0!important;box-shadow:none!important;transform:none!important;-webkit-transform:none!important;user-select:text!important;-webkit-user-select:text!important;touch-action:auto!important}.ama-v2-answer{min-height:130px;resize:vertical;margin-top:12px}.ama-v2-btn{min-height:54px;border-radius:999px;border:2px solid rgba(230,226,203,.18);background:#f5f2e9;color:#111;font-family:var(--mono);font-weight:900;letter-spacing:.10em;cursor:pointer;padding:0 22px}.ama-v2-btn.ghost{background:transparent;color:#f5f2e9}.ama-v2-help,.ama-v2-status{font-family:var(--mono);font-size:15px;line-height:1.55;color:#8a8780;text-align:center;margin:14px 0}.ama-v2-list{display:grid;gap:14px;margin-top:18px}.ama-v2-item{border:1.5px solid rgba(230,226,203,.14);border-radius:20px;padding:16px;background:rgba(0,0,0,.18)}.ama-v2-meta{font-size:12px;color:#aaa79f;margin-bottom:10px}.ama-v2-q{font-size:18px;line-height:1.45;font-weight:900;margin-bottom:8px;white-space:pre-wrap}.ama-v2-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}.ama-v2-saved{color:#73e2a7}.ama-v2-error{color:#ff8c8c}@media(max-width:760px){.ama-v2-card{padding:24px 20px;border-radius:26px}.ama-v2-sub{font-size:19px}.ama-v2-q{font-size:17px}}
 
 /* ===== AMA V4 persistent owner modal ===== */
-#ama-owner-v4-modal{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;z-index:2147483647!important;display:none!important;align-items:flex-start!important;justify-content:center!important;padding:calc(74px + env(safe-area-inset-top)) 16px 18px!important;background:rgba(5,5,5,.58)!important;backdrop-filter:blur(12px) saturate(1.12)!important;-webkit-backdrop-filter:blur(12px) saturate(1.12)!important;font-family:var(--mono)!important;color:#f5f2e9!important;overflow:auto!important;-webkit-overflow-scrolling:touch!important}#ama-owner-v4-modal.open{display:flex!important}.ama-v2-card{width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 96px);overflow:auto;-webkit-overflow-scrolling:touch;background:#151514;border:2px solid rgba(230,226,203,.18);border-radius:28px;padding:28px;box-shadow:0 18px 54px rgba(0,0,0,.5);position:relative}.ama-v2-close{position:absolute;right:16px;top:14px;width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(230,226,203,.2);background:rgba(255,255,255,.05);color:#f5f2e9;font-size:28px;line-height:1;cursor:pointer}.ama-v2-kicker{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#aaa79f;margin-bottom:12px}.ama-v2-card h3{font-family:var(--sans);font-size:clamp(34px,7vw,56px);line-height:1;letter-spacing:-.055em;margin:0 48px 14px 0;color:#f5f2e9}.ama-v2-sub{font-family:var(--sans);font-size:20px;line-height:1.45;color:#aaa79f;margin:0 0 24px}.ama-v2-login,.ama-v2-session{display:grid;gap:12px;margin:14px 0 20px}.ama-v2-input,.ama-v2-answer{width:100%;background:rgba(0,0,0,.22)!important;border:2px solid rgba(230,226,203,.16)!important;border-radius:18px!important;color:#f5f2e9!important;font-family:var(--mono)!important;font-size:16px!important;line-height:1.5!important;padding:15px!important;outline:0!important;box-shadow:none!important;transform:none!important;-webkit-transform:none!important;user-select:text!important;-webkit-user-select:text!important;touch-action:auto!important}.ama-v2-answer{min-height:140px;resize:vertical;margin-top:12px}.ama-v2-btn{min-height:54px;border-radius:999px;border:2px solid rgba(230,226,203,.18);background:#f5f2e9;color:#111;font-family:var(--mono);font-weight:900;letter-spacing:.10em;cursor:pointer;padding:0 22px}.ama-v2-btn.ghost{background:transparent;color:#f5f2e9}.ama-v2-help,.ama-v2-status{font-family:var(--mono);font-size:15px;line-height:1.55;color:#8a8780;text-align:center;margin:14px 0}.ama-v2-list{display:grid;gap:14px;margin-top:18px}.ama-v2-item{border:1.5px solid rgba(230,226,203,.14);border-radius:20px;padding:16px;background:rgba(0,0,0,.18)}.ama-v2-meta{font-size:12px;color:#aaa79f;margin-bottom:10px}.ama-v2-q{font-size:18px;line-height:1.45;font-weight:900;margin-bottom:8px;white-space:pre-wrap}.ama-v2-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}.ama-v2-saved{color:#73e2a7}.ama-v2-error{color:#ff8c8c}body.ama-modal-open{overflow:hidden!important}#ama-name-modal.open{display:flex!important}@media(max-width:760px){.ama-v2-card{padding:24px 20px;border-radius:26px}.ama-v2-sub{font-size:19px}.ama-v2-q{font-size:17px}}
+#ama-owner-v4-modal{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;z-index:2147483647!important;display:none!important;align-items:flex-start!important;justify-content:center!important;padding:calc(74px + env(safe-area-inset-top)) 16px 18px!important;background:rgba(5,5,5,.58)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;font-family:var(--mono)!important;color:#f5f2e9!important;overflow:auto!important;-webkit-overflow-scrolling:touch!important}#ama-owner-v4-modal.open{display:flex!important}.ama-v2-card{width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 96px);overflow:auto;-webkit-overflow-scrolling:touch;background:#151514;border:2px solid rgba(230,226,203,.18);border-radius:28px;padding:28px;box-shadow:0 18px 54px rgba(0,0,0,.5);position:relative}.ama-v2-close{position:absolute;right:16px;top:14px;width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(230,226,203,.2);background:rgba(255,255,255,.05);color:#f5f2e9;font-size:28px;line-height:1;cursor:pointer}.ama-v2-kicker{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#aaa79f;margin-bottom:12px}.ama-v2-card h3{font-family:var(--sans);font-size:clamp(34px,7vw,56px);line-height:1;letter-spacing:-.055em;margin:0 48px 14px 0;color:#f5f2e9}.ama-v2-sub{font-family:var(--sans);font-size:20px;line-height:1.45;color:#aaa79f;margin:0 0 24px}.ama-v2-login,.ama-v2-session{display:grid;gap:12px;margin:14px 0 20px}.ama-v2-input,.ama-v2-answer{width:100%;background:rgba(0,0,0,.22)!important;border:2px solid rgba(230,226,203,.16)!important;border-radius:18px!important;color:#f5f2e9!important;font-family:var(--mono)!important;font-size:16px!important;line-height:1.5!important;padding:15px!important;outline:0!important;box-shadow:none!important;transform:none!important;-webkit-transform:none!important;user-select:text!important;-webkit-user-select:text!important;touch-action:auto!important}.ama-v2-answer{min-height:140px;resize:vertical;margin-top:12px}.ama-v2-btn{min-height:54px;border-radius:999px;border:2px solid rgba(230,226,203,.18);background:#f5f2e9;color:#111;font-family:var(--mono);font-weight:900;letter-spacing:.10em;cursor:pointer;padding:0 22px}.ama-v2-btn.ghost{background:transparent;color:#f5f2e9}.ama-v2-help,.ama-v2-status{font-family:var(--mono);font-size:15px;line-height:1.55;color:#8a8780;text-align:center;margin:14px 0}.ama-v2-list{display:grid;gap:14px;margin-top:18px}.ama-v2-item{border:1.5px solid rgba(230,226,203,.14);border-radius:20px;padding:16px;background:rgba(0,0,0,.18)}.ama-v2-meta{font-size:12px;color:#aaa79f;margin-bottom:10px}.ama-v2-q{font-size:18px;line-height:1.45;font-weight:900;margin-bottom:8px;white-space:pre-wrap}.ama-v2-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}.ama-v2-saved{color:#73e2a7}.ama-v2-error{color:#ff8c8c}body.ama-modal-open{overflow:hidden!important}#ama-name-modal.open{display:flex!important}@media(max-width:760px){.ama-v2-card{padding:24px 20px;border-radius:26px}.ama-v2-sub{font-size:19px}.ama-v2-q{font-size:17px}}
 
 /* ===== Changelogs pill and blurred modal ===== */
 .gx-changelog-wrap{max-width:980px;margin:18px auto 24px;padding:0 28px;display:flex;justify-content:center}.gx-changelog-pill{border:1.5px solid var(--gx-line-strong,rgba(230,226,203,.18));background:rgba(255,255,255,.045);color:var(--gx-ink,#f5f2e9);font-family:var(--mono,monospace);font-size:13px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;border-radius:14px;padding:13px 20px;box-shadow:0 12px 34px rgba(0,0,0,.20);cursor:pointer}.gx-changelog-pill:hover{transform:translateY(-2px)!important;background:rgba(255,255,255,.07)}.gx-changelog-modal{position:fixed!important;inset:0!important;z-index:2147483646!important;display:none!important;align-items:center!important;justify-content:center!important;padding:calc(80px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))!important;background:rgba(5,5,5,.58)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;overflow:auto!important;-webkit-overflow-scrolling:touch!important}.gx-changelog-modal.open{display:flex!important}.gx-changelog-card{width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 120px);overflow:auto;-webkit-overflow-scrolling:touch;background:#151514;border:2px solid rgba(230,226,203,.18);border-radius:28px;box-shadow:0 18px 54px rgba(0,0,0,.5);position:relative;color:#f5f2e9;padding:28px}.gx-changelog-close{position:absolute;right:16px;top:14px;width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(230,226,203,.2);background:rgba(255,255,255,.05);color:#f5f2e9;font-size:28px;line-height:1;cursor:pointer}.gx-changelog-kicker{font-family:var(--mono,monospace);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#aaa79f;margin-bottom:12px}.gx-changelog-card h3{font-family:var(--sans,sans-serif);font-size:clamp(38px,8vw,64px);line-height:1;letter-spacing:-.06em;margin:0 48px 18px 0;color:#f5f2e9}.gx-changelog-list{max-height:calc(100dvh - 300px);overflow:auto;-webkit-overflow-scrolling:touch;display:grid;gap:14px;padding-right:4px;contain:content;will-change:scroll-position}.gx-changelog-entry{border:1.5px solid rgba(230,226,203,.14);border-radius:20px;padding:16px;background:rgba(0,0,0,.18);contain:content}.gx-changelog-date{font-family:var(--mono,monospace);font-size:13px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#f5f2e9;margin-bottom:10px}.gx-changelog-date span{color:#8a8780;font-weight:700}.gx-changelog-entry ul{margin:0;padding-left:18px;display:grid;gap:8px}.gx-changelog-entry li{font-family:var(--sans,sans-serif);font-size:16px;line-height:1.45;color:#d8d4c8}.gx-changelog-open{overflow:hidden!important}@media(max-width:760px){.gx-changelog-wrap{padding:0 14px}.gx-changelog-card{padding:24px 20px;border-radius:26px;max-height:calc(100dvh - 88px)}.gx-changelog-list{max-height:calc(100dvh - 270px)}.gx-changelog-entry li{font-size:15px}}
@@ -6319,8 +6319,8 @@ body:not(.music-playing) .sp-play-btn #sp-icon-pause{
 /* ===== USER REQUEST FIX v22 2026-07-01: AMA backdrop blur + hard-remove mini player ===== */
 #ama-name-modal.open{
   background:rgba(5,5,5,.62)!important;
-  backdrop-filter:blur(12px) saturate(1.12)!important;
-  -webkit-backdrop-filter:blur(12px) saturate(1.12)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
 }
 #ama-name-modal.open::before{
   content:""!important;
@@ -6328,8 +6328,8 @@ body:not(.music-playing) .sp-play-btn #sp-icon-pause{
   inset:0!important;
   z-index:-1!important;
   background:rgba(5,5,5,.34)!important;
-  backdrop-filter:blur(12px) saturate(1.12)!important;
-  -webkit-backdrop-filter:blur(12px) saturate(1.12)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
   pointer-events:none!important;
 }
 /* Absolute mini-player kill switch: even if old JS toggles .active, it cannot render. */
@@ -6393,8 +6393,8 @@ html body .slide-player-panel.active{
 #ama-name-modal.open,
 body > .ama-modal#ama-name-modal.open{
   background:rgba(6,6,6,.55)!important;
-  -webkit-backdrop-filter:blur(12px) saturate(1.15)!important;
-  backdrop-filter:blur(12px) saturate(1.15)!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
 }
 /* ============================================================
    AMA MODAL — backdrop blur + background lock (FINAL FIX v3)
@@ -6416,8 +6416,8 @@ body > .ama-modal#ama-name-modal.open{
   justify-content: center !important;
   padding: 16px !important;
   background: rgba(5, 5, 5, 0.6) !important;
-  backdrop-filter: blur(26px) saturate(1.18) !important;
-  -webkit-backdrop-filter: blur(26px) saturate(1.18) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   visibility: visible !important;
   pointer-events: auto !important;
   transition: top 0.2s ease, height 0.2s ease !important;
@@ -6438,8 +6438,8 @@ body > .ama-modal#ama-name-modal.open{
       page elements cause severe lag. The modal's own backdrop-filter
       does most of the visual heavy lifting. */
 body.ama-modal-open *:not(#ama-name-modal):not(#ama-name-modal *):not(#ama-owner-v4-modal):not(#ama-owner-v4-modal *):not(.gx-changelog-modal):not(.gx-changelog-modal *):not(.topbar-container):not(.topbar-container *):not(script):not(style) {
-  filter: blur(3px) saturate(1.05) brightness(0.9) !important;
-  -webkit-filter: blur(3px) saturate(1.05) brightness(0.9) !important;
+  filter: none !important;
+  -webkit-filter: none !important;
 }
 
 /* 4) Block clicks on background direct children of <body>. */
@@ -6687,15 +6687,15 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
    last so it wins the cascade over every earlier conflicting declaration. */
 #ama-name-modal,
 .gx-changelog-modal {
-  backdrop-filter: blur(10px) saturate(1.08) !important;
-  -webkit-backdrop-filter: blur(10px) saturate(1.08) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 #ama-name-modal.open,
 .gx-changelog-modal.open {
   background: rgba(5, 5, 5, 0.62) !important;
-  backdrop-filter: blur(10px) saturate(1.08) !important;
-  -webkit-backdrop-filter: blur(10px) saturate(1.08) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 /* The cards themselves stay perfectly sharp — only the backdrop behind them is blurred. */
@@ -6740,15 +6740,15 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   display: flex !important;
   animation: adminPopupBackdropIn .3s ease both !important;
   background: rgba(5, 5, 5, 0.62) !important;
-  backdrop-filter: blur(10px) saturate(1.08) !important;
-  -webkit-backdrop-filter: blur(10px) saturate(1.08) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 #ama-owner-v4-modal.closing {
   display: flex !important;
   animation: adminPopupBackdropOut .28s ease both !important;
   background: rgba(5, 5, 5, 0.62) !important;
-  backdrop-filter: blur(10px) saturate(1.08) !important;
-  -webkit-backdrop-filter: blur(10px) saturate(1.08) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 #ama-owner-v4-modal.open .ama-v2-card {
@@ -6921,8 +6921,8 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
 #ama-owner-v4-modal.closing,
 .gx-changelog-modal.closing {
   display: flex !important;
-  backdrop-filter: blur(18px) saturate(1.06) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(1.06) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 #ama-name-modal.open,
