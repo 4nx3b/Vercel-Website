@@ -7083,3 +7083,35 @@ body.gx-changelog-open .slide-player-panel {
   padding: 16px !important;
   background: rgba(5, 5, 5, 0.6) !important;
 }
+
+/* ===================================================================
+   FINAL FIX (2026-07-02) — forceful, keyboard-safe full-screen blur
+   behind the Admin popup (#ama-owner-v4-modal) and the "Your name"
+   popup (#ama-name-modal).
+
+   This is a CSS-only baseline (a matching JS block pins it with exact
+   pixel values so it also survives the on-screen keyboard opening —
+   see the bottom of script.js). Placed last on purpose so it wins over
+   every earlier, weaker blur/height rule above, including the "only one
+   blur compositing" fix that dropped this down to blur(10px). ===== */
+#ama-name-modal.open,
+#ama-name-modal.closing,
+#ama-owner-v4-modal.open,
+#ama-owner-v4-modal.closing {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: none !important;
+  margin: 0 !important;
+  background: rgba(4, 4, 4, 0.76) !important;
+  backdrop-filter: blur(48px) saturate(165%) !important;
+  -webkit-backdrop-filter: blur(48px) saturate(165%) !important;
+  z-index: 2147483647 !important;
+  overflow: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}

@@ -6837,3 +6837,88 @@ document.addEventListener('click', function(e){
     });
   }).observe(document.documentElement, { childList: true, subtree: true });
 })();
+
+/* ===================================================================
+   FINAL FIX (2026-07-02): forceful, keyboard-safe full-screen blur
+   behind the Admin popup (#ama-owner-v4-modal) and the "Your name"
+   popup (#ama-name-modal).
+
+   Root cause of the "unblurred strip at the bottom" bug: earlier code
+   (adjustModalToViewport, animateClose, and the --ama-vh custom
+   property) all shrink the POPUP'S OWN box down to whatever the
+   on-screen keyboard leaves visible (window.visualViewport.height).
+   That's correct for keeping the card readable, but it also shrinks
+   the dark/blurred backdrop itself — so the sliver of page behind the
+   keyboard is left completely unblurred.
+
+   This block decouples the two: it repins the backdrop element to the
+   FULL device screen (never shrunk by the keyboard) on every relevant
+   event, while leaving the inner card free to reposition itself above
+   the keyboard exactly as before. It's intentionally appended last so
+   it registers its listeners after every other script on the page and
+   therefore always has the final say for the same event tick.
+   =================================================================== */
+(function(){
+  'use strict';
+  var IDS = ['ama-name-modal', 'ama-owner-v4-modal'];
+
+  function fullHeight(){
+    var vv = window.visualViewport;
+    return Math.max(
+      window.innerHeight || 0,
+      document.documentElement.clientHeight || 0,
+      vv ? (vv.height + (vv.offsetTop || 0)) : 0
+    );
+  }
+
+  function pinBackdrops(){
+    var h = fullHeight() + 'px';
+    for(var i = 0; i < IDS.length; i++){
+      var m = document.getElementById(IDS[i]);
+      if(!m) continue;
+      if(!m.classList.contains('open') && !m.classList.contains('closing')) continue;
+      m.style.setProperty('position', 'fixed', 'important');
+      m.style.setProperty('top', '0px', 'important');
+      m.style.setProperty('left', '0px', 'important');
+      m.style.setProperty('right', '0px', 'important');
+      m.style.setProperty('bottom', '0px', 'important');
+      m.style.setProperty('width', '100vw', 'important');
+      m.style.setProperty('height', h, 'important');
+      m.style.setProperty('min-height', h, 'important');
+      m.style.setProperty('max-height', 'none', 'important');
+      m.style.setProperty('background', 'rgba(4,4,4,.76)', 'important');
+      m.style.setProperty('backdrop-filter', 'blur(48px) saturate(165%)', 'important');
+      m.style.setProperty('-webkit-backdrop-filter', 'blur(48px) saturate(165%)', 'important');
+    }
+  }
+
+  function ready(fn){
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
+
+  ready(function(){
+    pinBackdrops();
+
+    IDS.forEach(function(id){
+      var m = document.getElementById(id);
+      if(!m) return;
+      new MutationObserver(pinBackdrops).observe(m, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    });
+
+    window.addEventListener('resize', pinBackdrops, { passive: true });
+    window.addEventListener('orientationchange', pinBackdrops, { passive: true });
+    if(window.visualViewport){
+      window.visualViewport.addEventListener('resize', pinBackdrops, { passive: true });
+      window.visualViewport.addEventListener('scroll', pinBackdrops, { passive: true });
+    }
+
+    setInterval(pinBackdrops, 350);
+  });
+})();
