@@ -5642,21 +5642,21 @@ body.force-popup-open > *:not(#force-game-modal):not(script):not(style){
   align-items:center!important;
   justify-content:center!important;
   padding:clamp(14px,3vh,28px) 14px!important;
-  overflow:hidden!important;
+  overflow:auto!important;
   overscroll-behavior:contain!important;
-  touch-action:none!important;
+  touch-action:auto!important;
 }
 #ama-owner-v4-modal.open .ama-v2-card{
   --admin-card-y: -4vh;
   margin:auto!important;
-  max-height:min(820px,88dvh)!important;
+  max-height:min(820px,calc(var(--ama-vh,100dvh) - 48px))!important;
   overflow:auto!important;
   -webkit-overflow-scrolling:touch!important;
   touch-action:auto!important;
   overscroll-behavior:contain!important;
 }
 @media(max-height:680px){
-  #ama-owner-v4-modal.open .ama-v2-card{ --admin-card-y: -1vh; max-height:90dvh!important;}
+  #ama-owner-v4-modal.open .ama-v2-card{ --admin-card-y: -1vh; max-height:calc(var(--ama-vh,100dvh) - 20px)!important;}
 }
 /* Keep the music mini player usable even when popup-lock classes are present. */
 #slide-music-player.active{
@@ -7002,4 +7002,43 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
     transform: none !important;
     filter: none !important;
   }
+}
+
+/* ===== USER REQUEST FIX v10 2026-07-01: fix admin popup bottom cutout + smooth 120hz popups =====
+   1) Admin card max-height now tracks the keyboard-aware --ama-vh var (see script.js) instead of
+      raw dvh, so it can no longer demand more height than the modal container and get hard-clipped
+      at the bottom when the keyboard is open.
+   2) The topbar pill and slide-out music player run heavy blur(56px) + saturate(220%) at all times.
+      While the AMA/name/changelog popups are open they're fully obscured behind the popup's own
+      backdrop-filter, so compositing three separate blurs at once was the main source of jank.
+      They're switched off for the duration the popup is open and restored the instant it closes. */
+body.ama-modal-open .topbar-pill,
+body.ama-modal-open .slide-player-panel,
+body.gx-changelog-open .topbar-pill,
+body.gx-changelog-open .slide-player-panel {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Lighten and stabilize the popups' own blur so it composites on a single cheap layer. */
+#ama-name-modal.open,
+#ama-name-modal.closing,
+#ama-owner-v4-modal.open,
+#ama-owner-v4-modal.closing,
+.gx-changelog-modal.open,
+.gx-changelog-modal.closing {
+  backdrop-filter: blur(9px) !important;
+  -webkit-backdrop-filter: blur(9px) !important;
+  will-change: opacity !important;
+  contain: layout paint !important;
+}
+#ama-name-modal.open .ama-modal-card,
+#ama-name-modal.closing .ama-modal-card,
+#ama-owner-v4-modal.open .ama-v2-card,
+#ama-owner-v4-modal.closing .ama-v2-card,
+.gx-changelog-modal.open .gx-changelog-card,
+.gx-changelog-modal.closing .gx-changelog-card {
+  will-change: transform, opacity !important;
+  contain: layout paint !important;
+  backface-visibility: hidden !important;
 }
