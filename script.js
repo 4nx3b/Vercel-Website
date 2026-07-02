@@ -6862,17 +6862,36 @@ document.addEventListener('click', function(e){
   'use strict';
   var IDS = ['ama-name-modal', 'ama-owner-v4-modal'];
 
+  // Browsers that support the `lvh` unit report the full "keyboard closed"
+  // screen size in CSS and never shrink it when the keyboard opens — the
+  // matching CSS rule already sets `height:100lvh`. In that case we must
+  // NOT also set an inline `height` here, because window.innerHeight /
+  // visualViewport.height DO shrink together with the keyboard on Android
+  // Chrome, and an inline !important would silently override the correct
+  // CSS value with that too-small number — which was the actual cause of
+  // the unblurred gap at the bottom.
+  var supportsLvh = (typeof CSS !== 'undefined' && CSS.supports && CSS.supports('height', '100lvh'));
+
+  // Fallback for browsers without `lvh` support: track the largest height
+  // ever observed for this screen orientation and never report a smaller
+  // one. A keyboard opening can only shrink innerHeight/visualViewport
+  // readings, never grow them, so the true "keyboard closed" height is
+  // always the max seen so far.
+  var maxSeen = 0;
+  function resetMaxSeen(){ maxSeen = 0; }
+
   function fullHeight(){
     var vv = window.visualViewport;
-    return Math.max(
+    var current = Math.max(
       window.innerHeight || 0,
       document.documentElement.clientHeight || 0,
       vv ? (vv.height + (vv.offsetTop || 0)) : 0
     );
+    if(current > maxSeen) maxSeen = current;
+    return maxSeen;
   }
 
   function pinBackdrops(){
-    var h = fullHeight() + 'px';
     for(var i = 0; i < IDS.length; i++){
       var m = document.getElementById(IDS[i]);
       if(!m) continue;
@@ -6883,9 +6902,19 @@ document.addEventListener('click', function(e){
       m.style.setProperty('right', '0px', 'important');
       m.style.setProperty('bottom', '0px', 'important');
       m.style.setProperty('width', '100vw', 'important');
-      m.style.setProperty('height', h, 'important');
-      m.style.setProperty('min-height', h, 'important');
-      m.style.setProperty('max-height', 'none', 'important');
+      if(supportsLvh){
+        // Let the CSS `height:100lvh` rule stand — it's already correct
+        // and immune to keyboard-shrink, so clear any stale inline value
+        // a previous run (or an older browser session) may have set.
+        m.style.removeProperty('height');
+        m.style.removeProperty('min-height');
+        m.style.removeProperty('max-height');
+      } else {
+        var h = fullHeight() + 'px';
+        m.style.setProperty('height', h, 'important');
+        m.style.setProperty('min-height', h, 'important');
+        m.style.setProperty('max-height', 'none', 'important');
+      }
       m.style.setProperty('background', 'rgba(4,4,4,.76)', 'important');
       m.style.setProperty('backdrop-filter', 'blur(48px) saturate(165%)', 'important');
       m.style.setProperty('-webkit-backdrop-filter', 'blur(48px) saturate(165%)', 'important');
@@ -6913,12 +6942,19 @@ document.addEventListener('click', function(e){
     });
 
     window.addEventListener('resize', pinBackdrops, { passive: true });
-    window.addEventListener('orientationchange', pinBackdrops, { passive: true });
+    window.addEventListener('orientationchange', function(){
+      // Screen dimensions are swapping — the old "max seen" height for the
+      // previous orientation is no longer valid, so start tracking fresh.
+      resetMaxSeen();
+      setTimeout(pinBackdrops, 150);
+    }, { passive: true });
     if(window.visualViewport){
       window.visualViewport.addEventListener('resize', pinBackdrops, { passive: true });
       window.visualViewport.addEventListener('scroll', pinBackdrops, { passive: true });
     }
 
-    setInterval(pinBackdrops, 350);
+    // Fallback browsers only: the interval catches any drift; `lvh`
+    // browsers don't need polling since the CSS value never goes stale.
+    if(!supportsLvh) setInterval(pinBackdrops, 350);
   });
 })();

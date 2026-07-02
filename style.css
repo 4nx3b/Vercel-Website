@@ -7104,8 +7104,17 @@ body.gx-changelog-open .slide-player-panel {
   right: 0 !important;
   bottom: 0 !important;
   width: 100vw !important;
+  /* `lvh` = "largest viewport height" — the size the screen would be if the
+     on-screen keyboard/toolbars were NOT there. Unlike `dvh`, it does not
+     shrink when the keyboard opens, so this backdrop always spans the full
+     device screen and the keyboard simply overlaps/covers the bottom of it
+     instead of exposing an unblurred strip. `dvh` is declared first as a
+     fallback for browsers without `lvh` support; `lvh` overrides it where
+     supported since it comes second. */
   height: 100dvh !important;
+  height: 100lvh !important;
   min-height: 100dvh !important;
+  min-height: 100lvh !important;
   max-height: none !important;
   margin: 0 !important;
   background: rgba(4, 4, 4, 0.76) !important;
