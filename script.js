@@ -7175,3 +7175,90 @@ document.addEventListener('click', function(e){
   window.toggleTheme = applyThemeToggle;
 })();
 /* ====================================================================== */
+
+/* ======================================================================
+   FINAL FIX — clickable theme toggle overlay outside music widget handlers
+   ====================================================================== */
+(function(){
+  var selected=null;
+  function setTheme(mode){
+    selected = mode === 'light' ? 'light' : 'dark';
+    document.documentElement.classList.toggle('light', selected === 'light');
+    try{ localStorage.setItem('theme', selected); }catch(e){}
+  }
+  function toggleTheme(){ setTheme(document.documentElement.classList.contains('light') ? 'dark' : 'light'); }
+
+  function makeOverlay(){
+    // Remove/disable the earlier inside-widget toggle so there is only one visual target.
+    document.querySelectorAll('.topbar-music-widget > #arena-inline-theme-toggle, .topbar-music-widget > #arena-inline-theme-divider, .topbar-music-widget > .arena-inline-theme-toggle, .topbar-music-widget > .arena-inline-theme-divider').forEach(function(el){
+      el.style.display='none'; el.style.pointerEvents='none';
+    });
+
+    var div=document.getElementById('arena-floating-theme-divider');
+    var btn=document.getElementById('arena-floating-theme-toggle');
+    if(!div){
+      div=document.createElement('span');
+      div.id='arena-floating-theme-divider';
+      div.setAttribute('aria-hidden','true');
+      document.body.appendChild(div);
+    }
+    if(!btn){
+      btn=document.createElement('button');
+      btn.id='arena-floating-theme-toggle';
+      btn.type='button';
+      btn.title='Toggle light / dark mode';
+      btn.setAttribute('aria-label','Toggle light / dark mode');
+      btn.innerHTML=''+
+        '<svg class="arena-theme-sun" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>'+
+        '<svg class="arena-theme-moon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+      document.body.appendChild(btn);
+    }
+    btn.onclick=function(e){ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); toggleTheme(); return false; };
+    ['pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','click'].forEach(function(ev){
+      if(btn.dataset['bound_'+ev]) return;
+      btn.dataset['bound_'+ev]='1';
+      btn.addEventListener(ev,function(e){
+        e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+        if(ev==='click' || ev==='touchend' || ev==='pointerup') toggleTheme();
+        return false;
+      },true);
+    });
+  }
+
+  function placeOverlay(){
+    var widget=document.querySelector('.topbar-music-widget');
+    var text=widget && widget.querySelector('.tb-music-text');
+    var btn=document.getElementById('arena-floating-theme-toggle');
+    var div=document.getElementById('arena-floating-theme-divider');
+    if(!widget || !text || !btn || !div){ makeOverlay(); btn=document.getElementById('arena-floating-theme-toggle'); div=document.getElementById('arena-floating-theme-divider'); }
+    if(!widget || !text || !btn || !div) return;
+    var wr=widget.getBoundingClientRect();
+    var tr=text.getBoundingClientRect();
+    var size=btn.offsetWidth || 26;
+    var gap=6;
+    var x=Math.min(tr.right + gap + 4, wr.right - size - 6);
+    var y=wr.top + (wr.height - size)/2;
+    var dx=Math.min(tr.right + gap, x - 5);
+    div.style.left=dx+'px';
+    div.style.top=(wr.top+(wr.height-18)/2)+'px';
+    btn.style.left=x+'px';
+    btn.style.top=y+'px';
+    var visible=wr.width>0 && wr.height>0;
+    btn.style.display=visible?'flex':'none';
+    div.style.display=visible?'block':'none';
+  }
+
+  function boot(){
+    try{ var saved=localStorage.getItem('theme'); if(saved==='light'||saved==='dark') setTheme(saved); }catch(e){}
+    makeOverlay(); placeOverlay(); window.toggleTheme=toggleTheme;
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  ['resize','scroll','orientationchange'].forEach(function(ev){ window.addEventListener(ev,placeOverlay,{passive:true}); });
+  var ticks=0;
+  var timer=setInterval(function(){
+    ticks++; makeOverlay(); placeOverlay(); window.toggleTheme=toggleTheme;
+    if(selected) document.documentElement.classList.toggle('light', selected==='light');
+    if(ticks>600) clearInterval(timer);
+  },100);
+})();
+/* ====================================================================== */

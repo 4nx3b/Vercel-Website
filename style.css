@@ -7391,3 +7391,62 @@ html.light #force-game-modal .fgm-controls button,html.light #force-game-modal .
   pointer-events:none!important;
 }
 /* ====================================================================== */
+
+/* ======================================================================
+   FINAL FIX — floating theme toggle overlay
+   The old music widget has click handlers on the whole pill. This toggle is
+   visually placed inside the pill but lives outside it, so music handlers
+   cannot steal the tap.
+   ====================================================================== */
+.topbar-music-widget > .arena-inline-theme-toggle,
+.topbar-music-widget > .arena-inline-theme-divider{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+#arena-floating-theme-divider{
+  position:fixed!important;
+  z-index:2147483646!important;
+  width:1px!important;
+  height:18px!important;
+  background:currentColor!important;
+  opacity:.18!important;
+  border-radius:999px!important;
+  pointer-events:none!important;
+  color:#f5f2e9!important;
+}
+#arena-floating-theme-toggle{
+  position:fixed!important;
+  z-index:2147483647!important;
+  width:26px!important;
+  height:26px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:50%!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  background:rgba(255,255,255,.07)!important;
+  color:#f5f2e9!important;
+  padding:0!important;
+  margin:0!important;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+  -webkit-tap-highlight-color:transparent!important;
+  touch-action:manipulation!important;
+}
+#arena-floating-theme-toggle svg{
+  position:absolute!important;
+  width:14px!important;
+  height:14px!important;
+  stroke:currentColor!important;
+  pointer-events:none!important;
+  transition:opacity .22s ease,transform .22s ease!important;
+}
+html:not(.light) #arena-floating-theme-toggle .arena-theme-sun{opacity:1!important;transform:rotate(0) scale(1)!important;}
+html:not(.light) #arena-floating-theme-toggle .arena-theme-moon{opacity:0!important;transform:rotate(80deg) scale(.6)!important;}
+html.light #arena-floating-theme-toggle .arena-theme-sun{opacity:0!important;transform:rotate(-80deg) scale(.6)!important;}
+html.light #arena-floating-theme-toggle .arena-theme-moon{opacity:1!important;transform:rotate(0) scale(1)!important;}
+html.light #arena-floating-theme-toggle{background:rgba(60,55,115,.08)!important;border-color:rgba(60,55,115,.16)!important;color:#17172b!important;}
+html.light #arena-floating-theme-divider{color:#17172b!important;}
+@media(max-width:480px){#arena-floating-theme-toggle{width:24px!important;height:24px!important}#arena-floating-theme-toggle svg{width:13px!important;height:13px!important}}
+/* ====================================================================== */
