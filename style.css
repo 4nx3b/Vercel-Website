@@ -6863,29 +6863,57 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
 }
 
 /* ===== USER REQUEST: SLEEK & SMOOTH POPUP ANIMATIONS ===== */
-/* Lightweight, GPU-friendly open/close motion for admin, name, and changelog popups.
-   Uses opacity + scale + translate only — no heavy blur filters. */
+/* Premium open/close motion for admin, name, and changelog popups.
+   Spring-like easing on open, snappy easing on close, subtle scale + blur. */
 
 @keyframes sleekBackdropIn {
   from { opacity: 0; }
-  to   { opacity: 1; }
+  to { opacity: 1; }
 }
 @keyframes sleekBackdropOut {
   from { opacity: 1; }
-  to   { opacity: 0; }
+  to { opacity: 0; }
 }
 @keyframes sleekCardIn {
-  0%   { opacity: 0; transform: translate3d(0, 24px, 0) scale(0.96); }
-  65%  { opacity: 1; transform: translate3d(0, -3px, 0) scale(1.01); }
-  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 36px, 0) scale(0.92);
+    filter: blur(16px);
+  }
+  55% {
+    opacity: 1;
+    transform: translate3d(0, -6px, 0) scale(1.015);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
 }
 @keyframes sleekCardOut {
-  0%   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
-  100% { opacity: 0; transform: translate3d(0, 12px, 0) scale(0.97); }
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0) scale(0.96);
+    filter: blur(12px);
+  }
 }
 @keyframes sleekContentRise {
-  from { opacity: 0; transform: translate3d(0, 8px, 0); }
-  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
 }
 
 #ama-name-modal.open,
@@ -6895,77 +6923,63 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
 #ama-owner-v4-modal.closing,
 .gx-changelog-modal.closing {
   display: flex !important;
-  backdrop-filter: blur(10px) saturate(1.04) !important;
-  -webkit-backdrop-filter: blur(10px) saturate(1.04) !important;
-}
-
-#ama-name-modal.closing,
-#ama-owner-v4-modal.closing,
-.gx-changelog-modal.closing {
-  pointer-events: none !important;
+  backdrop-filter: blur(18px) saturate(1.06) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.06) !important;
 }
 
 #ama-name-modal.open,
 #ama-owner-v4-modal.open,
 .gx-changelog-modal.open {
-  animation: sleekBackdropIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+  animation: sleekBackdropIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both !important;
 }
 
 #ama-name-modal.closing,
 #ama-owner-v4-modal.closing,
 .gx-changelog-modal.closing {
-  animation: sleekBackdropOut 0.22s cubic-bezier(0.4, 0, 1, 1) both !important;
-}
-
-#ama-name-modal.open .ama-modal-card,
-#ama-owner-v4-modal.open .ama-v2-card,
-.gx-changelog-modal.open .gx-changelog-card,
-#ama-name-modal.closing .ama-modal-card,
-#ama-owner-v4-modal.closing .ama-v2-card,
-.gx-changelog-modal.closing .gx-changelog-card {
-  will-change: transform, opacity !important;
-  transform-origin: 50% 50% !important;
+  animation: sleekBackdropOut 0.32s cubic-bezier(0.4, 0, 1, 1) both !important;
 }
 
 #ama-name-modal.open .ama-modal-card,
 #ama-owner-v4-modal.open .ama-v2-card,
 .gx-changelog-modal.open .gx-changelog-card {
-  animation: sleekCardIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+  animation: sleekCardIn 0.6s cubic-bezier(0.22, 1.18, 0.36, 1) both !important;
+  transform-origin: 50% 12% !important;
 }
 
 #ama-name-modal.closing .ama-modal-card,
 #ama-owner-v4-modal.closing .ama-v2-card,
 .gx-changelog-modal.closing .gx-changelog-card {
-  animation: sleekCardOut 0.24s cubic-bezier(0.4, 0, 1, 1) both !important;
+  animation: sleekCardOut 0.32s cubic-bezier(0.4, 0, 1, 1) both !important;
+  transform-origin: 50% 12% !important;
 }
 
 /* Content stagger — name popup */
-#ama-name-modal.open .ama-modal-kicker { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.06s; }
-#ama-name-modal.open #ama-name-title   { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.11s; }
-#ama-name-modal.open .ama-modal-card > p { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.16s; }
-#ama-name-modal.open #ama-name-input   { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.21s; }
-#ama-name-modal.open #ama-final-send   { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.26s; }
+#ama-name-modal.open .ama-modal-kicker { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.08s; }
+#ama-name-modal.open #ama-name-title { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.13s; }
+#ama-name-modal.open .ama-modal-card > p { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.18s; }
+#ama-name-modal.open #ama-name-input { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.23s; }
+#ama-name-modal.open #ama-final-send { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.28s; }
 
 /* Content stagger — admin popup */
-#ama-owner-v4-modal.open .ama-v2-kicker { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.05s; }
-#ama-owner-v4-modal.open h3            { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.10s; }
-#ama-owner-v4-modal.open .ama-v2-sub   { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.15s; }
-#ama-owner-v4-modal.open #ama-v4-auth  { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.20s; }
-#ama-owner-v4-modal.open #ama-v4-tabs  { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.25s; }
-#ama-owner-v4-modal.open #ama-v4-status { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.29s; }
-#ama-owner-v4-modal.open #ama-v4-list  { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.33s; }
+#ama-owner-v4-modal.open .ama-v2-kicker { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.06s; }
+#ama-owner-v4-modal.open h3 { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.11s; }
+#ama-owner-v4-modal.open .ama-v2-sub { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.16s; }
+#ama-owner-v4-modal.open #ama-v4-auth { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.22s; }
+#ama-owner-v4-modal.open #ama-v4-tabs { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.27s; }
+#ama-owner-v4-modal.open #ama-v4-status { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.31s; }
+#ama-owner-v4-modal.open #ama-v4-list { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.35s; }
 
 /* Content stagger — changelog popup */
-.gx-changelog-modal.open .gx-changelog-kicker { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.06s; }
-.gx-changelog-modal.open #gx-changelog-title   { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.11s; }
-.gx-changelog-modal.open .gx-changelog-controls { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.16s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(1) { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.22s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(2) { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.27s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(3) { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.32s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(4) { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.37s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(5) { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.42s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(6) { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.47s; }
-.gx-changelog-modal.open .gx-changelog-page-pills { animation: sleekContentRise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.52s; }
+.gx-changelog-modal.open .gx-changelog-kicker { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.08s; }
+.gx-changelog-modal.open #gx-changelog-title { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.13s; }
+.gx-changelog-modal.open .gx-changelog-controls { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.18s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(1) { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.24s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(2) { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.29s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(3) { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.34s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(4) { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.39s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(5) { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.44s; }
+.gx-changelog-modal.open .gx-changelog-entry:nth-child(6) { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.49s; }
+.gx-changelog-modal.open .gx-changelog-page-pills { animation: sleekContentRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 0.55s; }
 
 @media (prefers-reduced-motion: reduce) {
   #ama-name-modal.open,
@@ -6987,7 +7001,5 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
     opacity: 1 !important;
     transform: none !important;
     filter: none !important;
-    will-change: auto !important;
-    pointer-events: auto !important;
   }
 }
