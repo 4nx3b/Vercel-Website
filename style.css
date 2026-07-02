@@ -7054,6 +7054,27 @@ body.gx-changelog-open .slide-player-panel {
 #ama-owner-v4-modal.closing,
 .gx-changelog-modal.open,
 .gx-changelog-modal.closing {
-  backdrop-filter: blur(6px) !important;
-  -webkit-backdrop-filter: blur(6px) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* ===== USER REQUEST FIX: stop the "Your name" popup from jumping to full-
+   screen-center right as the dismiss (close) animation starts =====
+   Root cause: the popup's real position/size (inset:0, height:100dvh,
+   centered) was only ever declared on the `.open` state. The close button
+   swaps the class straight from `.open` to `.closing` (see animateClose in
+   script.js), so for the whole 260-320ms fade-out the element had already
+   fallen back to the plain, non-keyboard-aware base `.ama-modal` sizing —
+   which visually snapped the popup to the center of the full screen a
+   frame before it faded away. Mirroring the same sizing onto `.closing`
+   keeps it pinned exactly where it was when open. */
+#ama-name-modal.closing {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px !important;
+  background: rgba(5, 5, 5, 0.6) !important;
 }
