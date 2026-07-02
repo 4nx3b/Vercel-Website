@@ -5638,7 +5638,8 @@ body.force-popup-open > *:not(#force-game-modal):not(script):not(style){
 }
 
 /* ===== USER REQUEST FIX v9 2026-07-01: stable centered owner popup + restored mini player ===== */
-#ama-owner-v4-modal.open{
+#ama-owner-v4-modal.open,
+#ama-owner-v4-modal.closing{
   align-items:center!important;
   justify-content:center!important;
   padding:clamp(14px,3vh,28px) 14px!important;
@@ -5646,8 +5647,9 @@ body.force-popup-open > *:not(#force-game-modal):not(script):not(style){
   overscroll-behavior:contain!important;
   touch-action:auto!important;
 }
-#ama-owner-v4-modal.open .ama-v2-card{
-  --admin-card-y: -4vh;
+#ama-owner-v4-modal.open .ama-v2-card,
+#ama-owner-v4-modal.closing .ama-v2-card{
+  --admin-card-y: 0;
   margin:auto!important;
   max-height:min(820px,calc(var(--ama-vh,100dvh) - 48px))!important;
   overflow:auto!important;
@@ -5656,7 +5658,8 @@ body.force-popup-open > *:not(#force-game-modal):not(script):not(style){
   overscroll-behavior:contain!important;
 }
 @media(max-height:680px){
-  #ama-owner-v4-modal.open .ama-v2-card{ --admin-card-y: -1vh; max-height:calc(var(--ama-vh,100dvh) - 20px)!important;}
+  #ama-owner-v4-modal.open .ama-v2-card,
+  #ama-owner-v4-modal.closing .ama-v2-card{ max-height:calc(var(--ama-vh,100dvh) - 20px)!important;}
 }
 /* Keep the music mini player usable even when popup-lock classes are present. */
 #slide-music-player.active{
@@ -7022,8 +7025,8 @@ body.gx-changelog-open .slide-player-panel {
 #ama-owner-v4-modal.closing,
 .gx-changelog-modal.open,
 .gx-changelog-modal.closing {
-  backdrop-filter: blur(3px) !important;
-  -webkit-backdrop-filter: blur(3px) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   will-change: opacity !important;
   contain: layout paint !important;
 }
