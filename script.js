@@ -7059,3 +7059,63 @@ document.addEventListener('click', function(e){
   },100);
 })();
 /* ====================================================================== */
+
+/* ======================================================================
+   FINAL PATCH — move theme toggle to right of music text + robust toggling
+   ====================================================================== */
+(function(){
+  var chosen=null;
+  function apply(mode){
+    chosen = (mode === 'light') ? 'light' : 'dark';
+    document.documentElement.classList.toggle('light', chosen === 'light');
+    try{localStorage.setItem('theme', chosen);}catch(e){}
+  }
+  function toggleThemeInline(){ apply(document.documentElement.classList.contains('light') ? 'dark' : 'light'); }
+
+  function ensureThemeToggleRight(){
+    var widget=document.querySelector('.topbar-music-widget');
+    var text=widget && widget.querySelector('.tb-music-text');
+    if(!widget || !text) return;
+    var btn=document.getElementById('arena-inline-theme-toggle');
+    var divider=document.getElementById('arena-inline-theme-divider');
+    if(!divider){
+      divider=document.createElement('span');
+      divider.id='arena-inline-theme-divider';
+      divider.className='arena-inline-theme-divider';
+      divider.setAttribute('aria-hidden','true');
+    }
+    if(!btn){
+      btn=document.createElement('button');
+      btn.id='arena-inline-theme-toggle';
+      btn.className='arena-inline-theme-toggle';
+      btn.type='button';
+      btn.title='Toggle light / dark mode';
+      btn.setAttribute('aria-label','Toggle light / dark mode');
+      btn.innerHTML=''+
+        '<svg class="arena-theme-sun" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>'+
+        '<svg class="arena-theme-moon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+    }
+    if(text.nextElementSibling !== divider) text.insertAdjacentElement('afterend', divider);
+    if(divider.nextElementSibling !== btn) divider.insertAdjacentElement('afterend', btn);
+    btn.onclick=function(e){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();toggleThemeInline();};
+  }
+
+  function boot(){
+    try{ var saved=localStorage.getItem('theme'); if(saved==='light'||saved==='dark') apply(saved); }catch(e){}
+    ensureThemeToggleRight();
+    window.toggleTheme=toggleThemeInline;
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+
+  // Older code on this site forces dark/removes theme controls for a while.
+  // Keep only this inline toggle and user's chosen mode stable.
+  var ticks=0;
+  var guard=setInterval(function(){
+    ticks++;
+    ensureThemeToggleRight();
+    window.toggleTheme=toggleThemeInline;
+    if(chosen) document.documentElement.classList.toggle('light', chosen==='light');
+    if(ticks>320) clearInterval(guard);
+  },100);
+})();
+/* ====================================================================== */
