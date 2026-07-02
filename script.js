@@ -6958,3 +6958,111 @@ document.addEventListener('click', function(e){
     if(!supportsLvh) setInterval(pinBackdrops, 350);
   });
 })();
+
+/* ======================================================================
+   USER REQUEST PATCH 2026-07-02 — hero + theme + game result scores
+   ====================================================================== */
+(function(){
+  'use strict';
+
+  function restoreScreenshotHero(){
+    var hero = document.getElementById('hero');
+    if(!hero) return;
+    var h = hero.querySelector('.hero-h1');
+    if(h && !h.dataset.screenshotHero){
+      h.dataset.screenshotHero = '1';
+      h.innerHTML = '<span class="hero-h1-gif-text">Building Android<br>beyond stock</span>';
+    } else if(h && !/Building Android/i.test(h.textContent||'')) {
+      h.innerHTML = '<span class="hero-h1-gif-text">Building Android<br>beyond stock</span>';
+    }
+    hero.querySelectorAll('.gx-welcome-card').forEach(function(card){ card.setAttribute('aria-hidden','true'); });
+  }
+
+  function updateThemeMeta(){
+    var themeColor = document.documentElement.classList.contains('light') ? '#f2f0ff' : '#050505';
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if(!meta){ meta = document.createElement('meta'); meta.name = 'theme-color'; document.head.appendChild(meta); }
+    meta.content = themeColor;
+  }
+
+  var oldToggle = window.toggleTheme;
+  window.toggleTheme = function(){
+    if(typeof oldToggle === 'function') oldToggle.apply(this, arguments);
+    else document.documentElement.classList.toggle('light');
+    try{ localStorage.setItem('theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); }catch(e){}
+    updateThemeMeta();
+  };
+
+  function parseScore(current, previous){
+    current = String(current || '').trim();
+    previous = String(previous || '').trim();
+    var txt = current + ' ' + previous;
+    var m;
+    if((m = txt.match(/score\s*[:·]?\s*(\d+)/i))) return 'Score: ' + m[1];
+    if((m = previous.match(/You\s+(\d+)\s*·\s*AI\s+(\d+)/i))) return 'Score: You ' + m[1] + ' · AI ' + m[2];
+    if((m = txt.match(/Reaction\s+(\d+ms)/i))) return 'Score: ' + m[1];
+    if((m = txt.match(/survived\s+(\d+s)/i))) return 'Score: ' + m[1];
+    if(/win/i.test(current)) return previous ? ('Score: ' + previous) : 'Score: Win';
+    if(/game over|boom|too early|hit|AI wins/i.test(current)) return previous ? ('Score: ' + previous) : 'Score: 0';
+    return current ? ('Result: ' + current) : 'Score: 0';
+  }
+  function resultTitle(current){
+    current = String(current || '').trim();
+    if(/\byou win\b|clean win/i.test(current)) return 'You win';
+    if(/AI wins/i.test(current)) return 'You lose';
+    if(/game over|boom|too early|hit|soft brick/i.test(current)) return 'Game over';
+    return current || 'Game over';
+  }
+  function enhanceOverlay(ov){
+    if(!ov || ov.dataset.scoreEnhanced === '1') return;
+    var root = ov.closest('.fgm-game') || ov.parentElement;
+    var status = root && root.querySelector('.fgm-status');
+    var current = (status && status.textContent) || (root && root.dataset.currentStatus) || '';
+    var previous = (root && root.dataset.previousStatus) || '';
+    var retry = ov.querySelector('.fgm-retry,button');
+    var retryHandler = retry && retry.onclick;
+    ov.dataset.scoreEnhanced = '1';
+    ov.innerHTML = '<div class="fgm-result-title"></div><div class="fgm-result-score"></div><button class="fgm-retry" type="button">Play again</button>';
+    ov.querySelector('.fgm-result-title').textContent = resultTitle(current);
+    ov.querySelector('.fgm-result-score').textContent = parseScore(current, previous);
+    ov.querySelector('.fgm-retry').onclick = function(e){
+      e.preventDefault();
+      if(typeof retryHandler === 'function') retryHandler.call(this, e);
+      else {
+        var modal = ov.closest('#force-game-modal,#final-game-modal');
+        var type = modal && modal.dataset && modal.dataset.type;
+        if(type && window.__arenaOpenGame) window.__arenaOpenGame(type, true);
+      }
+    };
+  }
+  function watchGameRoot(root){
+    if(!root || root.dataset.scoreWatch === '1') return;
+    root.dataset.scoreWatch = '1';
+    var readStatus = function(){
+      var st = root.querySelector('.fgm-status');
+      var next = st ? st.textContent.trim() : '';
+      if(next && next !== root.dataset.currentStatus){
+        root.dataset.previousStatus = root.dataset.currentStatus || '';
+        root.dataset.currentStatus = next;
+      }
+    };
+    readStatus();
+    new MutationObserver(function(){
+      readStatus();
+      root.querySelectorAll('.fgm-over').forEach(enhanceOverlay);
+    }).observe(root, {childList:true, subtree:true, characterData:true});
+  }
+  function scanGames(){
+    document.querySelectorAll('#force-game-modal .fgm-game,#final-game-modal .fgm-game').forEach(watchGameRoot);
+    document.querySelectorAll('#force-game-modal .fgm-over,#final-game-modal .fgm-over').forEach(enhanceOverlay);
+  }
+
+  function ready(fn){ document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', fn) : fn(); }
+  ready(function(){
+    restoreScreenshotHero();
+    updateThemeMeta();
+    scanGames();
+    new MutationObserver(function(){ restoreScreenshotHero(); scanGames(); updateThemeMeta(); }).observe(document.body, {childList:true, subtree:true, attributes:true, attributeFilter:['class']});
+    setInterval(function(){ restoreScreenshotHero(); scanGames(); }, 900);
+  });
+})();
