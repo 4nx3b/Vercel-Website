@@ -6877,13 +6877,8 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
 @keyframes sleekCardIn {
   0% {
     opacity: 0;
-    transform: translate3d(0, 36px, 0) scale(0.92);
-    filter: blur(16px);
-  }
-  55% {
-    opacity: 1;
-    transform: translate3d(0, -6px, 0) scale(1.015);
-    filter: blur(0);
+    transform: translate3d(0, 22px, 0) scale(0.97);
+    filter: blur(10px);
   }
   100% {
     opacity: 1;
@@ -6942,7 +6937,7 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
 #ama-name-modal.open .ama-modal-card,
 #ama-owner-v4-modal.open .ama-v2-card,
 .gx-changelog-modal.open .gx-changelog-card {
-  animation: sleekCardIn 0.6s cubic-bezier(0.22, 1.18, 0.36, 1) both !important;
+  animation: sleekCardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both !important;
   transform-origin: 50% 12% !important;
 }
 
