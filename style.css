@@ -7185,3 +7185,51 @@ body.gx-changelog-open .slide-player-panel {
 }
 #hero .hero-sub,#hero .hero-tags,#hero .hero-actions{display:none!important;}
 /* ====================================================================== */
+
+/* ======================================================================
+   FINAL MINIMAL PATCH — topbar theme toggle icon
+   Adds a small light/dark toggle on the LEFT side of the music text only.
+   ====================================================================== */
+.topbar-music-widget .arena-inline-theme-toggle{
+  width:26px!important;
+  height:26px!important;
+  min-width:26px!important;
+  flex:0 0 26px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  position:relative!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  border-radius:50%!important;
+  background:rgba(255,255,255,.045)!important;
+  color:currentColor!important;
+  padding:0!important;
+  margin:0 1px 0 0!important;
+  cursor:pointer!important;
+  opacity:.92!important;
+  -webkit-tap-highlight-color:transparent!important;
+  touch-action:manipulation!important;
+}
+.topbar-music-widget .arena-inline-theme-toggle svg{
+  position:absolute!important;
+  width:14px!important;
+  height:14px!important;
+  stroke:currentColor!important;
+  transition:opacity .22s ease,transform .22s ease!important;
+}
+html:not(.light) .arena-inline-theme-toggle .arena-theme-sun{opacity:1!important;transform:rotate(0deg) scale(1)!important;}
+html:not(.light) .arena-inline-theme-toggle .arena-theme-moon{opacity:0!important;transform:rotate(80deg) scale(.6)!important;}
+html.light .arena-inline-theme-toggle .arena-theme-sun{opacity:0!important;transform:rotate(-80deg) scale(.6)!important;}
+html.light .arena-inline-theme-toggle .arena-theme-moon{opacity:1!important;transform:rotate(0deg) scale(1)!important;}
+html.light .topbar-music-widget .arena-inline-theme-toggle{
+  background:rgba(80,70,160,.08)!important;
+  border-color:rgba(80,70,160,.16)!important;
+  color:#17172b!important;
+}
+@media(max-width:480px){
+  .topbar-music-widget .arena-inline-theme-toggle{
+    width:24px!important;height:24px!important;min-width:24px!important;flex-basis:24px!important;
+  }
+  .topbar-music-widget .arena-inline-theme-toggle svg{width:13px!important;height:13px!important;}
+}
+/* ====================================================================== */

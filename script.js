@@ -6996,3 +6996,66 @@ document.addEventListener('click', function(e){
   setInterval(applyAnimatedHeadline,500);
 })();
 /* ====================================================================== */
+
+/* ======================================================================
+   FINAL MINIMAL PATCH — topbar theme toggle icon
+   Adds a small toggle immediately before the music text. No other UI moved.
+   ====================================================================== */
+(function(){
+  var preferred=null;
+  function applyTheme(mode){
+    preferred = mode === 'light' ? 'light' : 'dark';
+    document.documentElement.classList.toggle('light', preferred === 'light');
+    try{ localStorage.setItem('theme', preferred); }catch(e){}
+  }
+  function currentMode(){ return document.documentElement.classList.contains('light') ? 'light' : 'dark'; }
+  function toggle(){ applyTheme(currentMode()==='light' ? 'dark' : 'light'); }
+
+  function ensureInlineThemeToggle(){
+    var widget=document.querySelector('.topbar-music-widget');
+    var text=widget && widget.querySelector('.tb-music-text');
+    if(!widget || !text) return;
+    var btn=document.getElementById('arena-inline-theme-toggle');
+    if(!btn){
+      btn=document.createElement('button');
+      btn.id='arena-inline-theme-toggle';
+      btn.className='arena-inline-theme-toggle';
+      btn.type='button';
+      btn.title='Toggle light / dark mode';
+      btn.setAttribute('aria-label','Toggle light / dark mode');
+      btn.innerHTML=''+
+        '<svg class="arena-theme-sun" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>'+
+        '<svg class="arena-theme-moon" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+      text.insertAdjacentElement('beforebegin', btn);
+    } else if(btn.nextElementSibling !== text){
+      text.insertAdjacentElement('beforebegin', btn);
+    }
+    btn.onclick=function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      toggle();
+    };
+  }
+
+  function restoreSavedTheme(){
+    try{
+      var saved=localStorage.getItem('theme');
+      if(saved==='light' || saved==='dark') applyTheme(saved);
+    }catch(e){}
+  }
+
+  function run(){ restoreSavedTheme(); ensureInlineThemeToggle(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
+
+  // Older site code briefly forces dark and removes the old theme button.
+  // This only protects this new inline icon and the user's selected theme.
+  var ticks=0;
+  var keep=setInterval(function(){
+    ticks++;
+    ensureInlineThemeToggle();
+    if(preferred) document.documentElement.classList.toggle('light', preferred==='light');
+    window.toggleTheme=toggle;
+    if(ticks>260) clearInterval(keep);
+  },100);
+})();
+/* ====================================================================== */
