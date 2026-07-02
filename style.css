@@ -7241,3 +7241,46 @@ body.gx-changelog-open .slide-player-panel {
   }
 }
 /* ====================================================================== */
+
+/* ======================================================================
+   FINAL MINIMAL PATCH — headline font v3
+   Forces a visibly different compact display font. Uses Barlow Condensed
+   when loaded; falls back to narrow/condensed system display fonts.
+   ====================================================================== */
+#hero .hero-h1.hero-build-styled{
+  font-family:'Barlow Condensed','Arial Narrow','Roboto Condensed','HelveticaNeue-CondensedBold','Impact',system-ui,sans-serif!important;
+  font-size:clamp(60px,10.8vw,122px)!important;
+  line-height:.78!important;
+  letter-spacing:-.035em!important;
+  text-transform:none!important;
+  font-feature-settings:'kern' 1,'liga' 1!important;
+}
+#hero .hero-h1.hero-build-styled .hero-build-word{
+  font-family:inherit!important;
+  transform-origin:center!important;
+  -webkit-text-stroke:.012em rgba(255,255,255,.06)!important;
+}
+#hero .hero-h1.hero-build-styled .hero-build-bold{
+  font-weight:900!important;
+  font-style:normal!important;
+  transform:scaleX(.92)!important;
+}
+#hero .hero-h1.hero-build-styled .hero-build-italic{
+  font-weight:800!important;
+  font-style:italic!important;
+  transform:scaleX(.90) skewX(-4deg)!important;
+  letter-spacing:-.045em!important;
+}
+#hero .hero-h1.hero-build-styled .hero-build-semi{
+  font-weight:600!important;
+  font-style:normal!important;
+  transform:scaleX(.88)!important;
+  letter-spacing:-.04em!important;
+}
+@media(max-width:520px){
+  #hero .hero-h1.hero-build-styled{
+    font-size:clamp(58px,16vw,82px)!important;
+    line-height:.80!important;
+  }
+}
+/* ====================================================================== */

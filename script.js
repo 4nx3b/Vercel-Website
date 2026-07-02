@@ -6993,3 +6993,29 @@ document.addEventListener('click', function(e){
   else compactBuildingHeadline();
 })();
 /* ====================================================================== */
+
+/* ======================================================================
+   FINAL MINIMAL PATCH — load compact headline font only
+   ====================================================================== */
+(function(){
+  function loadHeadlineFont(){
+    if(document.getElementById('headline-barlow-condensed-font')) return;
+    var pre=document.createElement('link');
+    pre.rel='preconnect';
+    pre.href='https://fonts.googleapis.com';
+    document.head.appendChild(pre);
+    var pre2=document.createElement('link');
+    pre2.rel='preconnect';
+    pre2.href='https://fonts.gstatic.com';
+    pre2.crossOrigin='anonymous';
+    document.head.appendChild(pre2);
+    var link=document.createElement('link');
+    link.id='headline-barlow-condensed-font';
+    link.rel='stylesheet';
+    link.href='https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,900;1,800&display=swap';
+    document.head.appendChild(link);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',loadHeadlineFont);
+  else loadHeadlineFont();
+})();
+/* ====================================================================== */
