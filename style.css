@@ -7182,3 +7182,62 @@ body.gx-changelog-open .slide-player-panel {
   display:none!important;
 }
 /* ====================================================================== */
+
+/* ======================================================================
+   FINAL MINIMAL PATCH — compact Building Android headline v2
+   Only changes the hero headline typography + GIF fill.
+   Bold → italic → semi-bold, with the requested Giphy animation clipped
+   inside the letters.
+   ====================================================================== */
+:root{
+  --building-android-gif:url('https://media1.giphy.com/media/v1.Y2lkPTZjMDliOTUyOXp4bGU3YmdvMDc1cjZicTBwbzE0MHlwYTZyZjhyNjhhYTY2aHhrayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hin41Ayyrjn3Jku0sV/giphy.gif');
+}
+#hero .hero-h1.hero-build-styled{
+  font-family:var(--sans,Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif)!important;
+  font-size:clamp(56px,10.4vw,116px)!important;
+  line-height:.82!important;
+  letter-spacing:-.075em!important;
+  max-width:min(900px,100%)!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+#hero .hero-h1.hero-build-styled .hero-build-word{
+  display:block!important;
+  width:max-content!important;
+  max-width:100%!important;
+  margin:0 auto!important;
+  background-image:var(--building-android-gif),linear-gradient(115deg,#f5f2e9 0%,#f0a35d 30%,#f8e98a 56%,#6fe5c0 78%,#7aa7ff 100%)!important;
+  background-size:cover,240% 240%!important;
+  background-position:center center!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;
+  color:transparent!important;
+  filter:saturate(1.18) contrast(1.08)!important;
+  text-wrap:balance!important;
+}
+#hero .hero-h1.hero-build-styled .hero-build-bold{
+  font-weight:950!important;
+  font-style:normal!important;
+}
+#hero .hero-h1.hero-build-styled .hero-build-italic{
+  font-weight:760!important;
+  font-style:italic!important;
+  letter-spacing:-.085em!important;
+  transform:translateX(-.02em)!important;
+}
+#hero .hero-h1.hero-build-styled .hero-build-semi{
+  font-weight:650!important;
+  font-style:normal!important;
+  letter-spacing:-.08em!important;
+  transform:translateY(-.015em)!important;
+}
+#hero .hero-h1.hero-build-styled .word-accent{display:none!important;}
+@media(max-width:520px){
+  #hero .hero-h1.hero-build-styled{
+    font-size:clamp(54px,15.2vw,78px)!important;
+    line-height:.84!important;
+    letter-spacing:-.078em!important;
+  }
+}
+/* ====================================================================== */

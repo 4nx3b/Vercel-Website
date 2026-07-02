@@ -6975,3 +6975,21 @@ document.addEventListener('click', function(e){
   else styleBuildingHeadline();
 })();
 /* ====================================================================== */
+
+/* ======================================================================
+   FINAL MINIMAL PATCH — compact Building Android headline v2
+   Only changes the headline markup so CSS can style:
+   Bold → italic → semi-bold.
+   ====================================================================== */
+(function(){
+  function compactBuildingHeadline(){
+    var h=document.querySelector('#hero .hero-h1');
+    if(!h) return;
+    var wanted='<span class="hero-build-word hero-build-bold">Building</span><span class="hero-build-word hero-build-italic">Android</span><span class="hero-build-word hero-build-semi">beyond stock</span>';
+    if(h.innerHTML.replace(/\s+/g,' ').trim()!==wanted.replace(/\s+/g,' ').trim()) h.innerHTML=wanted;
+    h.classList.add('hero-build-styled');
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',compactBuildingHeadline);
+  else compactBuildingHeadline();
+})();
+/* ====================================================================== */
