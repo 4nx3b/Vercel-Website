@@ -7126,139 +7126,59 @@ body.gx-changelog-open .slide-player-panel {
 }
 
 /* ======================================================================
-   MINIMAL USER REQUEST PATCH 2026-07-02
-   Only affects the "Building Android beyond stock" headline: larger text
-   with the requested Tenor GIF playing inside the letters. No theme/topbar,
-   cards, buttons, sections, or game UI changes are made here.
+   FINAL MINIMAL PATCH — Building Android headline only
+   No topbar/theme/cards/buttons/game UI changes are made here.
    ====================================================================== */
 :root{
-  --building-android-gif:url('https://media1.tenor.com/m/xzrlRMfHWwEAAAAd/reze-denji.gif');
-}
-#hero .hero-h1{
-  display:block!important;
-  font-size:clamp(60px,12vw,132px)!important;
-  line-height:.90!important;
-  letter-spacing:-.06em!important;
-}
-#hero .hero-h1 .hero-h1-gif-text{
-  display:inline!important;
-  background-image:var(--building-android-gif),linear-gradient(115deg,#ff7b3a 0%,#f5f2e9 32%,#23d18b 58%,#7aa7ff 100%)!important;
-  background-size:cover,240% 240%!important;
-  background-position:center center!important;
-  -webkit-background-clip:text!important;
-  background-clip:text!important;
-  -webkit-text-fill-color:transparent!important;
-  color:transparent!important;
-  filter:saturate(1.25) contrast(1.05)!important;
-}
-@media(max-width:520px){
-  #hero .hero-h1{font-size:clamp(58px,17vw,84px)!important;}
-}
-/* ====================================================================== */
-
-/* ======================================================================
-   USER REQUEST PATCH 2026-07-02b
-   1) Only restyles the Building Android headline to match the bold/italic
-      "System internals..." typography, with the GIF still clipped inside.
-   2) Restores the topbar light/dark toggle at the right of the media text.
-   ====================================================================== */
-:root{--building-android-gif:url('https://media1.tenor.com/m/xzrlRMfHWwEAAAAd/reze-denji.gif');}
-
-/* Show the real hero headline instead of the injected welcome-card on home. */
-#hero .gx-welcome-card{display:none!important;visibility:hidden!important;pointer-events:none!important;}
-#hero .hero-eyebrow,#hero .hero-h1,#hero .hero-sub,#hero .hero-tags,#hero .hero-actions{display:flex!important;visibility:visible!important;opacity:1!important;}
-#hero .hero-h1{display:block!important;}
-#hero{
-  min-height:100svh!important;
-  display:flex!important;
-  flex-direction:column!important;
-  justify-content:center!important;
-  align-items:center!important;
-  text-align:center!important;
-  padding:128px 24px 78px!important;
+  --building-android-gif:url('https://media1.giphy.com/media/v1.Y2lkPTZjMDliOTUyOXp4bGU3YmdvMDc1cjZicTBwbzE0MHlwYTZyZjhyNjhhYTY2aHhrayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hin41Ayyrjn3Jku0sV/giphy.gif');
 }
 
-/* About-heading inspired typography: heavy first lines + italic final line. */
-#hero .hero-h1.hero-build-styled,
+/* Keep the existing hero layout, only restyle the headline itself. */
 #hero .hero-h1{
   font-family:var(--sans,Inter,system-ui,sans-serif)!important;
   font-size:clamp(58px,11.4vw,126px)!important;
   line-height:.94!important;
   letter-spacing:-.062em!important;
   font-weight:950!important;
-  max-width:min(980px,100%)!important;
-  margin:0 auto 30px!important;
-  color:var(--white,#f5f2e9)!important;
-  text-align:center!important;
-  transform:none!important;
 }
-#hero .hero-h1 .hero-build-line{
+#hero .hero-h1.hero-build-styled .hero-build-line{
   display:block!important;
   background-image:var(--building-android-gif),linear-gradient(115deg,#f5f2e9 0%,#d6d1c7 28%,#23d18b 58%,#7aa7ff 100%)!important;
   background-size:cover,240% 240%!important;
-  background-position:center!important;
+  background-position:center center!important;
   -webkit-background-clip:text!important;
   background-clip:text!important;
   -webkit-text-fill-color:transparent!important;
   color:transparent!important;
-  filter:saturate(1.25) contrast(1.06)!important;
+  filter:saturate(1.18) contrast(1.05)!important;
 }
-#hero .hero-h1 .hero-build-em{
+#hero .hero-h1.hero-build-styled .hero-build-em{
   font-style:italic!important;
-  font-weight:420!important;
+  font-weight:430!important;
   letter-spacing:-.07em!important;
-  filter:saturate(1.15) contrast(1.02) brightness(.92)!important;
+  filter:saturate(1.05) contrast(1.02) brightness(.92)!important;
 }
-#hero .hero-h1 .hero-h1-gif-text{
-  background-image:var(--building-android-gif),linear-gradient(115deg,#f5f2e9 0%,#d6d1c7 28%,#23d18b 58%,#7aa7ff 100%)!important;
-  background-size:cover,240% 240%!important;
-  background-position:center!important;
-  -webkit-background-clip:text!important;
-  background-clip:text!important;
-  -webkit-text-fill-color:transparent!important;
-  color:transparent!important;
-}
-#hero .hero-h1 .word-accent{display:none!important;}
 @media(max-width:520px){
-  #hero{padding:112px 20px 64px!important;justify-content:flex-start!important;}
-  #hero .hero-h1.hero-build-styled,#hero .hero-h1{font-size:clamp(58px,16.5vw,84px)!important;line-height:.94!important;}
+  #hero .hero-h1{font-size:clamp(58px,16.5vw,84px)!important;}
 }
+/* ====================================================================== */
 
-/* Bring back the theme toggle exactly at the right edge of the media pill. */
-#theme-toggle-btn,.tb-theme-btn,.topbar-music-widget .tb-theme-btn{
-  display:flex!important;
+/* ======================================================================
+   FINAL MINIMAL PATCH — restore old home box below headline
+   This only affects the hero area so the old welcome/games/links/note box
+   appears under the Building Android text again.
+   ====================================================================== */
+#hero .gx-welcome-card{
+  display:block!important;
   visibility:visible!important;
   opacity:1!important;
   pointer-events:auto!important;
-  width:28px!important;
-  height:28px!important;
-  min-width:28px!important;
-  margin:0!important;
-  padding:0!important;
-  border-radius:50%!important;
-  align-items:center!important;
-  justify-content:center!important;
-  border:0!important;
-  background:rgba(255,255,255,.08)!important;
-  color:currentColor!important;
-  flex:0 0 28px!important;
-  cursor:pointer!important;
+  margin:32px auto 0!important;
+  transform:none!important;
 }
-.topbar-music-widget .arena-theme-divider,
-.topbar-music-widget > div[style*="width:1px"]{
-  display:block!important;
-  width:1px!important;
-  height:16px!important;
-  flex:0 0 1px!important;
-  margin:0 2px!important;
-  background:currentColor!important;
-  opacity:.15!important;
+#hero .hero-sub,
+#hero .hero-tags,
+#hero .hero-actions{
+  display:none!important;
 }
-.tb-theme-btn .icon-sun,.tb-theme-btn .icon-moon{position:absolute!important;transition:opacity .25s ease,transform .25s ease!important;}
-html:not(.light) .tb-theme-btn .icon-sun{opacity:0!important;transform:rotate(-90deg) scale(.65)!important;}
-html:not(.light) .tb-theme-btn .icon-moon{opacity:1!important;transform:rotate(0) scale(1)!important;}
-html.light .tb-theme-btn .icon-sun{opacity:1!important;transform:rotate(0) scale(1)!important;}
-html.light .tb-theme-btn .icon-moon{opacity:0!important;transform:rotate(90deg) scale(.65)!important;}
-html.light .topbar-pill{background:rgba(238,238,252,.78)!important;color:#17172b!important;border-color:rgba(80,70,160,.20)!important;}
-html.light .tb-track-title{color:#17172b!important;} html.light .tb-track-artist{color:#666683!important;}
 /* ====================================================================== */
