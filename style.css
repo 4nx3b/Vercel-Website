@@ -6740,15 +6740,15 @@ body.ama-modal-open { overflow: hidden !important; touch-action: none !important
   display: flex !important;
   animation: adminPopupBackdropIn .3s ease both !important;
   background: rgba(5, 5, 5, 0.62) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  backdrop-filter: blur(32px) saturate(1.15) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(1.15) !important;
 }
 #ama-owner-v4-modal.closing {
   display: flex !important;
   animation: adminPopupBackdropOut .28s ease both !important;
   background: rgba(5, 5, 5, 0.62) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  backdrop-filter: blur(32px) saturate(1.15) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(1.15) !important;
 }
 
 #ama-owner-v4-modal.open .ama-v2-card {
