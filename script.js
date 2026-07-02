@@ -6960,62 +6960,39 @@ document.addEventListener('click', function(e){
 })();
 
 /* ======================================================================
-   FINAL MINIMAL PATCH — Building Android headline only
-   No topbar/theme/UI logic changes are made here.
+   FINAL MINIMAL PATCH — animated GIF headline via inline SVG
+   Only touches the Building Android headline markup.
    ====================================================================== */
 (function(){
-  function styleBuildingHeadline(){
+  var GIF='https://media1.giphy.com/media/v1.Y2lkPTZjMDliOTUyOXp4bGU3YmdvMDc1cjZicTBwbzE0MHlwYTZyZjhyNjhhYTY2aHhrayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hin41Ayyrjn3Jku0sV/giphy.gif';
+  function svgMarkup(){
+    return ''+
+      '<span class="hero-build-fallback">Building Android beyond stock</span>'+
+      '<svg class="hero-build-svg" viewBox="0 0 1000 260" role="img" aria-label="Building Android beyond stock" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">'+
+        '<defs>'+
+          '<pattern id="heroBuildGifPattern" patternUnits="userSpaceOnUse" x="0" y="0" width="1000" height="260">'+
+            '<image href="'+GIF+'" xlink:href="'+GIF+'" x="0" y="0" width="1000" height="260" preserveAspectRatio="xMidYMid slice"></image>'+
+          '</pattern>'+
+          '<linearGradient id="heroBuildFallbackGradient" x1="0" y1="0" x2="1" y2="1">'+
+            '<stop offset="0%" stop-color="#f5f2e9"/><stop offset="46%" stop-color="#f0b268"/><stop offset="72%" stop-color="#8cf0d1"/><stop offset="100%" stop-color="#7aa7ff"/>'+
+          '</linearGradient>'+
+        '</defs>'+
+        '<text class="hero-svg-bold" x="500" y="106" text-anchor="middle" font-size="112" fill="url(#heroBuildGifPattern)" textLength="900" lengthAdjust="spacingAndGlyphs">Building <tspan class="hero-svg-italic">Android</tspan></text>'+
+        '<text class="hero-svg-semi" x="500" y="222" text-anchor="middle" font-size="116" fill="url(#heroBuildGifPattern)" textLength="880" lengthAdjust="spacingAndGlyphs">beyond stock</text>'+
+      '</svg>';
+  }
+  function applyAnimatedHeadline(){
     var h=document.querySelector('#hero .hero-h1');
     if(!h) return;
-    var wanted='<span class="hero-build-line">Building Android</span><span class="hero-build-line hero-build-em">beyond stock</span>';
-    if(h.innerHTML.replace(/\s+/g,' ').trim()!==wanted.replace(/\s+/g,' ').trim()) h.innerHTML=wanted;
-    h.classList.add('hero-build-styled');
+    var wanted=svgMarkup();
+    if(h.dataset.heroSvgGif!=='1' || h.innerHTML!==wanted){
+      h.innerHTML=wanted;
+      h.dataset.heroSvgGif='1';
+    }
+    h.classList.add('hero-build-svg-title');
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',styleBuildingHeadline);
-  else styleBuildingHeadline();
-})();
-/* ====================================================================== */
-
-/* ======================================================================
-   FINAL MINIMAL PATCH — compact Building Android headline v2
-   Only changes the headline markup so CSS can style:
-   Bold → italic → semi-bold.
-   ====================================================================== */
-(function(){
-  function compactBuildingHeadline(){
-    var h=document.querySelector('#hero .hero-h1');
-    if(!h) return;
-    var wanted='<span class="hero-build-word hero-build-bold">Building</span><span class="hero-build-word hero-build-italic">Android</span><span class="hero-build-word hero-build-semi">beyond stock</span>';
-    if(h.innerHTML.replace(/\s+/g,' ').trim()!==wanted.replace(/\s+/g,' ').trim()) h.innerHTML=wanted;
-    h.classList.add('hero-build-styled');
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',compactBuildingHeadline);
-  else compactBuildingHeadline();
-})();
-/* ====================================================================== */
-
-/* ======================================================================
-   FINAL MINIMAL PATCH — load compact headline font only
-   ====================================================================== */
-(function(){
-  function loadHeadlineFont(){
-    if(document.getElementById('headline-barlow-condensed-font')) return;
-    var pre=document.createElement('link');
-    pre.rel='preconnect';
-    pre.href='https://fonts.googleapis.com';
-    document.head.appendChild(pre);
-    var pre2=document.createElement('link');
-    pre2.rel='preconnect';
-    pre2.href='https://fonts.gstatic.com';
-    pre2.crossOrigin='anonymous';
-    document.head.appendChild(pre2);
-    var link=document.createElement('link');
-    link.id='headline-barlow-condensed-font';
-    link.rel='stylesheet';
-    link.href='https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,900;1,800&display=swap';
-    document.head.appendChild(link);
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',loadHeadlineFont);
-  else loadHeadlineFont();
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',applyAnimatedHeadline);
+  else applyAnimatedHeadline();
+  setInterval(applyAnimatedHeadline,500);
 })();
 /* ====================================================================== */
