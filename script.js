@@ -1,3 +1,84 @@
+
+/* ======================================================================
+   EARLY THEME TOGGLE GUARD — must run before old music handlers
+   ====================================================================== */
+(function(){
+  var selected = null;
+  var lastToggle = 0;
+  function setTheme(mode){
+    selected = mode === 'light' ? 'light' : 'dark';
+    document.documentElement.classList.toggle('light', selected === 'light');
+    try{ localStorage.setItem('theme', selected); }catch(e){}
+  }
+  function toggleTheme(){ setTheme(document.documentElement.classList.contains('light') ? 'dark' : 'light'); }
+  function isThemeEvent(e){
+    if(!e || !e.target) return false;
+    if(e.target.closest && e.target.closest('#arena-inline-theme-toggle')) return true;
+    var btn = document.getElementById('arena-inline-theme-toggle');
+    if(btn && e.clientX != null){
+      var r = btn.getBoundingClientRect();
+      if(e.clientX >= r.left-8 && e.clientX <= r.right+8 && e.clientY >= r.top-8 && e.clientY <= r.bottom+8) return true;
+    }
+    return false;
+  }
+  function stop(e){
+    e.preventDefault();
+    e.stopPropagation();
+    if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+  }
+  function earlyHandler(e){
+    if(!isThemeEvent(e)) return;
+    stop(e);
+    if(e.type === 'click' || e.type === 'pointerup' || e.type === 'touchend'){
+      var now = Date.now();
+      if(now - lastToggle > 280){ lastToggle = now; toggleTheme(); }
+    }
+  }
+  ['pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','click'].forEach(function(ev){
+    window.addEventListener(ev, earlyHandler, {capture:true, passive:false});
+  });
+  function ensureButton(){
+    var widget=document.querySelector('.topbar-music-widget');
+    var text=widget && widget.querySelector('.tb-music-text');
+    if(!widget || !text) return;
+    // remove the broken floating overlay from the previous attempt
+    document.getElementById('arena-floating-theme-toggle')?.remove();
+    document.getElementById('arena-floating-theme-divider')?.remove();
+    var div=document.getElementById('arena-inline-theme-divider');
+    var btn=document.getElementById('arena-inline-theme-toggle');
+    if(!div){
+      div=document.createElement('span');
+      div.id='arena-inline-theme-divider';
+      div.className='arena-inline-theme-divider';
+      div.setAttribute('aria-hidden','true');
+    }
+    if(!btn){
+      btn=document.createElement('button');
+      btn.id='arena-inline-theme-toggle';
+      btn.className='arena-inline-theme-toggle';
+      btn.type='button';
+      btn.title='Toggle light / dark mode';
+      btn.setAttribute('aria-label','Toggle light / dark mode');
+      btn.innerHTML='<svg class="arena-theme-sun" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg><svg class="arena-theme-moon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+    }
+    if(text.nextElementSibling !== div) text.insertAdjacentElement('afterend', div);
+    if(div.nextElementSibling !== btn) div.insertAdjacentElement('afterend', btn);
+    div.style.setProperty('display','block','important');
+    div.style.setProperty('pointer-events','none','important');
+    btn.style.setProperty('display','inline-flex','important');
+    btn.style.setProperty('pointer-events','auto','important');
+    btn.onclick=function(e){ stop(e); toggleTheme(); return false; };
+  }
+  function boot(){
+    try{ var saved=localStorage.getItem('theme'); if(saved==='light'||saved==='dark') setTheme(saved); }catch(e){}
+    ensureButton();
+    window.toggleTheme = toggleTheme;
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  var n=0; setInterval(function(){ n++; ensureButton(); window.toggleTheme=toggleTheme; if(selected) document.documentElement.classList.toggle('light', selected==='light'); },100);
+})();
+/* ====================================================================== */
+
 /* ===== script-block-1 ===== */
 // ── PRELOADER + INTRO OVERLAY ──
 (function(){

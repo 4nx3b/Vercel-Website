@@ -7450,3 +7450,28 @@ html.light #arena-floating-theme-toggle{background:rgba(60,55,115,.08)!important
 html.light #arena-floating-theme-divider{color:#17172b!important;}
 @media(max-width:480px){#arena-floating-theme-toggle{width:24px!important;height:24px!important}#arena-floating-theme-toggle svg{width:13px!important;height:13px!important}}
 /* ====================================================================== */
+
+/* ======================================================================
+   FINAL OVERRIDE — fix broken floating toggle, keep inline toggle clickable
+   ====================================================================== */
+#arena-floating-theme-toggle,#arena-floating-theme-divider{display:none!important;visibility:hidden!important;pointer-events:none!important;}
+html body .topbar-music-widget > #arena-inline-theme-divider.arena-inline-theme-divider{
+  order:4!important;display:block!important;visibility:visible!important;opacity:.18!important;pointer-events:none!important;
+  width:1px!important;height:18px!important;flex:0 0 1px!important;margin:0 4px 0 6px!important;background:currentColor!important;border-radius:999px!important;
+}
+html body .topbar-music-widget > #arena-inline-theme-toggle.arena-inline-theme-toggle{
+  order:5!important;display:inline-flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+  width:26px!important;height:26px!important;min-width:26px!important;flex:0 0 26px!important;align-items:center!important;justify-content:center!important;
+  position:relative!important;z-index:999999!important;margin:0!important;padding:0!important;border-radius:50%!important;
+  border:1px solid rgba(255,255,255,.12)!important;background:rgba(255,255,255,.07)!important;color:currentColor!important;cursor:pointer!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important;
+}
+html body .topbar-music-widget > #arena-inline-theme-toggle.arena-inline-theme-toggle svg{position:absolute!important;width:14px!important;height:14px!important;pointer-events:none!important;stroke:currentColor!important;}
+.topbar-music-widget .tb-music-icon{order:1!important}.topbar-music-widget .tb-music-text{order:2!important}.topbar-music-widget .tb-music-dots{order:3!important}
+html:not(.light) #arena-inline-theme-toggle .arena-theme-sun{opacity:1!important;transform:rotate(0) scale(1)!important;}
+html:not(.light) #arena-inline-theme-toggle .arena-theme-moon{opacity:0!important;transform:rotate(80deg) scale(.6)!important;}
+html.light #arena-inline-theme-toggle .arena-theme-sun{opacity:0!important;transform:rotate(-80deg) scale(.6)!important;}
+html.light #arena-inline-theme-toggle .arena-theme-moon{opacity:1!important;transform:rotate(0) scale(1)!important;}
+html.light .topbar-music-widget > #arena-inline-theme-toggle{background:rgba(60,55,115,.08)!important;border-color:rgba(60,55,115,.18)!important;color:#17172b!important;}
+/* stop the pill from being stretched by the failed overlay attempt */
+.topbar-pill{transform:none!important;}
+/* ====================================================================== */
