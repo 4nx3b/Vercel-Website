@@ -10967,9 +10967,11 @@ html.light #gx-changelog-modal .gx-changelog-card {
   }
 }
 
-/* ===== CHANGELOG NEXT PILL BUTTON STYLING ===== */
+/* ===== CHANGELOG NEXT & PREV PILL BUTTON STYLING ===== */
 .gx-changelog-page-pill.gx-next-pill,
-#gx-changelog-modal .gx-changelog-page-pill.gx-next-pill {
+.gx-changelog-page-pill.gx-prev-pill,
+#gx-changelog-modal .gx-changelog-page-pill.gx-next-pill,
+#gx-changelog-modal .gx-changelog-page-pill.gx-prev-pill {
   min-width: 86px !important;
   height: 38px !important;
   padding: 0 18px !important;
@@ -10987,21 +10989,27 @@ html.light #gx-changelog-modal .gx-changelog-card {
   justify-content: center !important;
 }
 .gx-changelog-page-pill.gx-next-pill:hover,
-#gx-changelog-modal .gx-changelog-page-pill.gx-next-pill:hover {
+.gx-changelog-page-pill.gx-prev-pill:hover,
+#gx-changelog-modal .gx-changelog-page-pill.gx-next-pill:hover,
+#gx-changelog-modal .gx-changelog-page-pill.gx-prev-pill:hover {
   background: #f5f2e9 !important;
   color: #111 !important;
   border-color: #f5f2e9 !important;
   transform: translateY(-2px) !important;
 }
 html.light .gx-changelog-page-pill.gx-next-pill,
-html.light #gx-changelog-modal .gx-changelog-page-pill.gx-next-pill {
+html.light .gx-changelog-page-pill.gx-prev-pill,
+html.light #gx-changelog-modal .gx-changelog-page-pill.gx-next-pill,
+html.light #gx-changelog-modal .gx-changelog-page-pill.gx-prev-pill {
   background: rgba(60, 55, 115, 0.06) !important;
   color: #17172b !important;
   -webkit-text-fill-color: #17172b !important;
   border: 1.5px solid rgba(60, 55, 115, 0.22) !important;
 }
 html.light .gx-changelog-page-pill.gx-next-pill:hover,
-html.light #gx-changelog-modal .gx-changelog-page-pill.gx-next-pill:hover {
+html.light .gx-changelog-page-pill.gx-prev-pill:hover,
+html.light #gx-changelog-modal .gx-changelog-page-pill.gx-next-pill:hover,
+html.light #gx-changelog-modal .gx-changelog-page-pill.gx-prev-pill:hover {
   background: #17172b !important;
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
