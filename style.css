@@ -10723,9 +10723,9 @@ body.gx-playground-open {
   justify-content: center !important;
   gap: 0 !important;
   overflow: hidden !important;
-  background: linear-gradient(135deg, rgba(255,255,255,.95), rgba(255,255,255,.18)) !important;
-  border: 1px solid rgba(0,0,0,.45) !important;
-  box-shadow: 0 12px 32px rgba(0,0,0,.35), inset 0 0 0 1px rgba(0,0,0,.2) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1.5px solid rgba(230, 226, 203, 0.22) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4) !important;
   text-decoration: none !important;
 }
 
@@ -10791,9 +10791,9 @@ html body.gx-playground-open #gx-game-page {
   justify-content: center !important;
   gap: 0 !important;
   overflow: hidden !important;
-  background: linear-gradient(135deg, rgba(255,255,255,.95), rgba(255,255,255,.18)) !important;
-  border: 1px solid rgba(0,0,0,.45) !important;
-  box-shadow: 0 12px 32px rgba(0,0,0,.35), inset 0 0 0 1px rgba(0,0,0,.2) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1.5px solid rgba(230, 226, 203, 0.22) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4) !important;
   text-decoration: none !important;
 }
 .gx-profile-pill::before,
@@ -11194,4 +11194,20 @@ html.light .gx-changelog-modal .gx-changelog-date span,
 html.light #gx-changelog-modal .gx-changelog-date span {
   color: #62627b !important;
   -webkit-text-fill-color: #62627b !important;
+}
+
+/* ===== USER REQUEST 2026-07-03: PROFILE PILL BORDER IN DARK MODE ===== */
+.gx-profile-pill,
+body .gx-profile-pill,
+html body .gx-profile-pill {
+  background: rgba(255, 255, 255, 0.055) !important;
+  border: 1.5px solid rgba(230, 226, 203, 0.22) !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45) !important;
+  padding: 2px !important;
+}
+html.light .gx-profile-pill,
+html.light body .gx-profile-pill {
+  background: rgba(60, 55, 115, 0.06) !important;
+  border: 1.5px solid rgba(60, 55, 115, 0.22) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12) !important;
 }
