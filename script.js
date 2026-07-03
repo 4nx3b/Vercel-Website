@@ -7285,7 +7285,7 @@ document.addEventListener('click', function(e){
       entries.forEach(function(entry){ list.appendChild(entry); });
       window.__allowChangelogSortV19 = false;
       list.dataset.order = order;
-      list.dataset.clPage = '1';
+      if(window.__clResetPage0703 === true) list.dataset.clPage = '1';
       document.querySelectorAll('.gx-changelog-filter').forEach(function(btn){
         btn.classList.toggle('active', (btn.dataset.order || 'recent') === order);
       });
@@ -7300,11 +7300,13 @@ document.addEventListener('click', function(e){
       var openBtn = e.target && e.target.closest && e.target.closest('#gx-changelog-pill,[aria-controls="gx-changelog-modal"]');
       var filter = e.target && e.target.closest && e.target.closest('.gx-changelog-filter');
       if(openBtn){
-        [0, 80, 220, 600, 1300].forEach(function(t){ setTimeout(function(){ sortChangelogs('recent'); }, t); });
+        window.__clResetPage0703 = true;
+        [0, 80, 220, 600, 1300].forEach(function(t){ setTimeout(function(){ sortChangelogs('recent'); window.__clResetPage0703 = false; }, t); });
       }
       if(filter){
         var order = filter.dataset.order || 'recent';
-        [0, 60].forEach(function(t){ setTimeout(function(){ sortChangelogs(order); }, t); });
+        window.__clResetPage0703 = true;
+        [0, 60].forEach(function(t){ setTimeout(function(){ sortChangelogs(order); window.__clResetPage0703 = false; }, t); });
       }
     }, true);
   }
