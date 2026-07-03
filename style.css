@@ -10462,3 +10462,98 @@ html.light body #site-credit-card .site-credit-inner a {
   color: #1e2937 !important;
 }
 
+
+/* ============================================================
+   FIX v40 — AMA (Ask Me Anything) restyle to match
+   Changelogs popup aesthetic:
+   1) Same fonts: var(--sans) for body text, var(--mono) for labels
+   2) Same muted color palette (#d8d4c8 body, #aaa79f meta)
+   3) Dividers between individual questions
+   4) "From" label visible behind sender name
+   5) Refresh icon more visible
+   6) Softer answer/sender text (not pure white)
+   ============================================================ */
+
+/* Container font — switch from mono to sans for readability */
+.ama-wrap {
+  font-family: var(--sans) !important;
+}
+
+/* Question row — match changelog entry li style */
+.ama-q-row {
+  font-family: var(--sans) !important;
+  font-size: 15px !important;
+  color: #aaa79f !important;
+  font-weight: 400 !important;
+  line-height: 1.55 !important;
+}
+
+/* "From" label — visible kicker style like changelog kicker */
+.ama-label {
+  font-family: var(--mono) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: #aaa79f !important;
+}
+
+/* Answer text — softer, like changelog entry li (#d8d4c8 not #fff) */
+.ama-a-row {
+  font-family: var(--sans) !important;
+  color: #d8d4c8 !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+}
+
+/* Time stamp — subtle like changelog date span */
+.ama-time {
+  font-family: var(--mono) !important;
+  color: #696761 !important;
+  font-size: 11px !important;
+}
+
+/* Dividers between individual questions */
+.ama-item + .ama-item {
+  border-top: 1px solid rgba(230, 226, 203, 0.14) !important;
+  padding-top: 16px !important;
+  margin-top: 4px !important;
+}
+
+/* Refresh / send icon button — more visible */
+.ama-question-row button {
+  color: #aaa79f !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1.5px solid rgba(230, 226, 203, 0.18) !important;
+  transition: color 0.2s, background 0.2s !important;
+}
+.ama-question-row button:hover {
+  color: #f5f2e9 !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Sort/page pills — match changelog pill style */
+.ama-sort-pill,
+.ama-page-pill {
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  color: #aaa79f !important;
+}
+
+/* Status text */
+.ama-status {
+  font-family: var(--sans) !important;
+  color: #aaa79f !important;
+}
+
+/* Top title + "used" badge */
+.ama-title {
+  font-family: var(--mono) !important;
+  color: #aaa79f !important;
+}
+.ama-used {
+  font-family: var(--sans) !important;
+  color: #aaa79f !important;
+}
+
