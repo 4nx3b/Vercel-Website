@@ -10467,6 +10467,125 @@ html.light body #site-credit-card .site-credit-inner a {
 
 
 /* ============================================================
+   FIX v43 — Light mode active pills + game UI cleanup
+   ============================================================ */
+
+/* Active tabs/pills — cream fill with dark text */
+html.light body .skill-tab.active,
+html.light body .anilist-tab.active,
+html.light body .lastfm-period-tab.active,
+html.light body .filter-btn.active,
+html.light body .ani-page-btn.active,
+html.light body .ama-sort-pill.active,
+html.light body .ama-page-pill.active {
+  background: #f5f2e9 !important;
+  color: #111 !important;
+  border-color: #f5f2e9 !important;
+}
+
+/* Inactive tabs/pills — transparent with muted text */
+html.light body .skill-tab,
+html.light body .anilist-tab,
+html.light body .lastfm-period-tab,
+html.light body .filter-btn,
+html.light body .ani-page-btn,
+html.light body .ama-sort-pill,
+html.light body .ama-page-pill {
+  background: transparent !important;
+  color: #6b7280 !important;
+  border-color: rgba(60, 55, 115, 0.18) !important;
+}
+
+/* ROM download button — cream fill */
+html.light body .rom-dl-btn,
+html.light body .rom-card-actions .rom-dl-btn,
+html.light body a.rom-dl-btn {
+  background: #f5f2e9 !important;
+  color: #111 !important;
+  border-color: #f5f2e9 !important;
+}
+html.light body .rom-dl-btn:hover,
+html.light body .rom-card-actions .rom-dl-btn:hover {
+  background: #e8e5d9 !important;
+  color: #111 !important;
+}
+
+/* Game PLAY pill — DARK fill with white text so it's clearly visible */
+html.light body .gx-game-play {
+  background: #1e2937 !important;
+  color: #ffffff !important;
+  border-color: #1e2937 !important;
+  font-weight: 700 !important;
+}
+html.light body .gx-game-play:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
+}
+
+/* Game PLAY button (games route page) — same dark fill */
+html.light body .gx-play-btn,
+html.light body #gx-game-page .gx-play-btn {
+  background: #1e2937 !important;
+  color: #ffffff !important;
+  border-color: #1e2937 !important;
+  font-weight: 700 !important;
+}
+html.light body .gx-play-btn:hover,
+html.light body #gx-game-page .gx-play-btn:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
+}
+
+/* Game popup modal — clean consistent light mode colors */
+html.light #final-game-modal .fgm-panel,
+html.light #force-game-modal .fgm-panel {
+  background: #ffffff !important;
+  color: #1e2937 !important;
+  border-color: rgba(60, 55, 115, 0.15) !important;
+  box-shadow: 0 28px 80px rgba(60, 55, 115, 0.18) !important;
+}
+
+html.light .fgm-title {
+  color: #1e2937 !important;
+}
+
+html.light .fgm-status {
+  color: #6b7280 !important;
+}
+
+html.light .fgm-close {
+  background: rgba(60, 55, 115, 0.06) !important;
+  color: #1e2937 !important;
+  border-color: rgba(60, 55, 115, 0.14) !important;
+}
+
+/* Game canvas — keep dark so game graphics are visible */
+html.light .fgm-canvas {
+  background: #111111 !important;
+  border-color: rgba(60, 55, 115, 0.18) !important;
+}
+
+/* Game controls — dark pills with white text, consistent */
+html.light .fgm-controls button,
+html.light .fgm-choice,
+html.light .fgm-cell,
+html.light .fgm-retry,
+html.light .fgm-over button {
+  background: #1e2937 !important;
+  color: #ffffff !important;
+  border-color: #1e2937 !important;
+}
+
+html.light .fgm-controls button:hover,
+html.light .fgm-choice:hover,
+html.light .fgm-cell:hover,
+html.light .fgm-retry:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
+}
+
+
+/* ============================================================
    FIX v43 — Light mode active pills: match changelogs popup
    page pill style (cream #f5f2e9 fill, dark #111 text).
    Applied to: AniList tabs/page pills, skill tabs, filter
