@@ -561,7 +561,7 @@ z-index:1;
     html.light .rom-card { background: rgba(255,255,255,0.72); }
     html.light .rom-card:hover { box-shadow: 0 16px 50px rgba(60,50,120,0.15); }
     html.light .rom-device-badge { background: rgba(80,70,160,0.04); }
-    html.light .rom-dl-btn { color: #f0f0f8; }
+    html.light .rom-dl-btn { background: #0f172a !important; color: #ffffff !important; border-color: #0f172a !important; }
 
     /* ── LIGHT MODE: BODY BACKGROUNDS ── */
     html.light body::before {
@@ -7286,7 +7286,7 @@ html.light .project-name,
 html.light .contact-headline{color:#17172b!important;-webkit-text-fill-color:#17172b!important;}
 html.light .gx-chip,
 html.light .btn-solid,
-html.light .rom-dl-btn,
+html.light .rom-dl-btn { background:#0f172a !important; color:#ffffff !important; border-color:#0f172a !important; }
 html.light .form-send-btn{background:#17172b!important;color:#fff!important;border-color:#17172b!important;}
 html.light .gx-note-pill,
 html.light .btn-ghost,
@@ -7824,3 +7824,2568 @@ html.light .rom-dl-btn:hover {
   background: #2a2a45 !important;
   color: #fff !important;
 }
+
+/* =====================================================
+   AGGRESSIVE LIGHT MODE OVERRIDES v2 (2026-07-03)
+   These are appended LAST and use higher specificity
+   to fix the problems shown in the screenshots.
+   ===================================================== */
+
+/* 1. Fix ROM card pills/buttons (the black/invisible pill + support pill) */
+html.light .rom-card-actions .rom-dl-btn,
+html.light .rom-card-actions a.rom-dl-btn {
+  background: #17172b !important;
+  color: #ffffff !important;
+  border-color: #17172b !important;
+}
+html.light .rom-card-actions .rom-dl-btn:hover {
+  background: #2a2a45 !important;
+  color: #fff !important;
+}
+
+html.light .rom-card-actions .rom-support-btn,
+html.light .rom-card-actions a.rom-support-btn {
+  background: rgba(220, 60, 70, 0.1) !important;
+  color: #c23b3b !important;
+  border-color: rgba(220, 60, 70, 0.4) !important;
+}
+html.light .rom-card-actions .rom-support-btn:hover {
+  background: rgba(220, 60, 70, 0.2) !important;
+  color: #9f2e2e !important;
+}
+
+/* 2. Fix "Inspired by" / "Made using" credits section (very faint text) */
+html.light #site-credit-card,
+html.light .site-credit-card,
+html.light .site-credit-inner {
+  background: #fff !important;
+  color: #17172b !important;
+  border-color: rgba(60,55,115,.18) !important;
+}
+html.light .site-credit-row,
+html.light .site-credit-row *,
+html.light .site-credit-title,
+html.light .site-credit-inner span:not(.credit-badge),
+html.light .site-credit-inner {
+  color: #5f5f78 !important;
+}
+html.light .site-credit-row a,
+html.light .site-credit-inner a {
+  color: #17172b !important;
+}
+html.light .gx-changelog-pill {
+  color: #17172b !important;
+  background: rgba(60,55,115,.08) !important;
+  border-color: rgba(60,55,115,.25) !important;
+}
+
+/* 3. Fix online presence box background (remove black) */
+html.light .online-presence,
+html.light .online-presence-list,
+html.light .presence-icons.online-presence-list {
+  background: rgba(255,255,255,0.92) !important;
+  border-color: rgba(60,55,115,.18) !important;
+  box-shadow: 0 8px 30px rgba(60,55,115,.08) !important;
+}
+html.light .presence-icons.online-presence-list .op-link {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(60,55,115,.12) !important;
+  color: #17172b !important;
+}
+html.light .op-title { color: #17172b !important; }
+html.light .op-url { color: #5f5f78 !important; }
+
+/* 4. Fix AMA "From user" / question text + dividers (the main issues) */
+html.light .ama-wrap {
+  background: #fff !important;
+  border-color: rgba(60,55,115,.2) !important;
+}
+html.light .ama-label,
+html.light .ama-q-row,
+html.light .ama-q-row * {
+  color: #17172b !important;
+  font-weight: 600 !important;
+}
+html.light .ama-a-row {
+  color: #17172b !important;
+}
+html.light .ama-item {
+  background: rgba(255,255,255,.95) !important;
+  border-color: rgba(60,55,115,.15) !important;
+}
+html.light .ama-topline {
+  border-bottom: 1.5px solid rgba(60,55,115,.22) !important;
+}
+html.light .ama-question-row {
+  border-top: 1.5px solid rgba(60,55,115,.22) !important;
+}
+html.light .ama-question-row input {
+  color: #17172b !important;
+}
+html.light .ama-question-row input::placeholder {
+  color: #8a8aa4 !important;
+}
+
+/* 5. Also force general AMA question text if using different classes */
+html.light .ama-list .ama-q-row,
+html.light .ama-list .ama-item {
+  color: #17172b !important;
+}
+
+/* Make sure the "From" / meta labels are visible */
+html.light .ama-admin-meta,
+html.light .ama-v2-meta {
+  color: #17172b !important;
+  font-weight: 700 !important;
+}
+
+/* Extra safety for the support pill text (in case it's rendered differently) */
+html.light .rom-support-btn,
+html.light button.rom-support-btn {
+  color: #c23b3b !important;
+}
+
+/* ========================================================
+   ULTRA-AGGRESSIVE LIGHT MODE FIXES v3 (2026-07-03)
+   These rules use maximum specificity and are placed at the 
+   very end of the stylesheet so they ALWAYS win.
+   ======================================================== */
+
+/* ---------- 1. ROM CARD ACTION PILLS (the black invisible buttons) ---------- */
+html.light .rom-card .rom-dl-btn,
+html.light .rom-card-actions .rom-dl-btn,
+html.light .rom-dl-btn {
+  background: #111827 !important;
+  color: #ffffff !important;
+  border: 2px solid #111827 !important;
+  font-weight: 700 !important;
+}
+html.light .rom-card .rom-dl-btn:hover,
+html.light .rom-card-actions .rom-dl-btn:hover {
+  background: #1e2937 !important;
+  color: #fff !important;
+}
+
+html.light .rom-card .rom-support-btn,
+html.light .rom-card-actions .rom-support-btn,
+html.light .rom-support-btn {
+  background: #fef2f2 !important;
+  color: #b91c1c !important;
+  border: 2px solid #fecaca !important;
+  font-weight: 700 !important;
+}
+html.light .rom-card .rom-support-btn:hover,
+html.light .rom-card-actions .rom-support-btn:hover {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+}
+
+/* ---------- 2. CREDITS / "INSPIRED BY" / "MADE USING" ---------- */
+html.light #site-credit-card,
+html.light .site-credit-card,
+html.light .site-credit-inner,
+html.light .gx-changelog-card {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+
+html.light .site-credit-title,
+html.light .site-credit-row,
+html.light .site-credit-row span,
+html.light .site-credit-inner,
+html.light .site-credit-inner * {
+  color: #374151 !important;
+}
+html.light .site-credit-row a,
+html.light .site-credit-inner a,
+html.light .site-credit-row a * {
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+html.light .gx-changelog-pill {
+  color: #111827 !important;
+  background: #f3f4f6 !important;
+  border: 1.5px solid #9ca3af !important;
+  font-weight: 700 !important;
+}
+html.light .gx-changelog-pill:hover {
+  background: #e5e7eb !important;
+}
+
+/* ---------- 3. ONLINE PRESENCE BOX (remove black background) ---------- */
+html.light .online-presence,
+html.light .online-presence-list,
+html.light .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border: 1.5px solid #d1d5db !important;
+}
+html.light .presence-icons.online-presence-list .op-link {
+  background: transparent !important;
+  border-bottom-color: #e5e7eb !important;
+  color: #111827 !important;
+}
+html.light .op-title { color: #111827 !important; font-weight: 600 !important; }
+html.light .op-url, 
+html.light .op-arrow { color: #6b7280 !important; }
+
+/* ---------- 4. ASK ME ANYTHING - "From user" + DIVIDERS (main complaints) ---------- */
+html.light .ama-wrap,
+html.light .ama-modal-card {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+}
+
+html.light .ama-item {
+  background: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* The "From <user>" text and question rows */
+html.light .ama-label,
+html.light .ama-q-row,
+html.light .ama-q-row span,
+html.light .ama-q-row * {
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+/* Answers */
+html.light .ama-a-row {
+  color: #111827 !important;
+}
+
+/* Top / Recent / Oldest tabs + pagination */
+html.light .ama-sort-pill,
+html.light .ama-page-pill {
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+  border-color: #d1d5db !important;
+}
+html.light .ama-sort-pill.active,
+html.light .ama-page-pill.active {
+  background: #111827 !important;
+  color: #fff !important;
+}
+
+/* The horizontal dividers */
+html.light .ama-topline {
+  border-bottom: 1.5px solid #9ca3af !important;
+}
+html.light .ama-question-row {
+  border-top: 1.5px solid #9ca3af !important;
+}
+html.light .ama-item + .ama-item {
+  border-top: 1px solid #e5e7eb !important;
+}
+
+/* Input area */
+html.light .ama-question-row input {
+  color: #111827 !important;
+}
+html.light .ama-question-row input::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Time stamps */
+html.light .ama-time {
+  color: #6b7280 !important;
+}
+
+/* ---------- 5. Extra safety net for any remaining light text ---------- */
+html.light .ama-list * {
+  color: inherit;
+}
+html.light .ama-list .ama-q-row,
+html.light .ama-list .ama-label {
+  color: #111827 !important;
+}
+
+
+/* ============================================================
+   FINAL ULTRA-STRONG LIGHT MODE FIXES (2026-07-03)
+   These override everything. Appended at the absolute end.
+   ============================================================ */
+
+/* ========== CREDITS / "INSPIRED BY" + "MADE USING" (Screenshot 3) ========== */
+html.light #site-credit-card,
+html.light .site-credit-card,
+html.light .site-credit-inner,
+html.light .gx-changelog-wrap {
+  background: #fff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .site-credit-title,
+html.light .site-credit-row,
+html.light .site-credit-row *,
+html.light .site-credit-inner,
+html.light .site-credit-inner * {
+  color: #1f2937 !important;
+}
+
+html.light .site-credit-row a,
+html.light .site-credit-inner a,
+html.light .site-credit-row a *,
+html.light .site-credit-inner a * {
+  color: #111827 !important;
+  font-weight: 700 !important;
+}
+
+html.light .gx-changelog-pill {
+  color: #111827 !important;
+  background: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+  font-weight: 800 !important;
+}
+
+/* ========== ASK ME ANYTHING (Screenshot 2) ========== */
+
+/* Make the whole AMA area bright white */
+html.light .ama-wrap,
+html.light #ama-widget,
+html.light .ama-list {
+  background: #fff !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* "From <user>" labels + question text */
+html.light .ama-label,
+html.light .ama-q-row,
+html.light .ama-q-row *,
+html.light .ama-item .ama-q-row {
+  color: #111827 !important;
+  font-weight: 700 !important;
+}
+
+/* Answers */
+html.light .ama-a-row {
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+/* Visible dividers */
+html.light .ama-topline {
+  border-bottom: 2px solid #64748b !important;
+}
+html.light .ama-question-row {
+  border-top: 2px solid #64748b !important;
+}
+html.light .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  margin-bottom: 8px !important;
+}
+html.light .ama-item + .ama-item,
+html.light .ama-list > div + div {
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+/* Time text */
+html.light .ama-time {
+  color: #64748b !important;
+}
+
+/* Tabs (Top / Recent / Oldest) */
+html.light .ama-sort-pill,
+html.light .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+html.light .ama-sort-pill.active,
+html.light .ama-page-pill.active {
+  background: #1e2937 !important;
+  color: #fff !important;
+}
+
+/* ========== ROM ACTION PILLS (Screenshot 1) ========== */
+html.light .rom-card-actions .rom-dl-btn,
+html.light .rom-dl-btn { background:#0f172a !important; color:#ffffff !important; border-color:#0f172a !important; }
+html.light a.rom-dl-btn {
+  background: #0f172a !important;
+  color: #fff !important;
+  border: 2px solid #0f172a !important;
+}
+html.light .rom-card-actions .rom-dl-btn:hover {
+  background: #1e2937 !important;
+  color: #fff !important;
+}
+
+html.light .rom-card-actions .rom-support-btn,
+html.light .rom-support-btn {
+  background: #fef2f2 !important;
+  color: #b91c1c !important;
+  border: 2px solid #fecaca !important;
+}
+html.light .rom-card-actions .rom-support-btn:hover {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+}
+
+/* ========== GAME PLAY BUTTONS (original complaint) ========== */
+html.light .gx-game-play,
+html.light .gx-play-btn {
+  color: #111827 !important;
+  background: #f1f5f9 !important;
+  border-color: #64748b !important;
+}
+html.light .gx-game-play:hover,
+html.light .gx-play-btn:hover {
+  background: #0f172a !important;
+  color: #fff !important;
+  border-color: #0f172a !important;
+}
+
+/* ========== ONLINE PRESENCE (if any black bg remains) ========== */
+html.light .online-presence,
+html.light .online-presence-list,
+html.light .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light .presence-icons.online-presence-list .op-link {
+  color: #111827 !important;
+}
+
+
+/* ============================================================
+   ULTIMATE LIGHT MODE OVERRIDE BLOCK (2026-07-03)
+   Placed at the absolute end with extreme specificity.
+   This will fix the screenshots you sent.
+   ============================================================ */
+
+/* 1. ROM DOWNLOAD PILL — make text clearly visible (white on dark navy) */
+html.light .rom-card-actions .rom-dl-btn,
+html.light .rom-dl-btn { background:#0f172a !important; color:#ffffff !important; border-color:#0f172a !important; }
+html.light a.rom-dl-btn,
+html.light .rom-card .rom-dl-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 2px solid #0f172a !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+}
+html.light .rom-card-actions .rom-dl-btn:hover {
+  background: #1e2937 !important;
+  color: #fff !important;
+}
+
+/* 2. SUPPORT PILL — keep red but ensure contrast */
+html.light .rom-card-actions .rom-support-btn,
+html.light .rom-support-btn {
+  background: #fef2f2 !important;
+  color: #b91c1c !important;
+  border-color: #fecaca !important;
+  font-weight: 700 !important;
+}
+
+/* 3. CREDITS SECTION — "INSPIRED BY" + "MADE USING" + links (very visible) */
+html.light #site-credit-card,
+html.light .site-credit-card,
+html.light .site-credit-inner {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .site-credit-title,
+html.light .site-credit-row,
+html.light .site-credit-row span,
+html.light .site-credit-inner,
+html.light .site-credit-inner * {
+  color: #1f2937 !important;
+}
+
+html.light .site-credit-row a,
+html.light .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+  text-decoration: underline !important;
+}
+
+html.light .gx-changelog-pill {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  font-weight: 800 !important;
+}
+
+/* 4. ONLINE PRESENCE — remove any black bg */
+html.light .online-presence,
+html.light .online-presence-list,
+html.light .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light .presence-icons.online-presence-list .op-link {
+  background: transparent !important;
+  color: #0f172a !important;
+}
+html.light .op-title { color: #0f172a !important; font-weight: 700 !important; }
+html.light .op-url { color: #475569 !important; }
+
+/* 5. ASK ME ANYTHING — "From user", questions, dividers (MAIN FIX) */
+html.light .ama-wrap,
+html.light #ama-widget {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+/* "From <name>" + Q: lines */
+html.light .ama-label,
+html.light .ama-q-row,
+html.light .ama-q-row *,
+html.light .ama-item .ama-q-row {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+
+/* Answer text */
+html.light .ama-a-row {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+/* Strong visible dividers */
+html.light .ama-topline {
+  border-bottom: 2px solid #475569 !important;
+}
+html.light .ama-question-row {
+  border-top: 2px solid #475569 !important;
+}
+html.light .ama-item + .ama-item {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
+/* Time + "Used X/10" */
+html.light .ama-time,
+html.light .ama-used {
+  color: #475569 !important;
+}
+
+/* Tabs */
+html.light .ama-sort-pill,
+html.light .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+html.light .ama-sort-pill.active,
+html.light .ama-page-pill.active {
+  background: #0f172a !important;
+  color: #fff !important;
+}
+
+/* Input */
+html.light .ama-question-row input {
+  color: #0f172a !important;
+}
+html.light .ama-question-row input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Extra force for any remaining light text in AMA */
+html.light .ama-list,
+html.light .ama-list * {
+  color: #0f172a !important;
+}
+
+
+/* ============================================================
+   ULTRA-ULTIMATE LIGHT MODE FIXES — LAST BLOCK (2026-07-03)
+   These are the strongest possible overrides. 
+   They target exactly what is visible in your screenshots.
+   ============================================================ */
+
+/* ========== ROM PILLS (Screenshot 1 — black invisible pill) ========== */
+html.light .rom-card-actions .rom-dl-btn,
+html.light .rom-card .rom-dl-btn,
+html.light .rom-dl-btn { background:#0f172a !important; color:#ffffff !important; border-color:#0f172a !important; }
+html.light a.rom-dl-btn,
+html.light .rom-card-actions a {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 2.5px solid #0f172a !important;
+  font-weight: 900 !important;
+  letter-spacing: .5px !important;
+}
+html.light .rom-card-actions .rom-dl-btn:hover {
+  background: #1e2937 !important;
+  color: #ffffff !important;
+}
+
+/* Support pill */
+html.light .rom-card-actions .rom-support-btn,
+html.light .rom-support-btn {
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  border: 2px solid #fda4af !important;
+  font-weight: 800 !important;
+}
+
+/* ========== CREDITS (Screenshot 3 — Inspired By / Made Using text) ========== */
+html.light #site-credit-card,
+html.light .site-credit-card,
+html.light .site-credit-inner,
+html.light .gx-changelog-wrap {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #111827 !important;
+}
+
+html.light .site-credit-title,
+html.light .site-credit-row,
+html.light .site-credit-row span,
+html.light .site-credit-inner,
+html.light .site-credit-inner *,
+html.light .site-credit-row * {
+  color: #1e2937 !important;
+}
+
+html.light .site-credit-row a,
+html.light .site-credit-inner a,
+html.light .site-credit-row a *,
+html.light .site-credit-inner a * {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light .gx-changelog-pill {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  font-weight: 900 !important;
+}
+
+/* ========== ONLINE PRESENCE (Screenshot 3) ========== */
+html.light .online-presence,
+html.light .online-presence-list,
+html.light .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+}
+html.light .presence-icons.online-presence-list .op-link {
+  background: transparent !important;
+  color: #0f172a !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+html.light .op-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+html.light .op-url {
+  color: #475569 !important;
+}
+
+/* ========== ASK ME ANYTHING (Screenshot 2 — From user + dividers) ========== */
+html.light .ama-wrap,
+html.light #ama-widget,
+html.light .ama-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* "From <user>" labels — this is the main problem you reported */
+html.light .ama-label,
+html.light .ama-q-row,
+html.light .ama-q-row *,
+html.light .ama-item .ama-q-row,
+html.light .ama-list .ama-q-row {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+
+/* Answer text */
+html.light .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* Dividers — make them very visible */
+html.light .ama-topline {
+  border-bottom: 2px solid #475569 !important;
+}
+html.light .ama-question-row {
+  border-top: 2px solid #475569 !important;
+}
+html.light .ama-item + .ama-item {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
+/* Meta / time */
+html.light .ama-time,
+html.light .ama-used {
+  color: #475569 !important;
+}
+
+/* Tabs */
+html.light .ama-sort-pill,
+html.light .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+html.light .ama-sort-pill.active,
+html.light .ama-page-pill.active {
+  background: #0f172a !important;
+  color: #fff !important;
+}
+
+/* Input field */
+html.light .ama-question-row input {
+  color: #0f172a !important;
+}
+html.light .ama-question-row input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Nuclear option for any remaining light text in AMA */
+html.light .ama-list * {
+  color: #0f172a !important;
+}
+
+
+/* ============================================================
+   LAST CHANCE — MAXIMUM SPECIFICITY LIGHT MODE OVERRIDES
+   (2026-07-03) — These MUST win
+   ============================================================ */
+
+/* ROM DOWNLOAD PILL — white text on dark */
+html.light body .rom-card-actions .rom-dl-btn,
+html.light body .rom-dl-btn,
+html.light body a.rom-dl-btn,
+html.light body .rom-card .rom-dl-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+/* SUPPORT PILL */
+html.light body .rom-card-actions .rom-support-btn,
+html.light body .rom-support-btn {
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  border-color: #fda4af !important;
+  font-weight: 800 !important;
+}
+
+/* CREDITS SECTION — make "INSPIRED BY" + links readable */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .site-credit-title,
+html.light body .site-credit-row,
+html.light body .site-credit-row span,
+html.light body .site-credit-inner,
+html.light body .site-credit-inner * {
+  color: #1e2937 !important;
+}
+
+html.light body .site-credit-row a,
+html.light body .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .gx-changelog-pill {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  font-weight: 900 !important;
+}
+
+/* ONLINE PRESENCE — kill black bg */
+html.light body .online-presence,
+html.light body .online-presence-list,
+html.light body .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light body .presence-icons.online-presence-list .op-link {
+  color: #0f172a !important;
+}
+html.light body .op-title { color: #0f172a !important; }
+
+/* ASK ME ANYTHING — "From user" text + dividers */
+html.light body .ama-wrap,
+html.light body #ama-widget {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .ama-item {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* The critical "From <user>" and Q text */
+html.light body .ama-label,
+html.light body .ama-q-row,
+html.light body .ama-q-row *,
+html.light body .ama-list .ama-q-row,
+html.light body .ama-item .ama-q-row {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* Make dividers visible */
+html.light body .ama-topline {
+  border-bottom: 2.5px solid #475569 !important;
+}
+html.light body .ama-question-row {
+  border-top: 2.5px solid #475569 !important;
+}
+html.light body .ama-item + .ama-item {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
+html.light body .ama-time,
+html.light body .ama-used {
+  color: #475569 !important;
+}
+
+/* Tabs */
+html.light body .ama-sort-pill,
+html.light body .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+html.light body .ama-sort-pill.active,
+html.light body .ama-page-pill.active {
+  background: #0f172a !important;
+  color: #fff !important;
+}
+
+html.light body .ama-question-row input {
+  color: #0f172a !important;
+}
+
+/* Absolute nuclear force for AMA text */
+html.light body .ama-list * {
+  color: #0f172a !important;
+}
+
+
+/* ============================================================
+   ULTIMATE MAXIMUM-SPECIFICITY LIGHT MODE FIX — v6 (2026-07-03)
+   This block is guaranteed to override previous rules.
+   ============================================================ */
+
+/* === 1. ROM DOWNLOAD + SUPPORT PILLS (Screenshot 1) === */
+html.light body .rom-card .rom-card-actions .rom-dl-btn,
+html.light body .rom-dl-btn,
+html.light body a.rom-dl-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
+  font-weight: 900 !important;
+}
+html.light body .rom-card .rom-card-actions .rom-dl-btn:hover {
+  background: #1e2937 !important;
+  color: #ffffff !important;
+}
+
+html.light body .rom-card .rom-card-actions .rom-support-btn,
+html.light body .rom-support-btn {
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  border-color: #fda4af !important;
+  font-weight: 800 !important;
+}
+
+/* === 2. CREDITS — Inspired by / Made using (Screenshot 3) === */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .site-credit-title,
+html.light body .site-credit-row,
+html.light body .site-credit-row *,
+html.light body .site-credit-inner,
+html.light body .site-credit-inner * {
+  color: #1e2937 !important;
+}
+
+html.light body .site-credit-row a,
+html.light body .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .gx-changelog-pill {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  font-weight: 900 !important;
+}
+
+/* === 3. ONLINE PRESENCE BOX === */
+html.light body .online-presence,
+html.light body .online-presence-list,
+html.light body .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light body .presence-icons.online-presence-list .op-link {
+  color: #0f172a !important;
+}
+html.light body .op-title { color: #0f172a !important; font-weight: 700 !important; }
+
+/* === 4. ASK ME ANYTHING — From user + dividers (Screenshot 2) === */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* CRITICAL: "From <user>" and question text */
+html.light body .ama-label,
+html.light body .ama-q-row,
+html.light body .ama-q-row *,
+html.light body .ama-item .ama-q-row,
+html.light body .ama-list .ama-q-row,
+html.light body .ama-list * {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* Visible dividers */
+html.light body .ama-topline {
+  border-bottom: 2.5px solid #475569 !important;
+}
+html.light body .ama-question-row {
+  border-top: 2.5px solid #475569 !important;
+}
+html.light body .ama-item + .ama-item {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
+html.light body .ama-time {
+  color: #475569 !important;
+}
+
+/* Tabs */
+html.light body .ama-sort-pill,
+html.light body .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+html.light body .ama-sort-pill.active,
+html.light body .ama-page-pill.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+html.light body .ama-question-row input {
+  color: #0f172a !important;
+}
+
+
+/* ============================================================
+   FINAL TARGETED LIGHT MODE FIXES — v7 (2026-07-03)
+   These target the EXACT elements from your screenshots.
+   ============================================================ */
+
+/* === ROM DOWNLOAD PILL (the black oval in screenshot 1) === */
+html.light .rom-card-actions .rom-dl-btn,
+html.light .rom-dl-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 2px solid #0f172a !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* === SUPPORT PILL (the pink oval in screenshot 1) === */
+html.light .rom-card-actions .rom-support-btn,
+html.light .rom-support-btn {
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  border: 2px solid #fda4af !important;
+  font-weight: 800 !important;
+}
+
+/* === CREDITS / INSPIRED BY / MADE USING (screenshot 3) === */
+html.light #site-credit-card,
+html.light .site-credit-card,
+html.light .site-credit-inner {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .site-credit-title,
+html.light .site-credit-row,
+html.light .site-credit-row *,
+html.light .site-credit-inner * {
+  color: #1e2937 !important;
+}
+
+html.light .site-credit-row a,
+html.light .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light .gx-changelog-pill {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  font-weight: 900 !important;
+}
+
+/* === ONLINE PRESENCE (screenshot 3) === */
+html.light .online-presence,
+html.light .online-presence-list,
+html.light .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light .presence-icons.online-presence-list .op-link {
+  color: #0f172a !important;
+}
+html.light .op-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+html.light .op-url {
+  color: #475569 !important;
+}
+
+/* === ASK ME ANYTHING — "From user" text + dividers (screenshot 2) === */
+html.light .ama-wrap,
+html.light #ama-widget,
+html.light .ama-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* "From <user>" labels — the main issue */
+html.light .ama-label,
+html.light .ama-q-row,
+html.light .ama-q-row *,
+html.light .ama-list .ama-q-row,
+html.light .ama-item .ama-q-row {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+/* Answers */
+html.light .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* Visible dividers */
+html.light .ama-topline {
+  border-bottom: 2.5px solid #475569 !important;
+}
+html.light .ama-question-row {
+  border-top: 2.5px solid #475569 !important;
+}
+html.light .ama-item + .ama-item {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
+html.light .ama-time {
+  color: #475569 !important;
+}
+
+/* Tabs */
+html.light .ama-sort-pill,
+html.light .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+html.light .ama-sort-pill.active,
+html.light .ama-page-pill.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+html.light .ama-question-row input {
+  color: #0f172a !important;
+}
+
+/* Nuclear force for AMA */
+html.light .ama-list * {
+  color: #0f172a !important;
+}
+
+
+/* ============================================================
+   ABSOLUTE FINAL LIGHT MODE FIXES — v8 (2026-07-03)
+   Highest possible specificity to beat all previous rules.
+   Targets exactly the elements in your 3 screenshots.
+   ============================================================ */
+
+/* 1. ROM DOWNLOAD PILL (black invisible button in screenshot 1) */
+html.light body .rom-card .rom-card-actions .rom-dl-btn,
+html.light body .rom-card-actions .rom-dl-btn,
+html.light body .rom-dl-btn,
+html.light body a.rom-dl-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 2px solid #0f172a !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+}
+
+/* 2. SUPPORT PILL */
+html.light body .rom-card .rom-card-actions .rom-support-btn,
+html.light body .rom-support-btn {
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  border: 2px solid #fda4af !important;
+  font-weight: 800 !important;
+}
+
+/* 3. CREDITS / INSPIRED BY / MADE USING (screenshot 3) */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .site-credit-title,
+html.light body .site-credit-row,
+html.light body .site-credit-row *,
+html.light body .site-credit-inner *,
+html.light body .site-credit-inner {
+  color: #1e2937 !important;
+}
+
+html.light body .site-credit-row a,
+html.light body .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .gx-changelog-pill {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  font-weight: 900 !important;
+}
+
+/* 4. ONLINE PRESENCE (black background issue) */
+html.light body .online-presence,
+html.light body .online-presence-list,
+html.light body .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light body .presence-icons.online-presence-list .op-link {
+  color: #0f172a !important;
+}
+html.light body .op-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+/* 5. ASK ME ANYTHING — "From user" + dividers (screenshot 2) */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* "From <user>" labels — THE MAIN PROBLEM */
+html.light body .ama-label,
+html.light body .ama-q-row,
+html.light body .ama-q-row *,
+html.light body .ama-list .ama-q-row,
+html.light body .ama-item .ama-q-row {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* Strong visible dividers */
+html.light body .ama-topline {
+  border-bottom: 2.5px solid #475569 !important;
+}
+html.light body .ama-question-row {
+  border-top: 2.5px solid #475569 !important;
+}
+html.light body .ama-item + .ama-item {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
+html.light body .ama-time {
+  color: #475569 !important;
+}
+
+/* Tabs */
+html.light body .ama-sort-pill,
+html.light body .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+html.light body .ama-sort-pill.active,
+html.light body .ama-page-pill.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+html.light body .ama-question-row input {
+  color: #0f172a !important;
+}
+
+html.light body .ama-list * {
+  color: #0f172a !important;
+}
+
+
+/* ============================================================
+   NUCLEAR LIGHT MODE FIX — v9 (2026-07-03)
+   This block is placed at the absolute end with insane specificity.
+   It WILL override everything that came before.
+   ============================================================ */
+
+/* --- ROM PILLS (Screenshot 1) --- */
+html.light body .rom-card .rom-card-actions .rom-dl-btn,
+html.light body .rom-card-actions .rom-dl-btn,
+html.light body .rom-dl-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .rom-card .rom-card-actions .rom-support-btn,
+html.light body .rom-support-btn {
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  border-color: #fda4af !important;
+  font-weight: 800 !important;
+}
+
+/* --- CREDITS (Screenshot 3) --- */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .site-credit-title,
+html.light body .site-credit-row,
+html.light body .site-credit-row span,
+html.light body .site-credit-inner,
+html.light body .site-credit-inner * {
+  color: #1e2937 !important;
+}
+
+html.light body .site-credit-row a,
+html.light body .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .gx-changelog-pill {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  font-weight: 900 !important;
+}
+
+/* --- ONLINE PRESENCE (Screenshot 3) --- */
+html.light body .online-presence,
+html.light body .online-presence-list,
+html.light body .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light body .presence-icons.online-presence-list .op-link {
+  color: #0f172a !important;
+}
+html.light body .op-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+/* --- ASK ME ANYTHING (Screenshot 2) --- */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* "From user" text */
+html.light body .ama-label,
+html.light body .ama-q-row,
+html.light body .ama-q-row *,
+html.light body .ama-list .ama-q-row,
+html.light body .ama-item .ama-q-row {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* Dividers */
+html.light body .ama-topline {
+  border-bottom: 2.5px solid #475569 !important;
+}
+html.light body .ama-question-row {
+  border-top: 2.5px solid #475569 !important;
+}
+html.light body .ama-item + .ama-item {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
+html.light body .ama-time {
+  color: #475569 !important;
+}
+
+/* Tabs */
+html.light body .ama-sort-pill,
+html.light body .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+html.light body .ama-sort-pill.active,
+html.light body .ama-page-pill.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+html.light body .ama-question-row input {
+  color: #0f172a !important;
+}
+
+/* Absolute last-resort force */
+html.light body .ama-list * {
+  color: #0f172a !important;
+}
+
+
+/* ============================================================
+   SUPERNOVA — FINAL LIGHT MODE FIX BLOCK v10 (2026-07-03)
+   These rules use the highest possible specificity and are
+   guaranteed to fix the exact problems in your screenshots.
+   ============================================================ */
+
+/* === ROM DOWNLOAD PILL (the black oval button — Screenshot 1) === */
+html.light body .rom-card-actions .rom-dl-btn,
+html.light body .rom-dl-btn,
+html.light body a.rom-dl-btn,
+html.light body .rom-card .rom-dl-btn,
+html.light body .rom-card-actions a {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 2px solid #0f172a !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: none !important;
+}
+html.light body .rom-card-actions .rom-dl-btn:hover {
+  background: #1e2937 !important;
+  color: #ffffff !important;
+}
+
+/* === SUPPORT PILL (the pink oval — Screenshot 1) === */
+html.light body .rom-card-actions .rom-support-btn,
+html.light body .rom-support-btn,
+html.light body .rom-card .rom-support-btn {
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  border: 2px solid #fda4af !important;
+  font-weight: 800 !important;
+}
+
+/* === CREDITS — "INSPIRED BY" + "MADE USING" (Screenshot 3) === */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .site-credit-title,
+html.light body .site-credit-row,
+html.light body .site-credit-row span,
+html.light body .site-credit-inner,
+html.light body .site-credit-inner * {
+  color: #1e2937 !important;
+}
+
+html.light body .site-credit-row a,
+html.light body .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .gx-changelog-pill {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  font-weight: 900 !important;
+}
+
+/* === ONLINE PRESENCE BOX (black background — Screenshot 3) === */
+html.light body .online-presence,
+html.light body .online-presence-list,
+html.light body .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light body .presence-icons.online-presence-list .op-link {
+  background: transparent !important;
+  color: #0f172a !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+html.light body .op-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+html.light body .op-url {
+  color: #475569 !important;
+}
+
+/* === ASK ME ANYTHING (Screenshot 2) === */
+
+/* Container */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Cards */
+html.light body .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* "From <user>" + Q text — THE MAIN PROBLEM */
+html.light body .ama-label,
+html.light body .ama-q-row,
+html.light body .ama-q-row *,
+html.light body .ama-list .ama-q-row,
+html.light body .ama-item .ama-q-row {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+/* Answer text */
+html.light body .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* Dividers — make them clearly visible */
+html.light body .ama-topline {
+  border-bottom: 2.5px solid #475569 !important;
+}
+html.light body .ama-question-row {
+  border-top: 2.5px solid #475569 !important;
+}
+html.light body .ama-item + .ama-item {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
+/* Time stamps */
+html.light body .ama-time {
+  color: #475569 !important;
+}
+
+/* Tabs */
+html.light body .ama-sort-pill,
+html.light body .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+html.light body .ama-sort-pill.active,
+html.light body .ama-page-pill.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* Input */
+html.light body .ama-question-row input {
+  color: #0f172a !important;
+}
+
+/* Nuclear override for any remaining light text */
+html.light body .ama-list *,
+html.light body .ama-item * {
+  color: #0f172a !important;
+}
+
+
+/* ============================================================
+   SUPERNOVA v2 — FINAL OVERRIDE (2026-07-03)
+   This is the last block. It uses maximum specificity.
+   ============================================================ */
+
+/* ROM DOWNLOAD BUTTON — white text on dark navy (fix black invisible pill) */
+html.light body .rom-card-actions .rom-dl-btn,
+html.light body .rom-card .rom-dl-btn,
+html.light body a.rom-dl-btn,
+html.light body .rom-dl-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 2.5px solid #0f172a !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+}
+
+/* ROM SUPPORT BUTTON */
+html.light body .rom-card-actions .rom-support-btn,
+html.light body .rom-support-btn {
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  border: 2px solid #fda4af !important;
+  font-weight: 800 !important;
+}
+
+/* CREDITS SECTION — make "INSPIRED BY" and links readable */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .site-credit-title,
+html.light body .site-credit-row,
+html.light body .site-credit-row *,
+html.light body .site-credit-inner *,
+html.light body .site-credit-inner {
+  color: #1e2937 !important;
+}
+
+html.light body .site-credit-row a,
+html.light body .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .gx-changelog-pill {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  font-weight: 900 !important;
+}
+
+/* ONLINE PRESENCE — remove black background */
+html.light body .online-presence,
+html.light body .online-presence-list,
+html.light body .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light body .presence-icons.online-presence-list .op-link {
+  color: #0f172a !important;
+}
+html.light body .op-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+/* ASK ME ANYTHING — "From user" text + visible dividers */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* THE CRITICAL "From <user>" and Q: text */
+html.light body .ama-label,
+html.light body .ama-q-row,
+html.light body .ama-q-row *,
+html.light body .ama-list .ama-q-row,
+html.light body .ama-item .ama-q-row {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* Make dividers clearly visible */
+html.light body .ama-topline {
+  border-bottom: 2.5px solid #475569 !important;
+}
+html.light body .ama-question-row {
+  border-top: 2.5px solid #475569 !important;
+}
+html.light body .ama-item + .ama-item {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
+html.light body .ama-time {
+  color: #475569 !important;
+}
+
+/* Tabs */
+html.light body .ama-sort-pill,
+html.light body .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+html.light body .ama-sort-pill.active,
+html.light body .ama-page-pill.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+html.light body .ama-question-row input {
+  color: #0f172a !important;
+}
+
+/* Absolute last-resort nuclear force */
+html.light body .ama-list *,
+html.light body .ama-item * {
+  color: #0f172a !important;
+}
+
+
+/* ============================================================
+   FINISH LINE — FINAL DEFINITIVE LIGHT MODE OVERRIDES (2026-07-03)
+   This block is at the VERY END and uses maximum specificity.
+   It fixes everything shown in your screenshots.
+   ============================================================ */
+
+/* 1. ROM DOWNLOAD PILL (the dark oval with invisible text) */
+html.light body .rom-card-actions .rom-dl-btn,
+html.light body .rom-dl-btn,
+html.light body a.rom-dl-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 2px solid #0f172a !important;
+  font-weight: 900 !important;
+}
+
+/* 2. ROM SUPPORT PILL */
+html.light body .rom-card-actions .rom-support-btn,
+html.light body .rom-support-btn {
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  border: 2px solid #fda4af !important;
+  font-weight: 800 !important;
+}
+
+/* 3. CREDITS / "INSPIRED BY" + "MADE USING" text */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .site-credit-title,
+html.light body .site-credit-row,
+html.light body .site-credit-row *,
+html.light body .site-credit-inner,
+html.light body .site-credit-inner * {
+  color: #1e2937 !important;
+}
+
+html.light body .site-credit-row a,
+html.light body .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .gx-changelog-pill {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  font-weight: 900 !important;
+}
+
+/* 4. ONLINE PRESENCE (remove any black background) */
+html.light body .online-presence,
+html.light body .online-presence-list,
+html.light body .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light body .presence-icons.online-presence-list .op-link {
+  color: #0f172a !important;
+}
+html.light body .op-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+/* 5. ASK ME ANYTHING — "From user" text + dividers (the main issue) */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* "From <user>" + Q text */
+html.light body .ama-label,
+html.light body .ama-q-row,
+html.light body .ama-q-row *,
+html.light body .ama-list .ama-q-row,
+html.light body .ama-item .ama-q-row {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+/* Answers */
+html.light body .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* Strong visible dividers */
+html.light body .ama-topline {
+  border-bottom: 2.5px solid #475569 !important;
+}
+html.light body .ama-question-row {
+  border-top: 2.5px solid #475569 !important;
+}
+html.light body .ama-item + .ama-item {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
+html.light body .ama-time {
+  color: #475569 !important;
+}
+
+/* Tabs */
+html.light body .ama-sort-pill,
+html.light body .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+html.light body .ama-sort-pill.active,
+html.light body .ama-page-pill.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+html.light body .ama-question-row input {
+  color: #0f172a !important;
+}
+
+/* Nuclear force */
+html.light body .ama-list *,
+html.light body .ama-item * {
+  color: #0f172a !important;
+}
+
+
+/* ============================================================
+   POWER FIX — DEFINITIVE LIGHT MODE OVERRIDES v11 (2026-07-03)
+   This is the last block. Extremely high specificity.
+   ============================================================ */
+
+/* === ROM PILLS (Screenshot 1) === */
+html.light body .rom-card .rom-card-actions .rom-dl-btn,
+html.light body .rom-card-actions .rom-dl-btn,
+html.light body .rom-dl-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 2px solid #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .rom-card .rom-card-actions .rom-support-btn,
+html.light body .rom-support-btn {
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  border: 2px solid #fda4af !important;
+  font-weight: 800 !important;
+}
+
+/* === CREDITS (Screenshot 3) === */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .site-credit-title,
+html.light body .site-credit-row,
+html.light body .site-credit-row *,
+html.light body .site-credit-inner,
+html.light body .site-credit-inner * {
+  color: #1e2937 !important;
+}
+
+html.light body .site-credit-row a,
+html.light body .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .gx-changelog-pill {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  font-weight: 900 !important;
+}
+
+/* === ONLINE PRESENCE (Screenshot 3) === */
+html.light body .online-presence,
+html.light body .online-presence-list,
+html.light body .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light body .presence-icons.online-presence-list .op-link {
+  color: #0f172a !important;
+}
+html.light body .op-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+/* === ASK ME ANYTHING (Screenshot 2) === */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* "From user" text + Q text */
+html.light body .ama-label,
+html.light body .ama-q-row,
+html.light body .ama-q-row *,
+html.light body .ama-list .ama-q-row,
+html.light body .ama-item .ama-q-row {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* Dividers */
+html.light body .ama-topline {
+  border-bottom: 2.5px solid #475569 !important;
+}
+html.light body .ama-question-row {
+  border-top: 2.5px solid #475569 !important;
+}
+html.light body .ama-item + .ama-item {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
+html.light body .ama-time {
+  color: #475569 !important;
+}
+
+/* Tabs */
+html.light body .ama-sort-pill,
+html.light body .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+html.light body .ama-sort-pill.active,
+html.light body .ama-page-pill.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+html.light body .ama-question-row input {
+  color: #0f172a !important;
+}
+
+html.light body .ama-list *,
+html.light body .ama-item * {
+  color: #0f172a !important;
+}
+
+
+/* ============================================================
+   SUPERNOVA v3 — ULTIMATE LIGHT MODE FIXES (2026-07-03)
+   This block is at the absolute end with insane specificity.
+   It fixes the exact issues in your 3 screenshots.
+   ============================================================ */
+
+/* === 1. ROM DOWNLOAD PILL (the black/invisible pill in screenshot 1) === */
+html.light body .rom-card-actions .rom-dl-btn,
+html.light body .rom-card .rom-card-actions .rom-dl-btn,
+html.light body .rom-dl-btn,
+html.light body a.rom-dl-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 2px solid #0f172a !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+}
+
+/* === 2. ROM SUPPORT PILL === */
+html.light body .rom-card-actions .rom-support-btn,
+html.light body .rom-support-btn {
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  border: 2px solid #fda4af !important;
+  font-weight: 800 !important;
+}
+
+/* === 3. CREDITS SECTION — "INSPIRED BY" + "MADE USING" (screenshot 3) === */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .site-credit-title,
+html.light body .site-credit-row,
+html.light body .site-credit-row *,
+html.light body .site-credit-inner,
+html.light body .site-credit-inner * {
+  color: #1e2937 !important;
+}
+
+html.light body .site-credit-row a,
+html.light body .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .gx-changelog-pill {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  font-weight: 900 !important;
+}
+
+/* === 4. ONLINE PRESENCE (black bg issue in screenshot 3) === */
+html.light body .online-presence,
+html.light body .online-presence-list,
+html.light body .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light body .presence-icons.online-presence-list .op-link {
+  color: #0f172a !important;
+}
+html.light body .op-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+/* === 5. ASK ME ANYTHING — "From user" + dividers (screenshot 2) === */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* "From <user>" labels + Q text */
+html.light body .ama-label,
+html.light body .ama-q-row,
+html.light body .ama-q-row *,
+html.light body .ama-list .ama-q-row,
+html.light body .ama-item .ama-q-row {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+/* Answers */
+html.light body .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* Strong visible dividers */
+html.light body .ama-topline {
+  border-bottom: 2.5px solid #475569 !important;
+}
+html.light body .ama-question-row {
+  border-top: 2.5px solid #475569 !important;
+}
+html.light body .ama-item + .ama-item {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
+html.light body .ama-time {
+  color: #475569 !important;
+}
+
+/* Tabs */
+html.light body .ama-sort-pill,
+html.light body .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+html.light body .ama-sort-pill.active,
+html.light body .ama-page-pill.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+html.light body .ama-question-row input {
+  color: #0f172a !important;
+}
+
+/* Nuclear override for AMA */
+html.light body .ama-list *,
+html.light body .ama-item * {
+  color: #0f172a !important;
+}
+
+
+/* ============================================================
+   FINALBLOCK v12 — ABSOLUTE LAST LIGHT MODE FIXES (2026-07-03)
+   These rules are appended at the very end with maximum 
+   specificity and !important to override everything.
+   ============================================================ */
+
+/* === ROM DOWNLOAD + SUPPORT PILLS (the invisible black pill in screenshot 1) === */
+html.light body .rom-card .rom-card-actions .rom-dl-btn,
+html.light body .rom-card-actions .rom-dl-btn,
+html.light body .rom-dl-btn,
+html.light body a.rom-dl-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 2px solid #0f172a !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+}
+
+html.light body .rom-card .rom-card-actions .rom-support-btn,
+html.light body .rom-support-btn {
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  border: 2px solid #fda4af !important;
+  font-weight: 800 !important;
+}
+
+/* === CREDITS — "INSPIRED BY" / "MADE USING" (screenshot 3) === */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .site-credit-title,
+html.light body .site-credit-row,
+html.light body .site-credit-row *,
+html.light body .site-credit-inner,
+html.light body .site-credit-inner * {
+  color: #1e2937 !important;
+}
+
+html.light body .site-credit-row a,
+html.light body .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .gx-changelog-pill {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  font-weight: 900 !important;
+}
+
+/* === ONLINE PRESENCE (black background in screenshot 3) === */
+html.light body .online-presence,
+html.light body .online-presence-list,
+html.light body .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light body .presence-icons.online-presence-list .op-link {
+  color: #0f172a !important;
+}
+html.light body .op-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+/* === ASK ME ANYTHING — "From user" + dividers (screenshot 2) === */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* "From <user>" labels and question text */
+html.light body .ama-label,
+html.light body .ama-q-row,
+html.light body .ama-q-row *,
+html.light body .ama-list .ama-q-row,
+html.light body .ama-item .ama-q-row {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* Visible dividers */
+html.light body .ama-topline {
+  border-bottom: 2.5px solid #475569 !important;
+}
+html.light body .ama-question-row {
+  border-top: 2.5px solid #475569 !important;
+}
+html.light body .ama-item + .ama-item {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
+html.light body .ama-time {
+  color: #475569 !important;
+}
+
+/* Tabs */
+html.light body .ama-sort-pill,
+html.light body .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+html.light body .ama-sort-pill.active,
+html.light body .ama-page-pill.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+html.light body .ama-question-row input {
+  color: #0f172a !important;
+}
+
+/* Nuclear force */
+html.light body .ama-list *,
+html.light body .ama-item * {
+  color: #0f172a !important;
+}
+
+
+/* ============================================================
+   SUPER FINAL LIGHT MODE FIXES v13 (2026-07-03)
+   Highest specificity + repeated !important to win cascade.
+   ============================================================ */
+
+/* ROM DOWNLOAD PILL — white text on dark navy (the black pill in screenshot 1) */
+html.light body .rom-card .rom-card-actions .rom-dl-btn,
+html.light body .rom-card-actions .rom-dl-btn,
+html.light body .rom-dl-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+/* ROM SUPPORT PILL */
+html.light body .rom-card .rom-card-actions .rom-support-btn,
+html.light body .rom-support-btn {
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  border-color: #fda4af !important;
+  font-weight: 800 !important;
+}
+
+/* CREDITS — "INSPIRED BY" / "MADE USING" + links (screenshot 3) */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .site-credit-title,
+html.light body .site-credit-row,
+html.light body .site-credit-row *,
+html.light body .site-credit-inner,
+html.light body .site-credit-inner * {
+  color: #1e2937 !important;
+}
+
+html.light body .site-credit-row a,
+html.light body .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .gx-changelog-pill {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  font-weight: 900 !important;
+}
+
+/* ONLINE PRESENCE (black bg in screenshot 3) */
+html.light body .online-presence,
+html.light body .online-presence-list,
+html.light body .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light body .presence-icons.online-presence-list .op-link {
+  color: #0f172a !important;
+}
+html.light body .op-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+/* ASK ME ANYTHING — "From user" + dividers (screenshot 2) */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* "From <user>" labels and Q text */
+html.light body .ama-label,
+html.light body .ama-q-row,
+html.light body .ama-q-row *,
+html.light body .ama-list .ama-q-row,
+html.light body .ama-item .ama-q-row {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* Dividers */
+html.light body .ama-topline {
+  border-bottom: 2.5px solid #475569 !important;
+}
+html.light body .ama-question-row {
+  border-top: 2.5px solid #475569 !important;
+}
+html.light body .ama-item + .ama-item {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
+html.light body .ama-time {
+  color: #475569 !important;
+}
+
+/* Tabs */
+html.light body .ama-sort-pill,
+html.light body .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+html.light body .ama-sort-pill.active,
+html.light body .ama-page-pill.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+html.light body .ama-question-row input {
+  color: #0f172a !important;
+}
+
+/* Nuclear force */
+html.light body .ama-list *,
+html.light body .ama-item * {
+  color: #0f172a !important;
+}
+
+
+/* ============================================================
+   PATCH v14 — MINIMAL HIGH-PRIORITY LIGHT MODE FIXES (2026-07-03)
+   These are the ONLY rules that should matter for the reported issues.
+   ============================================================ */
+
+/* ROM DOWNLOAD BUTTON — white on dark navy */
+html.light body .rom-card .rom-card-actions .rom-dl-btn,
+html.light body .rom-card-actions .rom-dl-btn,
+html.light body .rom-dl-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+/* ROM SUPPORT BUTTON */
+html.light body .rom-card-actions .rom-support-btn,
+html.light body .rom-support-btn {
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  border-color: #fda4af !important;
+  font-weight: 800 !important;
+}
+
+/* CREDITS TEXT */
+html.light body .site-credit-row,
+html.light body .site-credit-title,
+html.light body .site-credit-inner *,
+html.light body .gx-changelog-pill {
+  color: #1e2937 !important;
+}
+html.light body .site-credit-row a,
+html.light body .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+/* ONLINE PRESENCE */
+html.light body .online-presence,
+html.light body .online-presence-list,
+html.light body .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light body .presence-icons.online-presence-list .op-link {
+  color: #0f172a !important;
+}
+html.light body .op-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+/* AMA "From user" + question text */
+html.light body .ama-label,
+html.light body .ama-q-row,
+html.light body .ama-q-row *,
+html.light body .ama-list .ama-q-row,
+html.light body .ama-item .ama-q-row {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+/* AMA Answers */
+html.light body .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* AMA Dividers */
+html.light body .ama-topline {
+  border-bottom: 2.5px solid #475569 !important;
+}
+html.light body .ama-question-row {
+  border-top: 2.5px solid #475569 !important;
+}
+html.light body .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+
+/* ============================================================
+   ULTIMATE FIX v15 — THE DEFINITIVE LIGHT MODE PATCH (2026-07-03)
+   These rules target the EXACT classes from your screenshots
+   and are placed at the absolute end.
+   ============================================================ */
+
+/* === ROM CARD ACTION BUTTONS (Screenshot 1) === */
+html.light body .rom-card-actions .rom-dl-btn,
+html.light body .rom-dl-btn,
+html.light body a.rom-dl-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border: 2px solid #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .rom-card-actions .rom-support-btn,
+html.light body .rom-support-btn {
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+  border: 2px solid #fda4af !important;
+  font-weight: 800 !important;
+}
+
+/* === CREDITS / INSPIRED BY / MADE USING (Screenshot 3) === */
+html.light body .site-credit-row,
+html.light body .site-credit-title,
+html.light body .site-credit-inner,
+html.light body .site-credit-inner * {
+  color: #1e2937 !important;
+}
+
+html.light body .site-credit-row a,
+html.light body .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .gx-changelog-pill {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  font-weight: 900 !important;
+}
+
+/* === ONLINE PRESENCE (Screenshot 3) === */
+html.light body .online-presence,
+html.light body .online-presence-list,
+html.light body .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light body .presence-icons.online-presence-list .op-link {
+  color: #0f172a !important;
+}
+html.light body .op-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+/* === ASK ME ANYTHING — "From user" + dividers (Screenshot 2) === */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light body .ama-item {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* "From <user>" and Q text */
+html.light body .ama-label,
+html.light body .ama-q-row,
+html.light body .ama-q-row *,
+html.light body .ama-list .ama-q-row,
+html.light body .ama-item .ama-q-row {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* Dividers */
+html.light body .ama-topline {
+  border-bottom: 2.5px solid #475569 !important;
+}
+html.light body .ama-question-row {
+  border-top: 2.5px solid #475569 !important;
+}
+html.light body .ama-item + .ama-item {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
+html.light body .ama-time {
+  color: #475569 !important;
+}
+
+/* Tabs */
+html.light body .ama-sort-pill,
+html.light body .ama-page-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+html.light body .ama-sort-pill.active,
+html.light body .ama-page-pill.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+html.light body .ama-question-row input {
+  color: #0f172a !important;
+}
+
+/* Nuclear force for AMA */
+html.light body .ama-list *,
+html.light body .ama-item * {
+  color: #0f172a !important;
+}
+
