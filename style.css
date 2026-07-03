@@ -10919,18 +10919,30 @@ html.light #ama-owner-v4-modal .ama-v2-card {
   overflow: visible !important;
 }
 
-/* ===== KEEP CHANGELOGS POPUP COMFORTABLY SIZED (NOT TAKING WHOLE SCREEN) ===== */
+/* ===== CHANGELOGS POPUP SIZING — EXACTLY 15px MARGIN TOP & BOTTOM ===== */
+.gx-changelog-modal,
+#gx-changelog-modal,
+body > .gx-changelog-modal,
+body.gx-changelog-open > .gx-changelog-modal,
+html.light .gx-changelog-modal,
+html.light #gx-changelog-modal {
+  padding: calc(15px + env(safe-area-inset-top)) 16px calc(15px + env(safe-area-inset-bottom)) !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
 .gx-changelog-modal .gx-changelog-card,
 #gx-changelog-modal .gx-changelog-card,
 html.light .gx-changelog-modal .gx-changelog-card,
 html.light #gx-changelog-modal .gx-changelog-card {
-  width: min(680px, calc(100vw - 36px)) !important;
-  max-height: min(580px, calc(100dvh - 120px)) !important;
+  width: min(720px, calc(100vw - 32px)) !important;
+  height: calc(100dvh - 30px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+  max-height: calc(100dvh - 30px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
   overflow: hidden !important;
   display: flex !important;
   flex-direction: column !important;
-  border-radius: 26px !important;
-  padding: 24px !important;
+  border-radius: 28px !important;
+  padding: 26px !important;
+  margin: 0 !important;
 }
 .gx-changelog-modal .gx-changelog-list,
 #gx-changelog-modal .gx-changelog-list {
@@ -10939,6 +10951,62 @@ html.light #gx-changelog-modal .gx-changelog-card {
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
   padding-right: 6px !important;
+}
+@media (max-width: 760px) {
+  .gx-changelog-modal,
+  #gx-changelog-modal,
+  body > .gx-changelog-modal {
+    padding: calc(15px + env(safe-area-inset-top)) 12px calc(15px + env(safe-area-inset-bottom)) !important;
+  }
+  .gx-changelog-modal .gx-changelog-card,
+  #gx-changelog-modal .gx-changelog-card {
+    width: calc(100vw - 24px) !important;
+    height: calc(100dvh - 30px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    max-height: calc(100dvh - 30px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    padding: 22px 18px !important;
+  }
+}
+
+/* ===== CHANGELOG NEXT PILL BUTTON STYLING ===== */
+.gx-changelog-page-pill.gx-next-pill,
+#gx-changelog-modal .gx-changelog-page-pill.gx-next-pill {
+  min-width: 86px !important;
+  height: 38px !important;
+  padding: 0 18px !important;
+  border-radius: 999px !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f5f2e9 !important;
+  border: 1.5px solid rgba(230, 226, 203, 0.25) !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.gx-changelog-page-pill.gx-next-pill:hover,
+#gx-changelog-modal .gx-changelog-page-pill.gx-next-pill:hover {
+  background: #f5f2e9 !important;
+  color: #111 !important;
+  border-color: #f5f2e9 !important;
+  transform: translateY(-2px) !important;
+}
+html.light .gx-changelog-page-pill.gx-next-pill,
+html.light #gx-changelog-modal .gx-changelog-page-pill.gx-next-pill {
+  background: rgba(60, 55, 115, 0.06) !important;
+  color: #17172b !important;
+  -webkit-text-fill-color: #17172b !important;
+  border: 1.5px solid rgba(60, 55, 115, 0.22) !important;
+}
+html.light .gx-changelog-page-pill.gx-next-pill:hover,
+html.light #gx-changelog-modal .gx-changelog-page-pill.gx-next-pill:hover {
+  background: #17172b !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  border-color: #17172b !important;
+  transform: translateY(-2px) !important;
 }
 
 /* 2) Headings & Titles */

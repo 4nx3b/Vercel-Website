@@ -5628,7 +5628,8 @@ document.addEventListener('click', function(e){
     // even if the controls row didn't exist yet when the pills were first created.
     if(wrap && controls && wrap.parentElement!==controls){ controls.appendChild(wrap); }
 
-    var sig=totalPages+'|'+page;
+    var nextPage = (page % totalPages) + 1;
+    var sig=totalPages+'|'+page+'|'+nextPage;
     if(wrap && wrap.dataset.sig===sig) return;
 
     if(!wrap){
@@ -5637,13 +5638,11 @@ document.addEventListener('click', function(e){
       if(controls) controls.appendChild(wrap); else list.insertAdjacentElement('afterend', wrap);
     }
     wrap.dataset.sig=sig;
-    wrap.innerHTML=Array.from({length:totalPages}, function(_, i){
-      var n=i+1;
-      return '<button type="button" class="gx-changelog-page-pill'+(n===page?' active':'')+'" data-page="'+n+'">'+n+'</button>';
-    }).join('');
-    wrap.querySelectorAll('.gx-changelog-page-pill').forEach(function(btn){
-      btn.addEventListener('click', function(){ goToPage(list, Number(btn.dataset.page)||1); });
-    });
+    wrap.innerHTML='<button type="button" class="gx-changelog-page-pill active gx-next-pill" data-page="'+nextPage+'" title="Go to page '+nextPage+' of '+totalPages+'">Next →</button>';
+    var btn = wrap.querySelector('button');
+    if(btn){
+      btn.onclick = function(){ goToPage(list, nextPage); };
+    }
   }
 
   function watchFilters(){
@@ -7353,10 +7352,19 @@ document.addEventListener('click', function(e){
     });
     var wrap = card && card.querySelector('.gx-changelog-page-pills');
     if(wrap){
-      wrap.querySelectorAll('.gx-changelog-page-pill').forEach(function(btn){
-        var active = Number(btn.dataset.page) === page;
-        btn.classList.toggle('active', active);
-      });
+      var nextPage = (page % total) + 1;
+      var btn = wrap.querySelector('.gx-changelog-page-pill');
+      if(btn){
+        btn.dataset.page = String(nextPage);
+        btn.classList.add('active');
+        btn.onclick = function(){
+          list.dataset.clPage = String(nextPage);
+          paginate(list);
+          var scrollTarget = list.closest('.gx-changelog-card') || list;
+          scrollTarget.scrollTop = 0;
+          list.scrollTop = 0;
+        };
+      }
     }
   }
   function forceOrder(order, resetPage){
@@ -7563,7 +7571,7 @@ document.addEventListener('click', function(e){
     list.dataset.changelogLightPopup0703 = '1';
     var a = document.createElement('article');
     a.className = 'gx-changelog-entry fx-scoped-reveal fx-scoped-visible';
-    a.innerHTML = '<div class="gx-changelog-date">2026-07-03 <span>21:35 IST</span></div><ul><li>Fixed the Changelogs popup sizing so it is neatly proportioned and no longer takes up the whole screen.</li><li>Changed the text color of "What\'s your name?" (and all popup titles) to pitch black in light mode by overriding WebKit text-fill properties.</li><li>Stopped the popup card from squishing or becoming smaller when the mobile keyboard opens by removing dynamic height calculations.</li><li>Completely removed the music autoplay feature; music now only plays when clicked directly on the track name or thumbnail icon.</li><li>Fixed popup dialogs appearing in dark mode while the website is in light mode.</li></ul>';
+    a.innerHTML = '<div class="gx-changelog-date">2026-07-03 <span>21:45 IST</span></div><ul><li>Adjusted the Changelogs popup sizing to leave exactly a 15px margin above and below the popup card on all screens.</li><li>Replaced the numbered pagination pills (1, 2, 3...) in the Changelogs popup with a single "Next →" button that loops through the pages.</li><li>Changed the text color of "What\'s your name?" (and all popup titles) to pitch black in light mode by overriding WebKit text-fill properties.</li><li>Stopped the popup card from squishing or becoming smaller when the mobile keyboard opens by removing dynamic height calculations.</li><li>Completely removed the music autoplay feature; music now only plays when clicked directly on the track name or thumbnail icon.</li><li>Fixed popup dialogs appearing in dark mode while the website is in light mode.</li></ul>';
     list.prepend(a);
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addLatestChangelog); else addLatestChangelog();
