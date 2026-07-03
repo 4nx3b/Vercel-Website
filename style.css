@@ -10550,7 +10550,16 @@ html.light .fgm-title {
 }
 
 html.light .fgm-status {
-  color: #6b7280 !important;
+  background: #1e2937 !important;
+  color: #ffffff !important;
+  padding: 6px 16px !important;
+  border-radius: 999px !important;
+  display: table !important;
+  margin: 12px auto !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-align: center !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
 }
 
 html.light .fgm-close {
@@ -10573,14 +10582,15 @@ html.light .fgm-retry,
 html.light .fgm-over button {
   background: #1e2937 !important;
   color: #ffffff !important;
-  border-color: #1e2937 !important;
+  border: 1px solid rgba(0,0,0,0.1) !important;
+  transition: background 0.2s ease !important;
 }
 
 html.light .fgm-controls button:hover,
 html.light .fgm-choice:hover,
 html.light .fgm-cell:hover,
 html.light .fgm-retry:hover {
-  background: #334155 !important;
+  background: #374151 !important;
   color: #ffffff !important;
 }
 
