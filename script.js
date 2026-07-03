@@ -7245,3 +7245,99 @@ document.addEventListener('click', function(e){
     }).observe(document.body, {childList:true, subtree:true});
   });
 })();
+
+/* ===== USER REQUEST 2026-07-03 v2: profile crop + stable recent changelog order ===== */
+(function(){
+  function ready(fn){ document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', fn) : fn(); }
+
+  function parseEntryTime(entry){
+    var d = entry && entry.querySelector && entry.querySelector('.gx-changelog-date');
+    if(!d) return 0;
+    var date = (d.childNodes[0] && d.childNodes[0].textContent || d.textContent || '').trim();
+    var time = (d.querySelector('span') && d.querySelector('span').textContent || '00:00').trim();
+    var stamp = Date.parse(date + ' ' + time.replace(/IST/i, '+05:30'));
+    if(!isFinite(stamp)) stamp = Date.parse(date) || 0;
+    return stamp || 0;
+  }
+
+  function addLatestChangelog(list){
+    if(!list || list.dataset.profilePillSortFix0703 === '1') return;
+    list.dataset.profilePillSortFix0703 = '1';
+    var article = document.createElement('article');
+    article.className = 'gx-changelog-entry fx-scoped-reveal fx-scoped-visible';
+    article.innerHTML = '<div class="gx-changelog-date">2026-07-03 <span>16:45 IST</span></div><ul><li>Removed the Games/playground section completely and blocked legacy game routes from reopening it.</li><li>Replaced the main-page Games icon with a circular profile-picture pill.</li><li>Adjusted the profile-picture crop inside the pill so the face sits lower and is not cut at the top.</li><li>Fixed the first-open Changelogs order so Recent shows the newest updates at the top immediately.</li></ul>';
+    list.prepend(article);
+  }
+
+  var sorting = false;
+  function sortChangelogs(order){
+    var list = document.querySelector('#gx-changelog-modal .gx-changelog-list');
+    if(!list || sorting) return;
+    addLatestChangelog(list);
+    order = order || list.dataset.order || 'recent';
+    sorting = true;
+    try{
+      var entries = Array.prototype.slice.call(list.querySelectorAll('.gx-changelog-entry'));
+      entries.sort(function(a,b){
+        return order === 'oldest' ? parseEntryTime(a) - parseEntryTime(b) : parseEntryTime(b) - parseEntryTime(a);
+      });
+      window.__allowChangelogSortV19 = true;
+      entries.forEach(function(entry){ list.appendChild(entry); });
+      window.__allowChangelogSortV19 = false;
+      list.dataset.order = order;
+      list.dataset.clPage = '1';
+      document.querySelectorAll('.gx-changelog-filter').forEach(function(btn){
+        btn.classList.toggle('active', (btn.dataset.order || 'recent') === order);
+      });
+    }catch(e){
+      window.__allowChangelogSortV19 = false;
+    }
+    sorting = false;
+  }
+
+  function wireChangelogOpenSort(){
+    document.addEventListener('click', function(e){
+      var openBtn = e.target && e.target.closest && e.target.closest('#gx-changelog-pill,[aria-controls="gx-changelog-modal"]');
+      var filter = e.target && e.target.closest && e.target.closest('.gx-changelog-filter');
+      if(openBtn){
+        [0, 80, 220, 600, 1300].forEach(function(t){ setTimeout(function(){ sortChangelogs('recent'); }, t); });
+      }
+      if(filter){
+        var order = filter.dataset.order || 'recent';
+        [0, 60].forEach(function(t){ setTimeout(function(){ sortChangelogs(order); }, t); });
+      }
+    }, true);
+  }
+
+  function observeChangelogList(){
+    var list = document.querySelector('#gx-changelog-modal .gx-changelog-list');
+    if(!list || list.dataset.stableRecentObserver0703 === '1') return;
+    list.dataset.stableRecentObserver0703 = '1';
+    var queued = false;
+    new MutationObserver(function(){
+      if(sorting || queued) return;
+      if((list.dataset.order || 'recent') === 'oldest') return;
+      queued = true;
+      setTimeout(function(){ queued = false; sortChangelogs('recent'); }, 120);
+    }).observe(list, {childList:true});
+  }
+
+  function nudgeProfileCrop(){
+    document.querySelectorAll('.gx-profile-pill-img').forEach(function(img){
+      img.style.setProperty('object-position', 'center 32%', 'important');
+    });
+  }
+
+  function run(){
+    nudgeProfileCrop();
+    observeChangelogList();
+    sortChangelogs((document.querySelector('#gx-changelog-modal .gx-changelog-list') || {}).dataset?.order || 'recent');
+  }
+
+  ready(function(){
+    wireChangelogOpenSort();
+    run();
+    [250, 900, 1800].forEach(function(t){ setTimeout(run, t); });
+    setInterval(function(){ nudgeProfileCrop(); observeChangelogList(); }, 1200);
+  });
+})();

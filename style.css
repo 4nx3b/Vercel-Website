@@ -10819,3 +10819,8 @@ html body.gx-playground-open #gx-game-page {
   object-position: center !important;
   pointer-events: none !important;
 }
+
+/* ===== USER REQUEST 2026-07-03 v2: profile pill crop ===== */
+.gx-profile-pill-img {
+  object-position: center 32% !important;
+}
