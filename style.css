@@ -7708,3 +7708,39 @@ html.light .gx-mine-cell{
 }
 html.light .gx-game-status{ color:#5f5f78!important; }
 /* ====================================================================== */
+
+/* ======================================================================
+   USER REQUEST FIX v37 2026-07-03.
+   1) Hero welcome-box chips: an existing rule (html.light .gx-chip)
+      forces a solid black/navy pill for ALL .gx-chip elements. The
+      round "Games" controller icon escaped it only because it also
+      matches .gx-game-home, which happens to be declared later in the
+      cascade. Scoping to .gx-hero-actions specifically gives the
+      GitHub icon and "LINKS" pill that same lighter, consistent
+      treatment (and outranks both older rules via specificity, so
+      order no longer matters).
+   2) PLAY button: an earlier v34-era fix already set color:#17172b on
+      .gx-play-btn, but paired it with a background so faint it read
+      as invisible again. Overriding with #gx-game-page-scoped
+      specificity so this is the definitive, final state.
+   ====================================================================== */
+html.light .gx-hero-actions .gx-chip{
+  background:rgba(60,55,115,.06)!important;
+  color:#17172b!important;
+  border-color:rgba(60,55,115,.22)!important;
+}
+html.light .gx-hero-actions .gx-chip:hover{
+  background:rgba(60,55,115,.13)!important;
+}
+
+html.light #gx-game-page .gx-play-btn{
+  color:#17172b!important;
+  background:rgba(60,55,115,.08)!important;
+  border:1.5px solid rgba(60,55,115,.32)!important;
+}
+html.light #gx-game-page .gx-play-btn:hover{
+  color:#ffffff!important;
+  background:#17172b!important;
+  border-color:#17172b!important;
+}
+/* ====================================================================== */
