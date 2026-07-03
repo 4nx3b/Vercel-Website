@@ -7097,8 +7097,24 @@ document.addEventListener('click', function(e){
     list.dataset.changelog0703='1';
     var a=document.createElement('article');
     a.className='gx-changelog-entry fx-scoped-reveal fx-scoped-visible';
-    a.innerHTML='<div class="gx-changelog-date">2026-07-03 <span>14:45 IST</span></div><ul><li>Unified active pill colors in light mode across AniList tabs, skill tabs, filter buttons, AMA pills, ROM download button, and game PLAY button to match the Changelogs popup page pill style.</li><li>Made the light-mode top bar more transparent with stronger blur for a glassier look.</li><li>Fixed AMA light-mode styling: softer fonts, visible from label, proper dividers, and visible refresh button.</li><li>Removed all music autoplay and fixed music overlap from duplicate audio players.</li><li>Moved topbar divider between music controls and theme toggle.</li><li>Improved credits section fonts and light-mode visibility.</li></ul>';
+    a.innerHTML='<div class="gx-changelog-date">2026-07-03 <span>15:30 IST</span></div><ul><li>Unified active pill colors in light mode across AniList tabs, skill tabs, filter buttons, AMA pills, ROM download button, and game PLAY button to match the Changelogs popup page pill style.</li><li>Made the light-mode top bar more transparent with stronger blur for a glassier look.</li><li>Fixed AMA light-mode styling: softer fonts, visible from label, proper dividers, and visible refresh button.</li><li>Removed all music autoplay and fixed music overlap from duplicate audio players.</li><li>Moved topbar divider between music controls and theme toggle.</li><li>Improved credits section fonts and light-mode visibility.</li></ul>';
     list.prepend(a);
+    /* Force re-sort so newest entry lands at top */
+    list.dataset.clPage='1';
+    try{
+      var entries=[].slice.call(list.querySelectorAll('.gx-changelog-entry'));
+      entries.sort(function(a,b){return parseEntryTime(b)-parseEntryTime(a);});
+      entries.forEach(function(e){list.appendChild(e);});
+    }catch(e){}
+  }
+  function parseEntryTime(entry){
+    var d=entry.querySelector('.gx-changelog-date');
+    if(!d) return 0;
+    var date=(d.childNodes[0]&&d.childNodes[0].textContent||d.textContent||'').trim();
+    var time=(d.querySelector('span')&&d.querySelector('span').textContent||'00:00').trim();
+    var stamp=Date.parse(date+' '+time.replace(/IST/i,'+05:30'));
+    if(!isFinite(stamp)) stamp=Date.parse(date)||0;
+    return stamp||0;
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',addChangelog); else addChangelog();
 })();

@@ -10473,6 +10473,70 @@ html.light body #site-credit-card .site-credit-inner a {
    buttons, AMA sort/page pills, ROM download, game PLAY.
    ============================================================ */
 
+/* Active tabs/pills — cream fill with dark text */
+html.light body .skill-tab.active,
+html.light body .anilist-tab.active,
+html.light body .lastfm-period-tab.active,
+html.light body .filter-btn.active,
+html.light body .ani-page-btn.active,
+html.light body .ama-sort-pill.active,
+html.light body .ama-page-pill.active {
+  background: #f5f2e9 !important;
+  color: #111 !important;
+  border-color: #f5f2e9 !important;
+}
+
+/* ROM download button — cream fill */
+html.light body .rom-dl-btn,
+html.light body .rom-card-actions .rom-dl-btn,
+html.light body a.rom-dl-btn {
+  background: #f5f2e9 !important;
+  color: #111 !important;
+  border-color: #f5f2e9 !important;
+}
+html.light body .rom-dl-btn:hover,
+html.light body .rom-card-actions .rom-dl-btn:hover {
+  background: #e8e5d9 !important;
+  color: #111 !important;
+}
+
+/* Game PLAY button — cream fill with BLACK text */
+html.light body .gx-play-btn,
+html.light body .gx-game-play,
+html.light body #gx-game-page .gx-play-btn,
+html.light body .gx-game-card .gx-game-play {
+  background: #f5f2e9 !important;
+  color: #000000 !important;
+  border-color: #f5f2e9 !important;
+}
+html.light body .gx-play-btn:hover,
+html.light body .gx-game-play:hover,
+html.light body #gx-game-page .gx-play-btn:hover {
+  background: #e8e5d9 !important;
+  color: #000000 !important;
+}
+
+/* Inactive tabs/pills — transparent with muted text */
+html.light body .skill-tab,
+html.light body .anilist-tab,
+html.light body .lastfm-period-tab,
+html.light body .filter-btn,
+html.light body .ani-page-btn,
+html.light body .ama-sort-pill,
+html.light body .ama-page-pill {
+  background: transparent !important;
+  color: #6b7280 !important;
+  border-color: rgba(60, 55, 115, 0.18) !important;
+}
+
+
+/* ============================================================
+   FIX v43 — Light mode active pills: match changelogs popup
+   page pill style (cream #f5f2e9 fill, dark #111 text).
+   Applied to: AniList tabs/page pills, skill tabs, filter
+   buttons, AMA sort/page pills, ROM download, game PLAY.
+   ============================================================ */
+
 html.light body .skill-tab.active,
 html.light body .anilist-tab.active,
 html.light body .lastfm-period-tab.active,
