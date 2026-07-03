@@ -108,7 +108,7 @@
 
     /* ── MOVING GRADIENT (Windows Hello-inspired, colors from GIF: teal, cyan, purple, blue) ── */
     .hero-gradient-orb {
-      position: fixed; inset: -50%; z-index: 0; pointer-events: none;
+      position: absolute; inset: -20%; z-index: 0; pointer-events: none;
       background:
         radial-gradient(ellipse 55% 45% at 20% 30%, rgba(0,220,200,0.09) 0%, transparent 60%),
         radial-gradient(ellipse 50% 40% at 80% 20%, rgba(120,80,255,0.08) 0%, transparent 60%),
@@ -806,6 +806,7 @@ z-index:1;
       text-align: center;
       padding: 140px 32px 100px;
       position: relative;
+      overflow: hidden;
     }
     .hero-eyebrow {
       font-family: var(--sans); font-size: 11px; font-weight: 500;
@@ -1911,7 +1912,7 @@ input:focus, textarea:focus, .project-search:focus {
   100% { transform: translateX(-50%) translateY(-5px) scale(1.1) rotate(4deg); opacity: 0.95; }
 }
 
-#hero > *:not(.win11-hello-grad) {
+#hero > *:not(.win11-hello-grad):not(.hero-gradient-orb) {
   position: relative;
   z-index: 2;
 }
@@ -1920,6 +1921,11 @@ input:focus, textarea:focus, .project-search:focus {
   top: 16% !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
+  z-index: 0 !important;
+}
+#hero > .hero-gradient-orb {
+  position: absolute !important;
+  inset: -20% !important;
   z-index: 0 !important;
 }
 
@@ -7746,47 +7752,79 @@ html.light #gx-game-page .gx-play-btn:hover{
 /* ====================================================================== */
 
 /* ======================================================================
-   USER REQUEST FIX v38 2026-07-03. The three earlier light-mode PLAY
-   button fixes (v34-era, and the two above) all sit at the same CSS
-   specificity, so the base dark-mode rule (.gx-play-btn { color:#fff;
-   background:transparent }) was still winning in practice, leaving
-   near-invisible pale text on the light card. This selector adds an
-   extra class + id combo so it out-specifies every prior rule and is
-   guaranteed to win regardless of source order.
+   USER REQUEST FIX v38 2026-07-03.
+   1) The PLAY button markup gets swapped by JS: on first render it's
+      .gx-play-btn, but once the game UI initializes, script.js clones
+      it and renames the class to .final-play-btn (see
+      "b.className='final-play-btn'"). That's the element actually on
+      screen, and it had no light-mode colors at all — still cream
+      text on a ~5% white background, invisible on the light card.
+   2) Extend the animated hero gradient into a fixed full-page ambient
+      backdrop instead of an element confined to #hero, so it stays
+      visible behind all sections as the page is scrolled.
    ====================================================================== */
-html.light #gx-game-page .gx-play-card .gx-play-btn{
+html.light .final-controls button,
+html.light .final-choice,
+html.light .final-cell,
+html.light .final-play-btn{
+  background:rgba(60,55,115,.08)!important;
   color:#17172b!important;
-  background:rgba(60,55,115,.10)!important;
-  border:1.5px solid rgba(60,55,115,.38)!important;
-  font-weight:700!important;
+  border-color:rgba(60,55,115,.30)!important;
 }
-html.light #gx-game-page .gx-play-card .gx-play-btn:hover{
-  color:#ffffff!important;
+html.light .final-controls button:hover,
+html.light .final-choice:hover,
+html.light .final-cell:hover,
+html.light .final-play-btn:hover{
   background:#17172b!important;
-  border-color:#17172b!important;
+  color:#ffffff!important;
+}
+
+#hero .hero-aurora-gradient{
+  position:fixed!important;
+  top:0!important;
+  left:50%!important;
+  width:min(1400px,160vw)!important;
+  height:100vh!important;
+  transform:translateX(-50%)!important;
+  z-index:-1!important;
+}
+@media(max-width:760px){
+  #hero .hero-aurora-gradient{
+    width:170vw!important;
+    height:100vh!important;
+  }
 }
 /* ====================================================================== */
 
 /* ======================================================================
-   USER REQUEST FIX v39 2026-07-03. Wrong button was fixed above — that
-   one is for the individual game-play screen (#gx-game-page .gx-play-btn).
-   The PLAY button on the GAMES LIST cards (Snake, Ping Pong, Minesweeper,
-   etc.) is a different, unrelated class: .gx-game-play. It was getting
-   hit by two dark-mode rules elsewhere in this file that force
-   color:#f5f2e9 (pale cream) with NO html.light scoping at all, so it
-   stayed washed-out regardless of theme. Overriding here with higher
-   specificity so light mode always wins.
+   USER REQUEST FIX v39 2026-07-03: PLAY button still unreadable in
+   light mode. Root cause: the older "ultimate-clean-dark-stable-style"
+   block (around line ~3540) targets .gx-play-btn with an UNSCOPED rule
+   (no html.light guard) that forces cream text (#f5f2e9) on a ~5.5%
+   white background. That rule was never meant to survive into light
+   mode, but every previous fix here reused a translucent background,
+   so on white/cream page backgrounds the button still reads as
+   near-invisible cream-on-white. Switching to a solid filled pill
+   (matching .gx-chip/.rom-dl-btn elsewhere in light mode) guarantees
+   contrast regardless of what any earlier rule set, and the selector
+   is stacked (html.light repeated) purely to out-rank every prior
+   .gx-play-btn / .final-play-btn declaration by specificity.
    ====================================================================== */
-html.light #gx-games .gx-game-play,
-html.light .gx-game-card .gx-game-play{
-  color:#17172b!important;
-  background:rgba(60,55,115,.08)!important;
-  border:1.5px solid rgba(60,55,115,.30)!important;
-}
-html.light #gx-games .gx-game-play:hover,
-html.light .gx-game-card .gx-game-play:hover{
-  color:#ffffff!important;
+html.light html.light .gx-play-btn,
+html.light html.light .final-play-btn,
+html.light html.light #gx-game-page .gx-play-btn,
+html.light html.light #gx-game-page .final-play-btn{
   background:#17172b!important;
-  border-color:#17172b!important;
+  color:#ffffff!important;
+  border:1.5px solid #17172b!important;
+  box-shadow:none!important;
+}
+html.light html.light .gx-play-btn:hover,
+html.light html.light .final-play-btn:hover,
+html.light html.light #gx-game-page .gx-play-btn:hover,
+html.light html.light #gx-game-page .final-play-btn:hover{
+  background:#2e2e52!important;
+  border-color:#2e2e52!important;
+  color:#ffffff!important;
 }
 /* ====================================================================== */
