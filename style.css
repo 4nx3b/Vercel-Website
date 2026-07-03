@@ -10466,3 +10466,50 @@ html.light body #site-credit-card .site-credit-inner a {
 }
 
 
+/* ============================================================
+   FIX v43 — Light mode active pills: match changelogs popup
+   page pill style (cream #f5f2e9 fill, dark #111 text).
+   Applied to: AniList tabs/page pills, skill tabs, filter
+   buttons, AMA sort/page pills, ROM download, game PLAY.
+   ============================================================ */
+
+html.light body .skill-tab.active,
+html.light body .anilist-tab.active,
+html.light body .lastfm-period-tab.active,
+html.light body .filter-btn.active,
+html.light body .ani-page-btn.active,
+html.light body .ama-sort-pill.active,
+html.light body .ama-page-pill.active {
+  background: #f5f2e9 !important;
+  color: #111 !important;
+  border-color: #f5f2e9 !important;
+}
+
+html.light body .rom-dl-btn,
+html.light body .rom-card-actions .rom-dl-btn,
+html.light body a.rom-dl-btn {
+  background: #f5f2e9 !important;
+  color: #111 !important;
+  border-color: #f5f2e9 !important;
+}
+
+html.light body .gx-play-btn,
+html.light body .gx-game-play {
+  background: #f5f2e9 !important;
+  color: #111 !important;
+  border-color: #f5f2e9 !important;
+}
+
+html.light body .gx-play-btn:hover,
+html.light body .gx-game-play:hover {
+  background: #e8e5d9 !important;
+  color: #111 !important;
+}
+
+html.light body .rom-dl-btn:hover,
+html.light body .rom-card-actions .rom-dl-btn:hover {
+  background: #e8e5d9 !important;
+  color: #111 !important;
+}
+
+

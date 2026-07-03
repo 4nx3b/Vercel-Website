@@ -7088,3 +7088,17 @@ document.addEventListener('click', function(e){
 })();
 /* ====================================================================== */
 
+
+/* ===== CHANGELOG 2026-07-03 ===== */
+(function(){
+  function addChangelog(){
+    var list=document.querySelector('#gx-changelog-modal .gx-changelog-list');
+    if(!list||list.dataset.changelog0703==='1') return;
+    list.dataset.changelog0703='1';
+    var a=document.createElement('article');
+    a.className='gx-changelog-entry fx-scoped-reveal fx-scoped-visible';
+    a.innerHTML='<div class="gx-changelog-date">2026-07-03 <span>14:45 IST</span></div><ul><li>Unified active pill colors in light mode across AniList tabs, skill tabs, filter buttons, AMA pills, ROM download button, and game PLAY button to match the Changelogs popup page pill style.</li><li>Made the light-mode top bar more transparent with stronger blur for a glassier look.</li><li>Fixed AMA light-mode styling: softer fonts, visible from label, proper dividers, and visible refresh button.</li><li>Removed all music autoplay and fixed music overlap from duplicate audio players.</li><li>Moved topbar divider between music controls and theme toggle.</li><li>Improved credits section fonts and light-mode visibility.</li></ul>';
+    list.prepend(a);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',addChangelog); else addChangelog();
+})();
