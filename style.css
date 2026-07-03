@@ -7744,3 +7744,48 @@ html.light #gx-game-page .gx-play-btn:hover{
   border-color:#17172b!important;
 }
 /* ====================================================================== */
+
+/* ======================================================================
+   USER REQUEST FIX v38 2026-07-03.
+   1) The PLAY button markup gets swapped by JS: on first render it's
+      .gx-play-btn, but once the game UI initializes, script.js clones
+      it and renames the class to .final-play-btn (see
+      "b.className='final-play-btn'"). That's the element actually on
+      screen, and it had no light-mode colors at all — still cream
+      text on a ~5% white background, invisible on the light card.
+   2) Extend the animated hero gradient into a fixed full-page ambient
+      backdrop instead of an element confined to #hero, so it stays
+      visible behind all sections as the page is scrolled.
+   ====================================================================== */
+html.light .final-controls button,
+html.light .final-choice,
+html.light .final-cell,
+html.light .final-play-btn{
+  background:rgba(60,55,115,.08)!important;
+  color:#17172b!important;
+  border-color:rgba(60,55,115,.30)!important;
+}
+html.light .final-controls button:hover,
+html.light .final-choice:hover,
+html.light .final-cell:hover,
+html.light .final-play-btn:hover{
+  background:#17172b!important;
+  color:#ffffff!important;
+}
+
+#hero .hero-aurora-gradient{
+  position:fixed!important;
+  top:0!important;
+  left:50%!important;
+  width:min(1400px,160vw)!important;
+  height:100vh!important;
+  transform:translateX(-50%)!important;
+  z-index:-1!important;
+}
+@media(max-width:760px){
+  #hero .hero-aurora-gradient{
+    width:170vw!important;
+    height:100vh!important;
+  }
+}
+/* ====================================================================== */
