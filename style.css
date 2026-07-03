@@ -4867,14 +4867,12 @@ html{overflow-y:auto!important}body:not(.ama-modal-open):not(.gx-changelog-open)
 
 .gx-changelog-modal.open .gx-changelog-card {
   will-change: transform, opacity;
-  transform-origin: 50% 12%;
-  animation: arenaModalCardNoBlur .48s cubic-bezier(.18,.88,.32,1.16) both !important;
+  animation: changelogStableIn .30s cubic-bezier(.22,1,.36,1) both !important;
 }
 
-@keyframes arenaModalCardNoBlur {
-  0% { opacity: 0; transform: translate3d(0, 22px, 0) scale(.94); }
-  55% { opacity: 1; transform: translate3d(0, -4px, 0) scale(1.01); }
-  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+@keyframes changelogStableIn {
+  from { opacity: 0; transform: translate3d(0, 18px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 #ama-name-modal.open .ama-modal-kicker,
@@ -4888,10 +4886,7 @@ html{overflow-y:auto!important}body:not(.ama-modal-open):not(.gx-changelog-open)
 #ama-owner-v4-modal.open #ama-v4-auth,
 #ama-owner-v4-modal.open #ama-v4-tabs,
 #ama-owner-v4-modal.open #ama-v4-status,
-#ama-owner-v4-modal.open #ama-v4-list,
-.gx-changelog-modal.open .gx-changelog-kicker,
-.gx-changelog-modal.open #gx-changelog-title,
-.gx-changelog-modal.open .gx-changelog-entry {
+#ama-owner-v4-modal.open #ama-v4-list {
   opacity: 0;
   animation: arenaFadeRiseNoBlur .44s cubic-bezier(.22,1,.36,1) forwards;
 }
@@ -4915,20 +4910,13 @@ html{overflow-y:auto!important}body:not(.ama-modal-open):not(.gx-changelog-open)
 #ama-owner-v4-modal.open #ama-v4-status{ animation-delay: .32s; }
 #ama-owner-v4-modal.open #ama-v4-list{ animation-delay: .36s; }
 
-.gx-changelog-modal.open .gx-changelog-kicker{ animation-delay: .08s; }
-.gx-changelog-modal.open #gx-changelog-title{ animation-delay: .14s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(1){ animation-delay: .22s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(2){ animation-delay: .28s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(3){ animation-delay: .34s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(4){ animation-delay: .40s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(5){ animation-delay: .46s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(6){ animation-delay: .52s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(7){ animation-delay: .58s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(8){ animation-delay: .64s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(9){ animation-delay: .70s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(10){ animation-delay: .76s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(11){ animation-delay: .82s; }
-.gx-changelog-modal.open .gx-changelog-entry:nth-child(12){ animation-delay: .88s; }
+.gx-changelog-modal.open .gx-changelog-kicker,
+.gx-changelog-modal.open #gx-changelog-title,
+.gx-changelog-modal.open .gx-changelog-entry {
+  opacity: 1 !important;
+  animation: none !important;
+  transform: none !important;
+}
 
 #gx-matrix-transition{
   position: fixed;
@@ -10736,8 +10724,8 @@ body.gx-playground-open {
   gap: 0 !important;
   overflow: hidden !important;
   background: linear-gradient(135deg, rgba(255,255,255,.95), rgba(255,255,255,.18)) !important;
-  border: 1px solid rgba(255,255,255,.55) !important;
-  box-shadow: 0 12px 32px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.2) !important;
+  border: 1px solid rgba(0,0,0,.45) !important;
+  box-shadow: 0 12px 32px rgba(0,0,0,.35), inset 0 0 0 1px rgba(0,0,0,.2) !important;
   text-decoration: none !important;
 }
 
@@ -10804,8 +10792,8 @@ html body.gx-playground-open #gx-game-page {
   gap: 0 !important;
   overflow: hidden !important;
   background: linear-gradient(135deg, rgba(255,255,255,.95), rgba(255,255,255,.18)) !important;
-  border: 1px solid rgba(255,255,255,.55) !important;
-  box-shadow: 0 12px 32px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.2) !important;
+  border: 1px solid rgba(0,0,0,.45) !important;
+  box-shadow: 0 12px 32px rgba(0,0,0,.35), inset 0 0 0 1px rgba(0,0,0,.2) !important;
   text-decoration: none !important;
 }
 .gx-profile-pill::before,
@@ -10859,4 +10847,39 @@ html.dark .gx-welcome-card .gx-hero-avatar {
 #ama-question-input,
 #ama-popup-question-input {
   scroll-margin-top: 120px;
+}
+
+/* ===== USER REQUEST 2026-07-03: AMA inline input — block keyboard on main page ===== */
+/* This overrides the "RESTORE SIMPLE AMA POPUP" block and any other
+   rule that tries to make the inline field editable. The inline field
+   must behave like a button: no caret, no selection, no keyboard. */
+#ama-question-input {
+  caret-color: transparent !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+#ama-question-input:focus,
+#ama-question-input:active {
+  outline: none !important;
+  caret-color: transparent !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+#ama-question-input::selection,
+#ama-question-input::-moz-selection {
+  background: transparent !important;
+}
+/* Light mode: keep the same non-editable behavior */
+html.light #ama-question-input,
+html.light #ama-question-input:focus,
+html.light #ama-question-input:active {
+  caret-color: transparent !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  cursor: pointer !important;
 }
