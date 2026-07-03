@@ -7766,3 +7766,27 @@ html.light #gx-game-page .gx-play-card .gx-play-btn:hover{
   border-color:#17172b!important;
 }
 /* ====================================================================== */
+
+/* ======================================================================
+   USER REQUEST FIX v39 2026-07-03. Wrong button was fixed above — that
+   one is for the individual game-play screen (#gx-game-page .gx-play-btn).
+   The PLAY button on the GAMES LIST cards (Snake, Ping Pong, Minesweeper,
+   etc.) is a different, unrelated class: .gx-game-play. It was getting
+   hit by two dark-mode rules elsewhere in this file that force
+   color:#f5f2e9 (pale cream) with NO html.light scoping at all, so it
+   stayed washed-out regardless of theme. Overriding here with higher
+   specificity so light mode always wins.
+   ====================================================================== */
+html.light #gx-games .gx-game-play,
+html.light .gx-game-card .gx-game-play{
+  color:#17172b!important;
+  background:rgba(60,55,115,.08)!important;
+  border:1.5px solid rgba(60,55,115,.30)!important;
+}
+html.light #gx-games .gx-game-play:hover,
+html.light .gx-game-card .gx-game-play:hover{
+  color:#ffffff!important;
+  background:#17172b!important;
+  border-color:#17172b!important;
+}
+/* ====================================================================== */
