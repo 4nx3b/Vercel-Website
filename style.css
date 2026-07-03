@@ -7319,3 +7319,98 @@ html.light .ama-modal-close,html.light .ama-v2-close,html.light .gx-changelog-cl
 html.light #force-game-modal .fgm-canvas,html.light #final-game-modal .fgm-canvas{background:#f3f1ff!important;border-color:rgba(60,55,115,.18)!important;}
 html.light #force-game-modal .fgm-controls button,html.light #force-game-modal .fgm-choice,html.light #force-game-modal .fgm-cell,html.light #force-game-modal .fgm-retry{background:#17172b!important;color:#fff!important;border-color:#17172b!important;}
 /* ====================================================================== */
+
+/* ======================================================================
+   LIGHT MODE VISIBILITY PATCH — appended last to win over the
+   unconditional "ultimate-clean-dark-stable-style" !important rules
+   (around line ~3540) which force cream/off-white text (#f5f2e9) onto
+   several buttons and pills no matter the active theme. Those cream
+   colors are correct on the always-dark cards but become invisible
+   once the surrounding card turns white/light in light mode. This
+   block re-targets exactly those elements with higher-specificity
+   html.light selectors so they stay legible in light mode without
+   touching dark mode at all.
+   ====================================================================== */
+
+/* -- Topbar nav icons: darker ink + a faint resting chip so icons are
+      discoverable even when not active/hovered. -- */
+html.light .tb-icon-btn{
+  color:#4a4a68!important;
+  background:rgba(60,55,115,.06)!important;
+  border:1px solid rgba(60,55,115,.10)!important;
+}
+html.light .tb-icon-btn svg{ stroke:currentColor!important; color:currentColor!important; opacity:1!important; }
+html.light .tb-icon-btn:hover{
+  color:#17172b!important;
+  background:rgba(60,55,115,.14)!important;
+}
+html.light .tb-icon-btn.active{
+  background:#17172b!important;
+  color:#ffffff!important;
+  border-color:#17172b!important;
+  box-shadow:0 0 16px rgba(23,23,43,.28)!important;
+}
+html.light .picon{
+  color:#4a4a68!important;
+  background:rgba(255,255,255,.55)!important;
+  border-color:rgba(60,55,115,.16)!important;
+}
+html.light .picon svg{ stroke:currentColor!important; color:currentColor!important; }
+html.light .picon:hover{ color:#17172b!important; background:rgba(255,255,255,.85)!important; }
+
+/* -- "PLAY" button on game cards (Snake, etc). Base rule elsewhere
+      forces color:#f5f2e9 !important which disappears on the light
+      card background used in light mode. -- */
+html.light .gx-play-btn{
+  color:#17172b!important;
+  background:rgba(23,23,43,.05)!important;
+  border:1.5px solid rgba(60,55,115,.30)!important;
+}
+html.light .gx-play-btn:hover{
+  color:#ffffff!important;
+  background:#17172b!important;
+  border-color:#17172b!important;
+}
+
+/* -- Support / "MUST READ" pill inside ROM card actions. It shares a
+      catch-all rule with the Download button that forces cream text;
+      give it its own visible treatment (keeps its warning/red intent)
+      in light mode. -- */
+html.light .rom-support-btn,
+html.light .rom-card-actions a.rom-support-btn{
+  color:#c23b3b!important;
+  background:rgba(194,59,59,.08)!important;
+  border:1.5px solid rgba(194,59,59,.35)!important;
+}
+html.light .rom-support-btn svg,
+html.light .rom-card-actions a.rom-support-btn svg{ stroke:currentColor!important; color:currentColor!important; }
+html.light .rom-support-btn:hover,
+html.light .rom-card-actions a.rom-support-btn:hover{
+  background:rgba(194,59,59,.16)!important;
+  border-color:rgba(194,59,59,.55)!important;
+}
+
+/* -- Download button: already gets a dark-chip override elsewhere;
+      reinforce here for safety so it can never inherit the cream
+      catch-all rule. -- */
+html.light .rom-dl-btn{
+  background:#17172b!important;
+  color:#ffffff!important;
+  border-color:#17172b!important;
+}
+
+/* -- "CHANGELOGS" rotated pill inside the always-dark credits card
+      (#site-credit-card). That card intentionally stays dark in both
+      themes, but the pill's text color was tied to the --gx-ink
+      variable, which flips dark in light mode and disappears against
+      the dark card. Pin it back to light/cream text regardless of
+      theme. -- */
+html.light .gx-changelog-pill{
+  color:#f5f2e9!important;
+  background:rgba(255,255,255,.08)!important;
+  border-color:rgba(230,226,203,.30)!important;
+}
+html.light .gx-changelog-pill:hover{
+  background:rgba(255,255,255,.14)!important;
+}
+/* ====================================================================== */
