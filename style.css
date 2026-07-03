@@ -7414,3 +7414,139 @@ html.light .gx-changelog-pill:hover{
   background:rgba(255,255,255,.14)!important;
 }
 /* ====================================================================== */
+
+/* ======================================================================
+   LIGHT MODE PATCH ROUND 2 — remaining always-dark cards & chips.
+   These elements were never included in the theme-flip lists because
+   they use their own hardcoded hex colors (not the --gx-* variables),
+   so they stayed pitch black / cream-on-white no matter the theme.
+   Appended last so it wins any specificity/order ties with earlier
+   unconditional rules.
+   ====================================================================== */
+
+/* -- RANDOM QUOTE card -- */
+html.light .gx-quote-card{
+  background:rgba(255,255,255,.82)!important;
+  border-color:rgba(60,55,115,.18)!important;
+}
+html.light .gx-quote-text{ color:#17172b!important; }
+html.light .gx-quote-author{ color:#5f5f78!important; }
+html.light .gx-widget-kicker{ color:#5f5f78!important; }
+html.light .gx-widget-line{ background:rgba(60,55,115,.16)!important; }
+html.light .gx-swap{ color:#5f5f78!important; }
+html.light .gx-swap:hover{ color:#17172b!important; }
+
+/* -- TIME LINK card -- */
+html.light .gx-time-inner{
+  background:rgba(255,255,255,.82)!important;
+  border-color:rgba(60,55,115,.18)!important;
+}
+html.light .gx-time-big{ color:#17172b!important; }
+html.light .gx-time-small{ color:#5f5f78!important; }
+html.light .gx-time-head span:first-child{ color:#5f5f78!important; }
+html.light .gx-time-badge{ color:#5f5f78!important; border-color:rgba(60,55,115,.28)!important; }
+html.light .gx-same{ color:#5f5f78!important; }
+
+/* -- INSPIRED BY / site credits card -- */
+html.light .site-credit-inner{
+  background:rgba(255,255,255,.82)!important;
+  border-color:rgba(60,55,115,.18)!important;
+  color:#17172b!important;
+}
+html.light .site-credit-title{ color:#5f5f78!important; }
+html.light .site-credit-row a{ color:#17172b!important; }
+html.light .credit-badge{
+  background:rgba(60,55,115,.06)!important;
+  color:#17172b!important;
+  border-color:rgba(60,55,115,.18)!important;
+}
+
+/* -- Ask Me Anything box: reinforce with maximum specificity so the
+      dark cream colors set earlier in the cascade can never win a tie. -- */
+html.light .ama-wrap.ama-wrap{
+  background:rgba(255,255,255,.86)!important;
+  color:#17172b!important;
+  border-color:rgba(60,55,115,.18)!important;
+}
+html.light .ama-wrap .ama-item{ background:rgba(60,55,115,.05)!important; border-color:rgba(60,55,115,.16)!important; }
+html.light .ama-wrap .ama-q-row{ color:#5f5f78!important; }
+html.light .ama-wrap .ama-a-row,
+html.light .ama-wrap .ama-label{ color:#17172b!important; }
+html.light .ama-wrap .ama-time{ color:#8a8aa4!important; }
+html.light .ama-wrap .ama-title,
+html.light .ama-wrap .ama-used{ color:#5f5f78!important; }
+html.light .ama-wrap .ama-owner-btn{ color:#5f5f78!important; background:rgba(60,55,115,.05)!important; border-color:rgba(60,55,115,.18)!important; }
+html.light .ama-wrap .ama-question-row{ border-color:rgba(60,55,115,.16)!important; }
+html.light .ama-wrap .ama-question-row input{ color:#17172b!important; }
+html.light .ama-wrap .ama-question-row input::placeholder{ color:#8a8aa4!important; }
+html.light .ama-wrap .ama-question-row button{ color:#5f5f78!important; }
+html.light .ama-wrap .ama-question-row button:hover{ color:#17172b!important; }
+html.light .ama-wrap .ama-status{ color:#5f5f78!important; }
+
+/* -- GitHub "Visit github.com/..." chip: force the same dark-chip
+      treatment already used for the Download button, since its
+      variable-driven styling was rendering muddy/illegible. -- */
+html.light #gh-profile-card .gh-cta,
+html.light .gh-cta{
+  background:#17172b!important;
+  color:#ffffff!important;
+  border-color:#17172b!important;
+}
+html.light #gh-profile-card .gh-cta:hover,
+html.light .gh-cta:hover{
+  background:#2a2a45!important;
+}
+html.light #gh-profile-card .gh-stat{
+  background:rgba(60,55,115,.05)!important;
+  border-color:rgba(60,55,115,.16)!important;
+}
+html.light #gh-profile-card .gh-stat b{ color:#17172b!important; }
+html.light #gh-profile-card .gh-stat small{ color:#5f5f78!important; }
+html.light #gh-profile-card .gh-avatar{ background:rgba(60,55,115,.06)!important; }
+
+/* -- Online-presence link icon swatches (Facebook/Discord/etc rows)
+      and the Last.fm "open" icon: were catching the unconditional
+      cream-on-transparent-white rule and going invisible. -- */
+html.light .op-icon{
+  background:rgba(60,55,115,.06)!important;
+  color:#17172b!important;
+  border-color:rgba(60,55,115,.16)!important;
+}
+html.light .op-icon svg{ stroke:currentColor!important; color:currentColor!important; }
+html.light .op-title{ color:#17172b!important; }
+html.light .op-url{ color:#5f5f78!important; }
+html.light .op-arrow{ color:#5f5f78!important; }
+html.light .lastfm-profile-link{
+  background:rgba(60,55,115,.06)!important;
+  color:#17172b!important;
+}
+html.light .lastfm-profile-link::after{ color:#17172b!important; }
+
+/* -- Game control chips (Minesweeper cells, Quiz options, D-pad
+      buttons, Home button) inside the playground games. The canvas
+      itself is left as a dark "device screen" — only the surrounding
+      controls/text get relit for legibility in light mode. -- */
+html.light .gx-mini-btn,
+html.light .gx-game-controls button,
+html.light .gx-game-home{
+  background:rgba(60,55,115,.05)!important;
+  color:#17172b!important;
+  border-color:rgba(60,55,115,.22)!important;
+}
+html.light .gx-quiz-options button{
+  background:rgba(60,55,115,.05)!important;
+  color:#17172b!important;
+  border-color:rgba(60,55,115,.22)!important;
+}
+html.light .gx-mine-cell{
+  background:rgba(60,55,115,.06)!important;
+  color:#17172b!important;
+  border-color:rgba(60,55,115,.18)!important;
+}
+html.light .gx-game-status{ color:#5f5f78!important; }
+html.light .gx-react-box{
+  background:rgba(60,55,115,.08)!important;
+  color:#17172b!important;
+}
+html.light .gx-react-box.ready{ background:#20bf77!important; color:#08130d!important; }
+/* ====================================================================== */
