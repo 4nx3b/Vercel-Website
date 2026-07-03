@@ -3275,7 +3275,7 @@ document.addEventListener('click', function(e){
         item.style.setProperty('border-top','0','important');
         item.style.setProperty('border-left','0','important');
         item.style.setProperty('border-right','0','important');
-        item.style.setProperty('border-bottom', idx===arr.length-1 ? '0' : '1px solid rgba(245,242,233,.10)','important');
+        item.style.setProperty('border-bottom', idx===arr.length-1 ? '0' : (document.documentElement.classList.contains('light') ? '1px solid rgba(60,55,115,.12)' : '1px solid rgba(245,242,233,.10)'),'important');
         item.style.setProperty('border-radius','0','important');
         item.style.setProperty('background','transparent','important');
         item.style.setProperty('background-color','transparent','important');
