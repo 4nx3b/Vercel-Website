@@ -7744,3 +7744,25 @@ html.light #gx-game-page .gx-play-btn:hover{
   border-color:#17172b!important;
 }
 /* ====================================================================== */
+
+/* ======================================================================
+   USER REQUEST FIX v38 2026-07-03. The three earlier light-mode PLAY
+   button fixes (v34-era, and the two above) all sit at the same CSS
+   specificity, so the base dark-mode rule (.gx-play-btn { color:#fff;
+   background:transparent }) was still winning in practice, leaving
+   near-invisible pale text on the light card. This selector adds an
+   extra class + id combo so it out-specifies every prior rule and is
+   guaranteed to win regardless of source order.
+   ====================================================================== */
+html.light #gx-game-page .gx-play-card .gx-play-btn{
+  color:#17172b!important;
+  background:rgba(60,55,115,.10)!important;
+  border:1.5px solid rgba(60,55,115,.38)!important;
+  font-weight:700!important;
+}
+html.light #gx-game-page .gx-play-card .gx-play-btn:hover{
+  color:#ffffff!important;
+  background:#17172b!important;
+  border-color:#17172b!important;
+}
+/* ====================================================================== */
