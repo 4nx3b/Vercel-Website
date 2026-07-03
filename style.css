@@ -7661,3 +7661,50 @@ html.light #gx-widgets .gx-time-big{ color:#17172b!important; }
 html.light #gx-widgets .gx-time-small{ color:#5f5f78!important; }
 html.light #gx-widgets .gx-same{ color:#5f5f78!important; }
 /* ====================================================================== */
+
+/* ======================================================================
+   USER REQUEST FIX v36 2026-07-03: the "playground." games route
+   (#gx-game-page) never had any light-mode styling at all — it was
+   built entirely with hardcoded dark colors (#fff title, #171715
+   cards, etc.), so in light mode the title and PLAY button became
+   near-invisible white-on-white text.
+   ====================================================================== */
+html.light #gx-game-page{ color:#17172b!important; }
+html.light .gx-game-return{ color:#5f5f78!important; }
+html.light .gx-game-page-title{ color:#17172b!important; }
+html.light .gx-game-page-sub{ color:#5f5f78!important; }
+html.light .gx-play-card{
+  background:rgba(255,255,255,.82)!important;
+  border-color:rgba(60,55,115,.18)!important;
+  box-shadow:0 18px 45px rgba(60,55,115,.12)!important;
+}
+html.light .gx-play-card-icon{
+  color:#4a3fb5!important;
+  background:rgba(60,55,115,.06)!important;
+  border-color:rgba(60,55,115,.20)!important;
+}
+html.light .gx-play-card h3{ color:#17172b!important; }
+html.light .gx-play-card p{ color:#5f5f78!important; }
+html.light .gx-play-btn{
+  color:#17172b!important;
+  border-color:rgba(60,55,115,.22)!important;
+}
+html.light .gx-play-btn:hover{ background:rgba(60,55,115,.06)!important; }
+html.light .gx-play-area{
+  background:rgba(255,255,255,.55)!important;
+  border-color:rgba(60,55,115,.18)!important;
+}
+html.light .gx-game-canvas{
+  background:#fff!important;
+  border-color:rgba(60,55,115,.20)!important;
+}
+html.light .gx-game-controls button,
+html.light .gx-mini-btn,
+html.light .gx-quiz-options button,
+html.light .gx-mine-cell{
+  background:rgba(255,255,255,.7)!important;
+  color:#17172b!important;
+  border-color:rgba(60,55,115,.20)!important;
+}
+html.light .gx-game-status{ color:#5f5f78!important; }
+/* ====================================================================== */
