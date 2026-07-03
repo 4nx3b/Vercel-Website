@@ -10389,3 +10389,40 @@ html.light body .ama-item * {
   color: #0f172a !important;
 }
 
+
+/* ============================================================
+   FIX v38 — Remove solid white background OUTSIDE the
+   "Online Presence" and "Credits" boxes in light mode.
+   The outer wrappers (.online-presence, #site-credit-card)
+   were getting background:#fff which showed as a solid
+   rectangle beyond the actual rounded card. Making them
+   transparent lets the page background show through.
+   ============================================================ */
+
+/* Online Presence — outer wrapper should be transparent */
+html.light body .online-presence {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Credits box — outer wrapper should be transparent */
+html.light body #site-credit-card {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Keep the inner card backgrounds white with proper borders */
+html.light body .presence-icons.online-presence-list {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 22px !important;
+}
+
+html.light body .site-credit-inner {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 22px !important;
+}
+
