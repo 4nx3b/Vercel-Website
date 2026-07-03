@@ -10886,3 +10886,192 @@ html.light .ama-wrap #ama-question-input:focus {
   user-select: text !important;
   cursor: text !important;
 }
+
+/* ===== USER REQUEST 2026-07-03: LIGHT MODE POPUPS FIX (NAME / ADMIN / CHANGELOG / GAMES) ===== */
+/* 1) Popup Cards Background & Border */
+html.light #ama-name-modal .ama-modal-card,
+html.light #ama-owner-v4-modal .ama-v2-card,
+html.light .gx-changelog-modal .gx-changelog-card,
+html.light #gx-changelog-modal .gx-changelog-card,
+html.light #force-game-modal .fgm-panel,
+html.light #final-game-modal .fgm-panel,
+html.light #gx-games-browser-modal .fgm-panel {
+  background: #ffffff !important;
+  color: #17172b !important;
+  border: 2px solid rgba(60, 55, 115, 0.18) !important;
+  box-shadow: 0 28px 90px rgba(60, 55, 115, 0.22) !important;
+}
+
+/* Base text color inheritance inside light mode popup cards */
+html.light #ama-name-modal .ama-modal-card *,
+html.light #ama-owner-v4-modal .ama-v2-card *,
+html.light .gx-changelog-modal .gx-changelog-card *,
+html.light #gx-changelog-modal .gx-changelog-card * {
+  color: inherit;
+}
+
+/* 2) Headings & Titles */
+html.light #ama-name-modal #ama-name-title,
+html.light #ama-name-modal h3,
+html.light #ama-name-modal .ama-modal-card h3,
+html.light #ama-owner-v4-modal h3,
+html.light #ama-owner-v4-modal .ama-v2-card h3,
+html.light .gx-changelog-modal #gx-changelog-title,
+html.light .gx-changelog-modal h3,
+html.light #gx-changelog-modal h3,
+html.light #force-game-modal .fgm-title,
+html.light #final-game-modal .fgm-title {
+  color: #17172b !important;
+}
+
+/* 3) Kickers, Subtitles, Paragraphs & Status Text */
+html.light #ama-name-modal .ama-modal-kicker,
+html.light #ama-name-modal .ama-modal-card > p,
+html.light #ama-name-modal p,
+html.light #ama-owner-v4-modal .ama-v2-kicker,
+html.light #ama-owner-v4-modal .ama-v2-sub,
+html.light #ama-owner-v4-modal .ama-v2-help,
+html.light #ama-owner-v4-modal .ama-v2-status,
+html.light .gx-changelog-modal .gx-changelog-kicker,
+html.light #gx-changelog-modal .gx-changelog-kicker,
+html.light .gx-changelog-modal .gx-changelog-entry li,
+html.light #gx-changelog-modal .gx-changelog-entry li,
+html.light #force-game-modal .fgm-status,
+html.light #final-game-modal .fgm-status {
+  color: #62627b !important;
+}
+
+/* 4) Close Buttons */
+html.light #ama-name-modal #ama-name-close,
+html.light #ama-name-modal .ama-modal-close,
+html.light #ama-owner-v4-modal .ama-v2-close,
+html.light .gx-changelog-modal .gx-changelog-close,
+html.light #gx-changelog-modal .gx-changelog-close,
+html.light #force-game-modal .fgm-close,
+html.light #final-game-modal .fgm-close {
+  background: rgba(60, 55, 115, 0.08) !important;
+  color: #17172b !important;
+  border: 1.5px solid rgba(60, 55, 115, 0.18) !important;
+}
+html.light #ama-name-modal #ama-name-close:hover,
+html.light #ama-name-modal .ama-modal-close:hover,
+html.light #ama-owner-v4-modal .ama-v2-close:hover,
+html.light .gx-changelog-modal .gx-changelog-close:hover,
+html.light #gx-changelog-modal .gx-changelog-close:hover,
+html.light #force-game-modal .fgm-close:hover,
+html.light #final-game-modal .fgm-close:hover {
+  background: rgba(60, 55, 115, 0.16) !important;
+  color: #0f172a !important;
+}
+
+/* 5) Input & Textarea Fields */
+html.light #ama-name-modal #ama-name-input,
+html.light #ama-name-modal #ama-popup-question-input,
+html.light #ama-name-modal .ama-modal-input,
+html.light #ama-name-modal .ama-popup-question,
+html.light #ama-name-modal input,
+html.light #ama-name-modal textarea,
+html.light #ama-owner-v4-modal .ama-v2-input,
+html.light #ama-owner-v4-modal .ama-v2-answer,
+html.light #ama-owner-v4-modal input,
+html.light #ama-owner-v4-modal textarea {
+  background: rgba(255, 255, 255, 0.85) !important;
+  color: #17172b !important;
+  -webkit-text-fill-color: #17172b !important;
+  border: 2px solid rgba(60, 55, 115, 0.20) !important;
+  caret-color: #17172b !important;
+}
+html.light #ama-name-modal #ama-name-input:focus,
+html.light #ama-name-modal #ama-popup-question-input:focus,
+html.light #ama-name-modal .ama-modal-input:focus,
+html.light #ama-name-modal .ama-popup-question:focus,
+html.light #ama-name-modal input:focus,
+html.light #ama-name-modal textarea:focus,
+html.light #ama-owner-v4-modal .ama-v2-input:focus,
+html.light #ama-owner-v4-modal .ama-v2-answer:focus,
+html.light #ama-owner-v4-modal input:focus,
+html.light #ama-owner-v4-modal textarea:focus {
+  background: #ffffff !important;
+  color: #17172b !important;
+  -webkit-text-fill-color: #17172b !important;
+  border-color: #17172b !important;
+}
+
+/* 6) Placeholders */
+html.light #ama-name-modal #ama-name-input::placeholder,
+html.light #ama-name-modal #ama-popup-question-input::placeholder,
+html.light #ama-name-modal .ama-modal-input::placeholder,
+html.light #ama-name-modal .ama-popup-question::placeholder,
+html.light #ama-name-modal input::placeholder,
+html.light #ama-name-modal textarea::placeholder,
+html.light #ama-owner-v4-modal .ama-v2-input::placeholder,
+html.light #ama-owner-v4-modal .ama-v2-answer::placeholder,
+html.light #ama-owner-v4-modal input::placeholder,
+html.light #ama-owner-v4-modal textarea::placeholder {
+  color: #8a8aa4 !important;
+  -webkit-text-fill-color: #8a8aa4 !important;
+}
+
+/* 7) Buttons (SEND / Admin Action Buttons) */
+html.light #ama-name-modal #ama-final-send,
+html.light #ama-name-modal .ama-modal-send,
+html.light #ama-owner-v4-modal .ama-v2-btn:not(.ghost) {
+  background: #17172b !important;
+  color: #ffffff !important;
+  border: 2px solid #17172b !important;
+}
+html.light #ama-name-modal #ama-final-send svg,
+html.light #ama-name-modal .ama-modal-send svg {
+  stroke: currentColor !important;
+  color: currentColor !important;
+}
+html.light #ama-name-modal #ama-final-send:hover,
+html.light #ama-name-modal .ama-modal-send:hover,
+html.light #ama-owner-v4-modal .ama-v2-btn:not(.ghost):hover {
+  background: #2d2d48 !important;
+  border-color: #2d2d48 !important;
+  color: #ffffff !important;
+}
+html.light #ama-name-modal #ama-final-send:disabled,
+html.light #ama-name-modal .ama-modal-send:disabled {
+  background: rgba(60, 55, 115, 0.12) !important;
+  border-color: rgba(60, 55, 115, 0.12) !important;
+  color: rgba(60, 55, 115, 0.42) !important;
+  -webkit-text-fill-color: rgba(60, 55, 115, 0.42) !important;
+  cursor: not-allowed !important;
+}
+html.light #ama-owner-v4-modal .ama-v2-btn.ghost {
+  background: transparent !important;
+  color: #17172b !important;
+  border-color: rgba(60, 55, 115, 0.25) !important;
+}
+html.light #ama-owner-v4-modal .ama-v2-btn.ghost:hover {
+  background: rgba(60, 55, 115, 0.08) !important;
+}
+
+/* 8) Admin & Changelog List Items in Light Mode */
+html.light #ama-owner-v4-modal .ama-v2-item {
+  background: rgba(60, 55, 115, 0.04) !important;
+  border-color: rgba(60, 55, 115, 0.16) !important;
+  color: #17172b !important;
+}
+html.light #ama-owner-v4-modal .ama-v2-meta {
+  color: #62627b !important;
+}
+html.light #ama-owner-v4-modal .ama-v2-q {
+  color: #17172b !important;
+}
+html.light .gx-changelog-modal .gx-changelog-entry,
+html.light #gx-changelog-modal .gx-changelog-entry {
+  background: rgba(60, 55, 115, 0.04) !important;
+  border-color: rgba(60, 55, 115, 0.16) !important;
+  color: #17172b !important;
+}
+html.light .gx-changelog-modal .gx-changelog-date,
+html.light #gx-changelog-modal .gx-changelog-date {
+  color: #17172b !important;
+}
+html.light .gx-changelog-modal .gx-changelog-date span,
+html.light #gx-changelog-modal .gx-changelog-date span {
+  color: #62627b !important;
+}

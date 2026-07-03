@@ -7511,3 +7511,18 @@ document.addEventListener('click', function(e){
     }
   }, true);
 })();
+
+/* ===== USER REQUEST 2026-07-03: CHANGELOG ENTRY FOR LIGHT MODE POPUPS & KEYBOARD FIX ===== */
+(function(){
+  function addLatestChangelog(){
+    var list = document.querySelector('#gx-changelog-modal .gx-changelog-list');
+    if(!list || list.dataset.changelogLightPopup0703 === '1') return;
+    list.dataset.changelogLightPopup0703 = '1';
+    var a = document.createElement('article');
+    a.className = 'gx-changelog-entry fx-scoped-reveal fx-scoped-visible';
+    a.innerHTML = '<div class="gx-changelog-date">2026-07-03 <span>21:10 IST</span></div><ul><li>Fixed the What\'s your name? popup (and all other modal dialogs) appearing in dark mode when the website is in light mode.</li><li>Added high-specificity light mode styles for popup cards, headers, subtitles, input fields, close buttons, and primary send buttons.</li><li>Resolved the mobile keyboard force-closing when tapping the Drop a question field in the middle or bottom of the screen.</li></ul>';
+    list.prepend(a);
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addLatestChangelog); else addLatestChangelog();
+  new MutationObserver(function(){ addLatestChangelog(); }).observe(document.documentElement, {childList: true, subtree: true});
+})();
