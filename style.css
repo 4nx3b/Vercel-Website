@@ -10913,14 +10913,32 @@ html.light #gx-changelog-modal .gx-changelog-card * {
 /* ===== PREVENT POPUP CARD FROM SHRINKING WHEN KEYBOARD OPENS ===== */
 #ama-name-modal .ama-modal-card,
 #ama-owner-v4-modal .ama-v2-card,
-.gx-changelog-modal .gx-changelog-card,
-#gx-changelog-modal .gx-changelog-card,
 html.light #ama-name-modal .ama-modal-card,
-html.light #ama-owner-v4-modal .ama-v2-card,
-html.light .gx-changelog-modal .gx-changelog-card,
-html.light #gx-changelog-modal .gx-changelog-card {
+html.light #ama-owner-v4-modal .ama-v2-card {
   max-height: none !important;
   overflow: visible !important;
+}
+
+/* ===== KEEP CHANGELOGS POPUP COMFORTABLY SIZED (NOT TAKING WHOLE SCREEN) ===== */
+.gx-changelog-modal .gx-changelog-card,
+#gx-changelog-modal .gx-changelog-card,
+html.light .gx-changelog-modal .gx-changelog-card,
+html.light #gx-changelog-modal .gx-changelog-card {
+  width: min(680px, calc(100vw - 36px)) !important;
+  max-height: min(580px, calc(100dvh - 120px)) !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  border-radius: 26px !important;
+  padding: 24px !important;
+}
+.gx-changelog-modal .gx-changelog-list,
+#gx-changelog-modal .gx-changelog-list {
+  max-height: none !important;
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding-right: 6px !important;
 }
 
 /* 2) Headings & Titles */

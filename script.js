@@ -7563,7 +7563,7 @@ document.addEventListener('click', function(e){
     list.dataset.changelogLightPopup0703 = '1';
     var a = document.createElement('article');
     a.className = 'gx-changelog-entry fx-scoped-reveal fx-scoped-visible';
-    a.innerHTML = '<div class="gx-changelog-date">2026-07-03 <span>21:25 IST</span></div><ul><li>Changed the text color of "What\'s your name?" (and all popup titles) to pitch black in light mode by overriding WebKit text-fill properties.</li><li>Stopped the popup card from squishing or becoming smaller when the mobile keyboard opens by removing dynamic height calculations.</li><li>Completely removed the music autoplay feature; music now only plays when clicked directly on the track name or thumbnail icon.</li><li>Fixed popup dialogs appearing in dark mode while the website is in light mode.</li></ul>';
+    a.innerHTML = '<div class="gx-changelog-date">2026-07-03 <span>21:35 IST</span></div><ul><li>Fixed the Changelogs popup sizing so it is neatly proportioned and no longer takes up the whole screen.</li><li>Changed the text color of "What\'s your name?" (and all popup titles) to pitch black in light mode by overriding WebKit text-fill properties.</li><li>Stopped the popup card from squishing or becoming smaller when the mobile keyboard opens by removing dynamic height calculations.</li><li>Completely removed the music autoplay feature; music now only plays when clicked directly on the track name or thumbnail icon.</li><li>Fixed popup dialogs appearing in dark mode while the website is in light mode.</li></ul>';
     list.prepend(a);
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addLatestChangelog); else addLatestChangelog();
