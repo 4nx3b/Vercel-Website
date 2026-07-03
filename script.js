@@ -3131,6 +3131,122 @@ document.addEventListener('click', function(e){
         html body .ama-wrap .ama-question-row{grid-template-columns:minmax(0,1fr) 30px 30px!important;padding:.42rem .6rem .5rem!important;}
       }
 
+      /* ==========================================================
+         LIGHT MODE AMA — mirrors dark mode UI exactly
+         Same font families, same structure, adjusted for
+         light backgrounds. Placed LAST so it wins.
+         ========================================================== */
+      html.light .ama-wrap{
+        background:#ffffff!important;
+        border:1px solid rgba(60,55,115,.14)!important;
+        border-radius:14px!important;
+        box-shadow:0 10px 32px rgba(60,55,115,.08)!important;
+      }
+      html.light .ama-topline{
+        border-bottom:1px solid rgba(60,55,115,.10)!important;
+      }
+      html.light .ama-title{
+        color:rgba(60,55,115,.5)!important;
+      }
+      html.light .ama-used{
+        color:rgba(60,55,115,.4)!important;
+      }
+      html.light .ama-owner-btn{
+        color:rgba(60,55,115,.5)!important;
+        background:rgba(60,55,115,.04)!important;
+        border-color:rgba(60,55,115,.12)!important;
+      }
+      html.light .ama-wrap #ama-list .ama-item,
+      html.light body .ama-wrap #ama-list.ama-list > article.ama-item,
+      html.light body #ama-list > article.ama-item{
+        border-bottom-color:rgba(60,55,115,.08)!important;
+      }
+      /* "from:" prefix + sender name */
+      html.light #ama-list .ama-asker,
+      html.light .ama-sender-chip{
+        color:rgba(60,55,115,.42)!important;
+      }
+      html.light #ama-list .ama-asker::before,
+      html.light .ama-sender-chip::before{
+        color:rgba(60,55,115,.32)!important;
+      }
+      /* Q: and A: labels */
+      html.light #ama-list .ama-label{
+        color:rgba(60,55,115,.35)!important;
+      }
+      /* Question text */
+      html.light #ama-list .ama-q-row{
+        color:rgba(60,55,115,.55)!important;
+      }
+      html.light #ama-list .ama-question-text{
+        color:rgba(60,55,115,.6)!important;
+      }
+      /* Answer text — readable, not jet black */
+      html.light #ama-list .ama-a-row{
+        color:rgba(60,55,115,.72)!important;
+      }
+      html.light #ama-list .ama-answer-text{
+        color:rgba(60,55,115,.78)!important;
+        font-weight:600!important;
+      }
+      /* Timestamps */
+      html.light #ama-list .ama-time{
+        color:rgba(60,55,115,.32)!important;
+      }
+      /* Upvote */
+      html.light #ama-list .ama-upvote{
+        color:rgba(60,55,115,.5)!important;
+        background:rgba(60,55,115,.04)!important;
+        border-color:rgba(60,55,115,.12)!important;
+      }
+      /* Input area */
+      html.light #ama-question-input{
+        color:rgba(60,55,115,.8)!important;
+        background:rgba(60,55,115,.04)!important;
+        border-color:rgba(60,55,115,.12)!important;
+      }
+      html.light #ama-question-input::placeholder{
+        color:rgba(60,55,115,.35)!important;
+      }
+      /* Send + refresh buttons */
+      html.light #ama-question-next,
+      html.light #ama-public-refresh{
+        color:rgba(60,55,115,.55)!important;
+        background:rgba(60,55,115,.05)!important;
+        border-color:rgba(60,55,115,.14)!important;
+      }
+      html.light #ama-question-next:hover,
+      html.light #ama-public-refresh:hover{
+        color:rgba(60,55,115,.85)!important;
+        background:rgba(60,55,115,.10)!important;
+      }
+      /* Sort / page pills */
+      html.light .ama-sort-pill,
+      html.light .ama-page-pill{
+        color:rgba(60,55,115,.55)!important;
+        background:rgba(60,55,115,.04)!important;
+        border-color:rgba(60,55,115,.12)!important;
+      }
+      html.light .ama-sort-pill.active,
+      html.light .ama-page-pill.active{
+        background:rgba(60,55,115,.88)!important;
+        color:#ffffff!important;
+        border-color:rgba(60,55,115,.88)!important;
+      }
+      /* Status text */
+      html.light .ama-status{color:rgba(60,55,115,.42)!important;}
+      html.light .ama-status.ok{color:#16a34a!important;}
+      html.light .ama-status.err{color:#dc2626!important;}
+      /* Control row borders */
+      html.light .ama-public-controls--top,
+      html.light .ama-public-controls--bottom{
+        border-color:rgba(60,55,115,.08)!important;
+      }
+      /* Delete button */
+      html.light #ama-list .ama-public-delete{
+        color:#ef4444!important;
+      }
+
     `;
     document.head.appendChild(st);
   }
