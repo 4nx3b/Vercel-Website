@@ -1094,7 +1094,8 @@ document.addEventListener('DOMContentLoaded',()=>{
  a.loop=true;
 });
 
-/* ===== script-block-7 ===== */
+/* ===== script-block-7 DISABLED — FIX v13 is the single authoritative music player ===== */
+/*
 document.addEventListener('DOMContentLoaded',()=>{
 const SRC='https://raw.githubusercontent.com/4nx3b/4nx3b/main/09.%20in%20the%20pool.mp3';
 let audio=document.querySelector('audio');
@@ -1194,6 +1195,7 @@ if (progBar) {
   });
 }
 });
+*/
 
 /* ===== script-block-8 ===== */
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1339,10 +1341,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.removeEventListener('scroll', once, true);
       attemptAutoplay();
     };
-    window.addEventListener('pointerdown', once, true);
-    window.addEventListener('touchstart', once, true);
-    window.addEventListener('keydown', once, true);
-    window.addEventListener('scroll', once, true);
+    /* Autoplay removed — music only plays on manual click */
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -5355,37 +5354,9 @@ document.addEventListener('click', function(e){
     if(playIcon) playIcon.style.display=playing?'none':'block';
     if(pauseIcon) pauseIcon.style.display=playing?'block':'none';
   }
-  function tryPlay(){
-    if(!wantedPlay) return;
-    tries++;
-    try{
-      if(typeof ytPlayerObj!=='undefined'&&ytPlayerObj&&typeof ytPlayerObj.playVideo==='function'){
-        try{ytPlayerObj.unMute&&ytPlayerObj.unMute();}catch(e){}
-        try{ytPlayerObj.setVolume&&ytPlayerObj.setVolume(70);}catch(e){}
-        ytPlayerObj.playVideo();
-        if(typeof startProgressAnim==='function') startProgressAnim();
-      }else if(tries===1 && typeof togglePlay==='function'){
-        togglePlay();
-      }else if(!fallbackInjected && tries>=3){
-        // Single, last-resort iframe only if the API player never became available.
-        var wrap=document.getElementById('yt-music-iframe');
-        if(wrap && !wrap.querySelector('iframe')){
-          fallbackInjected=true;
-          wrap.innerHTML='<iframe data-single-autoplay="1" width="1" height="1" src="https://www.youtube.com/embed/rOWDEfnWx5s?autoplay=1&loop=1&playlist=rOWDEfnWx5s&playsinline=1" allow="autoplay; encrypted-media" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0"></iframe>';
-        }
-      }
-    }catch(e){}
-    setTimeout(syncMusicPulse,350);
-    if(!reallyPlaying() && tries<20) setTimeout(tryPlay,650);
-  }
-  function requestAutoplay(e){
-    if(e&&e.target&&e.target.closest&&e.target.closest('#slide-music-player')) return;
-    wantedPlay=true;
-    tryPlay();
-  }
-  ['pointerdown','touchstart','click','keydown'].forEach(function(ev){
-    window.addEventListener(ev,requestAutoplay,{capture:true,passive:true});
-  });
+  function tryPlay(){ /* disabled — no autoplay */ }
+  function requestAutoplay(e){ /* disabled — no autoplay */ }
+  /* Autoplay removed — music only plays on manual click */
   document.addEventListener('click',function(e){
     // Let the thumbnail keep its normal play/pause, then correct the pulse state after the player reports state.
     if(e.target&&e.target.closest&&e.target.closest('.tb-music-icon,#tb-music-disc,.sp-play-btn,#sp-play-btn')){
