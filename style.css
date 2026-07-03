@@ -1948,7 +1948,7 @@ input:focus, textarea:focus, .project-search:focus {
   min-width: 0;
   margin-left: 0 !important;
 }
-.topbar-nav-icons { flex: 0 0 auto; }
+      .topbar-nav-icons { flex: 0 0 auto; margin-right: 8px; }
 .topbar-music-widget {
   flex: 1 1 auto;
   min-width: 0;
@@ -3537,8 +3537,11 @@ body.gx-game-mode #gx-game-page{display:block!important;}
   }
 
   /* No black/white harsh pills: all dark-mode pills are translucent charcoal. */
-  .gx-chip,.gx-chip.round,.gx-game-home,.gx-note-pill,.tag,.filter-btn,.anilist-tab,.lastfm-period-tab,.rom-card-devices .tag,.rom-card-devices span,.picon,.op-icon,.tb-icon-btn,.contact-form-wrap button,.rom-card-actions a,.lastfm-profile-link,.gx-play-btn,.gx-game-play,.gx-mini-btn,.gx-game-controls button,.gx-quiz-options button,.gx-mine-cell{
+  .gx-chip,.gx-chip.round,.gx-game-home,.gx-note-pill,.tag,.filter-btn,.anilist-tab,.lastfm-period-tab,.rom-card-devices .tag,.rom-card-devices span,.picon,.op-icon,.tb-icon-btn,.contact-form-wrap button,.rom-card-actions a,.lastfm-profile-link,.gx-play-btn,.gx-mini-btn,.gx-game-controls button,.gx-quiz-options button,.gx-mine-cell{
     background:rgba(255,255,255,.055)!important;color:#f5f2e9!important;border:1.5px solid rgba(230,226,203,.16)!important;box-shadow:none!important;
+  }
+  .gx-game-play{
+    background:rgba(255,255,255,.08)!important;color:#ffffff!important;border:1.5px solid rgba(230,226,203,.22)!important;box-shadow:none!important;font-weight:700!important;
   }
   .gx-chip:hover,.tb-icon-btn:hover,.tag:hover,.filter-btn:hover,.anilist-tab:hover,.lastfm-period-tab:hover,.rom-card-actions a:hover,.contact-form-wrap button:hover,.gx-play-btn:hover{background:rgba(255,255,255,.105)!important;color:#fffaf2!important;transform:translateY(-2px)!important;}
   .tb-icon-btn.active{background:rgba(255,255,255,.12)!important;color:#fffaf2!important;box-shadow:0 0 28px rgba(255,255,255,.10)!important;}
