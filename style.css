@@ -7744,3 +7744,83 @@ html.light #gx-game-page .gx-play-btn:hover{
   border-color:#17172b!important;
 }
 /* ====================================================================== */
+
+/* ===== LIGHT MODE FIXES (2026-07-03) — fix visibility issues only in light mode ===== */
+
+/* 1. Play button text in the pill below each game (gx-game-play + gx-play-btn) */
+html.light .gx-game-play {
+  color: #17172b !important;
+  background: rgba(60,55,115,0.07) !important;
+  border-color: rgba(60,55,115,.25) !important;
+}
+html.light .gx-game-play:hover {
+  background: #17172b !important;
+  color: #fff !important;
+  border-color: #17172b !important;
+}
+html.light .gx-play-btn {
+  color: #17172b !important;
+  background: rgba(60,55,115,0.08) !important;
+  border-color: rgba(60,55,115,.28) !important;
+}
+html.light .gx-play-btn:hover {
+  background: #17172b !important;
+  color: #fff !important;
+  border-color: #17172b !important;
+}
+
+/* 2. "Inspired by" and "Made using" text */
+html.light .site-credit-row,
+html.light .site-credit-title,
+html.light .site-credit-inner span,
+html.light .gx-changelog-pill {
+  color: #5f5f78 !important;
+}
+html.light .site-credit-row a,
+html.light .site-credit-inner a {
+  color: #17172b !important;
+}
+
+/* 3. Black background behind online presence box */
+html.light .online-presence,
+html.light .online-presence-list,
+html.light .presence-icons.online-presence-list {
+  background: rgba(255,255,255,.85) !important;
+  border-color: rgba(60,55,115,.18) !important;
+}
+html.light .presence-icons.online-presence-list .op-link {
+  background: transparent !important;
+  border-bottom-color: rgba(60,55,115,.12) !important;
+}
+
+/* 4. "From user" text in ask me anything box */
+html.light .ama-label,
+html.light .ama-q-row,
+html.light .ama-admin-meta,
+html.light .ama-v2-meta {
+  color: #17172b !important;
+  font-weight: 700 !important;
+}
+html.light .ama-wrap .ama-q-row {
+  color: #17172b !important;
+}
+
+/* 5. Dividers in ask me anything box */
+html.light .ama-topline,
+html.light .ama-question-row {
+  border-color: rgba(60,55,115,.28) !important;
+}
+html.light .ama-item {
+  border-color: rgba(60,55,115,.18) !important;
+}
+
+/* Also fix rom-dl-btn which had wrong light-mode color */
+html.light .rom-dl-btn {
+  color: #17172b !important;
+  background: #17172b !important;
+  border-color: #17172b !important;
+}
+html.light .rom-dl-btn:hover {
+  background: #2a2a45 !important;
+  color: #fff !important;
+}
