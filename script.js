@@ -7404,3 +7404,69 @@ document.addEventListener('click', function(e){
     setTimeout(function(){ forceOrder(order, false); }, 1200);
   }, true);
 })();
+
+/* ===== USER REQUEST 2026-07-03 v4: remove Recent/Oldest pills, keep page pills ===== */
+(function(){
+  function ready(fn){ document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', fn) : fn(); }
+
+  function parseEntryTime(entry){
+    var d = entry && entry.querySelector && entry.querySelector('.gx-changelog-date');
+    if(!d) return 0;
+    var date = (d.childNodes[0] && d.childNodes[0].textContent || d.textContent || '').trim();
+    var time = (d.querySelector('span') && d.querySelector('span').textContent || '00:00').trim();
+    var stamp = Date.parse(date + ' ' + time.replace(/IST/i, '+05:30'));
+    if(!isFinite(stamp)) stamp = Date.parse(date) || 0;
+    return stamp || 0;
+  }
+
+  function sortRecentKeepPage(){
+    var list = document.querySelector('#gx-changelog-modal .gx-changelog-list');
+    if(!list) return;
+    var currentPage = list.dataset.clPage || '1';
+    var entries = Array.prototype.slice.call(list.querySelectorAll('.gx-changelog-entry'));
+    entries.sort(function(a,b){ return parseEntryTime(b) - parseEntryTime(a); });
+    window.__allowChangelogSortV19 = true;
+    entries.forEach(function(entry){ list.appendChild(entry); });
+    window.__allowChangelogSortV19 = false;
+    list.dataset.order = 'recent';
+    list.dataset.clPage = currentPage;
+  }
+
+  function removeCategoryPills(){
+    var card = document.querySelector('#gx-changelog-modal .gx-changelog-card');
+    var list = document.querySelector('#gx-changelog-modal .gx-changelog-list');
+    if(!card || !list) return;
+
+    // Keep the controls container because the numbered page pills live inside it.
+    card.querySelectorAll('.gx-changelog-filter').forEach(function(btn){ btn.remove(); });
+
+    var controls = card.querySelector('.gx-changelog-controls');
+    var pagePills = card.querySelector('.gx-changelog-page-pills');
+    if(controls && pagePills && pagePills.parentElement !== controls) controls.appendChild(pagePills);
+    if(controls) controls.classList.add('gx-changelog-pages-only');
+
+    list.dataset.order = 'recent';
+  }
+
+  function run(){
+    removeCategoryPills();
+  }
+
+  document.addEventListener('click', function(e){
+    var openBtn = e.target && e.target.closest && e.target.closest('#gx-changelog-pill,[aria-controls="gx-changelog-modal"]');
+    if(openBtn){
+      [0, 80, 250].forEach(function(t){ setTimeout(function(){ sortRecentKeepPage(); removeCategoryPills(); }, t); });
+    }
+  }, true);
+
+  ready(function(){
+    run();
+    [100, 500, 1200].forEach(function(t){ setTimeout(run, t); });
+    var queued = false;
+    new MutationObserver(function(){
+      if(queued) return;
+      queued = true;
+      setTimeout(function(){ queued = false; run(); }, 80);
+    }).observe(document.body, { childList:true, subtree:true });
+  });
+})();

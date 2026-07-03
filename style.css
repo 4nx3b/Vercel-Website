@@ -10824,3 +10824,15 @@ html body.gx-playground-open #gx-game-page {
 .gx-profile-pill-img {
   object-position: center 32% !important;
 }
+
+/* ===== USER REQUEST 2026-07-03 v4: hide Recent/Oldest changelog pills ===== */
+.gx-changelog-filter {
+  display: none !important;
+}
+.gx-changelog-controls.gx-changelog-pages-only {
+  justify-content: flex-start !important;
+  gap: 10px !important;
+}
+.gx-changelog-controls.gx-changelog-pages-only .gx-changelog-page-pills {
+  margin-left: 0 !important;
+}
