@@ -7550,3 +7550,114 @@ html.light .gx-react-box{
 }
 html.light .gx-react-box.ready{ background:#20bf77!important; color:#08130d!important; }
 /* ====================================================================== */
+
+/* ======================================================================
+   USER REQUEST FIX v35 2026-07-03: contrast/visibility pass.
+   Several "translucent charcoal" pills were left at ~5% white opacity,
+   which reads as solid black on the dark background. Bumping the
+   default (non-active) state so pills are clearly visible everywhere:
+   skill tabs, AniList tabs + page pills, filter/period tabs, GitHub
+   "Visit profile" pill, and the hero welcome-box icon/text chips.
+   ====================================================================== */
+.skill-tab,.anilist-tab,.lastfm-period-tab,.filter-btn,.ani-page-btn{
+  background:rgba(255,255,255,.10)!important;
+  color:rgba(245,242,233,.90)!important;
+}
+.skill-tab:hover,.anilist-tab:hover,.lastfm-period-tab:hover,.filter-btn:hover,.ani-page-btn:hover{
+  background:rgba(255,255,255,.16)!important;
+}
+.gx-chip,.gx-chip.round,.gx-note-pill,.tag,.picon,.op-icon{
+  background:rgba(255,255,255,.10)!important;
+  color:#f5f2e9!important;
+}
+.gx-chip:hover,.picon:hover{
+  background:rgba(255,255,255,.17)!important;
+}
+
+/* "Visit GitHub profile" pill — was inheriting --gx-panel-2 (#111110, i.e.
+   near-black) as its background in dark mode. */
+#gh-profile-card .gh-cta{
+  background:rgba(255,255,255,.10)!important;
+  border-color:rgba(230,226,203,.24)!important;
+  color:#f5f2e9!important;
+}
+#gh-profile-card .gh-cta:hover{
+  background:rgba(255,255,255,.18)!important;
+}
+html.light #gh-profile-card .gh-cta{
+  background:rgba(60,55,115,.07)!important;
+  border-color:rgba(60,55,115,.22)!important;
+  color:#17172b!important;
+}
+html.light #gh-profile-card .gh-cta:hover{
+  background:rgba(60,55,115,.14)!important;
+}
+
+/* "Made using / inspired by" credits row and the rotated "Changelogs"
+   pill: #site-credit-card was later switched to a light background in
+   light mode, but the row text and the pill kept their dark-mode cream
+   colors, so they nearly disappeared. Give them the same dark-ink
+   palette used elsewhere in light mode. */
+html.light .site-credit-row{ color:#5f5f78!important; }
+html.light .gx-changelog-pill{
+  color:#17172b!important;
+  background:rgba(60,55,115,.07)!important;
+  border-color:rgba(60,55,115,.28)!important;
+}
+html.light .gx-changelog-pill:hover{
+  background:rgba(60,55,115,.13)!important;
+}
+
+/* Ask Me Anything: admin "From <name>" meta line, and the public
+   sort/page/upvote pills (+ their icons, via currentColor) were never
+   given light-mode colors, so they stayed near-white-on-white. */
+html.light .ama-admin-meta,
+html.light .ama-v2-meta{ color:#5f5f78!important; }
+html.light .ama-sort-pill,
+html.light .ama-page-pill,
+html.light .ama-upvote{
+  background:rgba(60,55,115,.06)!important;
+  color:#4a4a68!important;
+  border-color:rgba(60,55,115,.20)!important;
+}
+html.light .ama-sort-pill:hover,
+html.light .ama-page-pill:hover,
+html.light .ama-upvote:not(:disabled):hover{
+  background:rgba(60,55,115,.12)!important;
+  color:#17172b!important;
+}
+html.light .ama-sort-pill.active,
+html.light .ama-page-pill.active{
+  background:#17172b!important;
+  color:#fff!important;
+  border-color:#17172b!important;
+}
+html.light .ama-upvote.voted,
+html.light .ama-upvote:disabled{
+  background:rgba(60,55,115,.10)!important;
+  color:#17172b!important;
+}
+
+/* Random quote + time-zone widgets: these are pinned dark via
+   #gx-widgets-scoped ID selectors, which out-specificity the earlier
+   html.light class rules, so they never actually flipped to light mode.
+   Matching that ID specificity here so light mode finally applies. */
+html.light #gx-widgets .gx-quote-card,
+html.light #gx-widgets .gx-time-inner,
+html.light #gx-widgets .gx-reze-slideshow{
+  background:rgba(255,255,255,.82)!important;
+  border-color:rgba(60,55,115,.18)!important;
+}
+html.light #gx-widgets .gx-quote-text{ color:#17172b!important; }
+html.light #gx-widgets .gx-quote-author{ color:#5f5f78!important; }
+html.light #gx-widgets .gx-quote-mark{ color:#8a8aa4!important; }
+html.light #gx-widgets .gx-widget-kicker{ color:#5f5f78!important; }
+html.light #gx-widgets .gx-widget-line{ background:rgba(60,55,115,.14)!important; }
+html.light #gx-widgets .gx-swap{ color:#5f5f78!important; }
+html.light #gx-widgets .gx-swap:hover{ color:#17172b!important; }
+html.light #gx-widgets .gx-time-dot{ background:#16a34a!important; }
+html.light #gx-widgets .gx-time-badge{ border-color:rgba(60,55,115,.24)!important; color:#5f5f78!important; }
+html.light #gx-widgets .gx-time-big{ color:#17172b!important; }
+html.light #gx-widgets .gx-time-small{ color:#5f5f78!important; }
+html.light #gx-widgets .gx-same{ color:#5f5f78!important; }
+/* ====================================================================== */
