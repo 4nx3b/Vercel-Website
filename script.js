@@ -4708,23 +4708,8 @@ document.addEventListener('click', function(e){
     const a = musicAudio();
     ['play','pause','timeupdate','loadedmetadata','durationchange'].forEach(ev => a.addEventListener(ev, ui));
     ui();
-    setTimeout(autoplayAudio, 80);
-    window.addEventListener('load', autoplayAudio, { once:true });
-    window.addEventListener('pageshow', autoplayAudio, { once:true });
-    const once = async () => {
-      window.removeEventListener('pointerdown', once, true);
-      window.removeEventListener('touchstart', once, true);
-      window.removeEventListener('keydown', once, true);
-      const a = musicAudio();
-      window.__musicManuallyPaused = false;
-      window.__musicAllowPlayUntil = Date.now() + 86400000;
-      a.muted = false;
-      a.volume = 0.85;
-      await playAudio();
-    };
-    window.addEventListener('pointerdown', once, true);
-    window.addEventListener('touchstart', once, true);
-    window.addEventListener('keydown', once, true);
+    /* Autoplay removed — music only plays on manual click */
+    /* Interaction autoplay removed — music only plays on manual click */
   });
 })();
 
@@ -5277,15 +5262,10 @@ document.addEventListener('click', function(e){
       }
     }catch(e){}
     // No hidden iframe fallback here: it creates duplicate/overlapping audio.
-    if(attempts<8 && playerState()!==1) setTimeout(ensurePoolMusic,500);
+    if(attempts<8 && playerState()!==1) { /* autoplay retry removed */ }
   }
   window.ensurePoolMusic=ensurePoolMusic;
-  ['pointerdown','touchstart','click','keydown'].forEach(function(ev){
-    window.addEventListener(ev,function(e){
-      if(e.target&&e.target.closest&&e.target.closest('.tb-music-icon,#tb-music-disc,#slide-music-player')) return;
-      ensurePoolMusic();
-    },{capture:true,passive:true});
-  });
+  /* Interaction autoplay removed — music only plays on manual click of music icon/text */
 })();
 
 /* ===== USER REQUEST FIX v9 2026-07-01: stable owner popup + restored topbar mini player ===== */
@@ -5541,14 +5521,7 @@ document.addEventListener('click', function(e){
     }
   },true);
 
-  // Autoplay after the first real interaction anywhere outside the music UI.
-  function interaction(e){
-    if(isMusicUi(e.target)) return;
-    if(userPaused) return;
-    if(!firstInteractionTried){ firstInteractionTried=true; play(); }
-    else if(audio().paused){ play(); }
-  }
-  ['pointerdown','touchstart','click','keydown'].forEach(ev=>window.addEventListener(ev,interaction,{capture:true,passive:true}));
+  /* Interaction autoplay removed — music only plays on manual click of music icon/text */
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){audio();sync();}); else {audio();sync();}
   setInterval(sync,800);
