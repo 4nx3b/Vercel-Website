@@ -8230,7 +8230,7 @@ html.light .rom-card-actions .rom-support-btn:hover {
 /* ========== GAME PLAY BUTTONS (original complaint) ========== */
 html.light .gx-game-play,
 html.light .gx-play-btn {
-  color: #111827 !important;
+  color: #000000 !important;
   background: #f1f5f9 !important;
   border-color: #64748b !important;
 }
