@@ -7491,6 +7491,70 @@ document.addEventListener('click', function(e){
   }, true);
 })();
 
+/* ===== USER REQUEST 2026-07-03: ABSOLUTE MUSIC AUTOPLAY REMOVAL ===== */
+(function(){
+  window.__userExplicitlyClickedMusic = false;
+
+  function isValidMusicTrigger(el){
+    if(!el || !el.closest) return false;
+    if(el.closest('#theme-toggle-btn, .tb-theme-btn')) return false;
+    return !!el.closest('.tb-music-icon, #tb-music-disc, .tb-music-text, #topbar-track-title, #topbar-track-artist, .sp-play-btn, #sp-play-btn, #sp-title, .topbar-music-widget');
+  }
+
+  // 1. Intercept all HTML5 Audio play attempts globally
+  var origAudioPlay = HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play = function(){
+    var src = String(this.currentSrc || this.src || '');
+    var isSiteMusic = this.tagName === 'AUDIO' && (src.includes('in%20the%20pool') || src.includes('09.') || this.id === 'arena-music-audio' || this.id === 'arena-single-music-audio');
+    if(isSiteMusic && !window.__userExplicitlyClickedMusic){
+      console.log('Blocked autoplay attempt: music can only play via manual click on thumbnail or name.');
+      try { this.pause(); } catch(e){}
+      return Promise.reject(new DOMException('Autoplay disabled by user request', 'NotAllowedError'));
+    }
+    return origAudioPlay.apply(this, arguments);
+  };
+
+  // 2. Intercept YouTube iframe API play attempts globally
+  var checkYt = setInterval(function(){
+    if(typeof YT !== 'undefined' && YT && YT.Player && YT.Player.prototype && !YT.Player.prototype.__guardedPlay0703){
+      YT.Player.prototype.__guardedPlay0703 = true;
+      var origYtPlay = YT.Player.prototype.playVideo;
+      YT.Player.prototype.playVideo = function(){
+        if(!window.__userExplicitlyClickedMusic){
+          console.log('Blocked YT autoplay attempt.');
+          try { this.pauseVideo(); } catch(e){}
+          return;
+        }
+        return origYtPlay.apply(this, arguments);
+      };
+      clearInterval(checkYt);
+    }
+  }, 200);
+
+  // 3. Mark explicit user clicks on valid music triggers
+  ['click', 'pointerdown', 'touchstart'].forEach(function(ev){
+    window.addEventListener(ev, function(e){
+      if(isValidMusicTrigger(e.target)){
+        window.__userExplicitlyClickedMusic = true;
+      }
+    }, true);
+  });
+
+  // 4. Force pause any audio that might have started without manual click
+  setInterval(function(){
+    if(!window.__userExplicitlyClickedMusic){
+      document.querySelectorAll('audio').forEach(function(a){
+        if(!a.paused){
+          try { a.pause(); } catch(e){}
+        }
+      });
+      if(typeof ytPlayerObj !== 'undefined' && ytPlayerObj && typeof ytPlayerObj.pauseVideo === 'function'){
+        try { if(ytPlayerObj.getPlayerState && ytPlayerObj.getPlayerState() === 1) ytPlayerObj.pauseVideo(); } catch(e){}
+      }
+    }
+  }, 300);
+})();
+
 /* ===== USER REQUEST 2026-07-03: CHANGELOG ENTRY FOR LIGHT MODE POPUPS & KEYBOARD FIX ===== */
 (function(){
   function addLatestChangelog(){
@@ -7499,7 +7563,7 @@ document.addEventListener('click', function(e){
     list.dataset.changelogLightPopup0703 = '1';
     var a = document.createElement('article');
     a.className = 'gx-changelog-entry fx-scoped-reveal fx-scoped-visible';
-    a.innerHTML = '<div class="gx-changelog-date">2026-07-03 <span>21:15 IST</span></div><ul><li>Changed the text color of "What\'s your name?" (and all popup titles) to pitch black in light mode by overriding WebKit text-fill properties.</li><li>Stopped the popup card from squishing or becoming smaller when the mobile keyboard opens by removing dynamic height calculations.</li><li>Completely removed the music autoplay feature; music now only plays when clicked directly on the track name or thumbnail icon.</li><li>Fixed popup dialogs appearing in dark mode while the website is in light mode.</li></ul>';
+    a.innerHTML = '<div class="gx-changelog-date">2026-07-03 <span>21:25 IST</span></div><ul><li>Changed the text color of "What\'s your name?" (and all popup titles) to pitch black in light mode by overriding WebKit text-fill properties.</li><li>Stopped the popup card from squishing or becoming smaller when the mobile keyboard opens by removing dynamic height calculations.</li><li>Completely removed the music autoplay feature; music now only plays when clicked directly on the track name or thumbnail icon.</li><li>Fixed popup dialogs appearing in dark mode while the website is in light mode.</li></ul>';
     list.prepend(a);
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addLatestChangelog); else addLatestChangelog();
