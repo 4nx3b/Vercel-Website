@@ -10706,3 +10706,59 @@ html.light body .rom-card-actions .rom-dl-btn:hover {
 }
 
 
+
+
+/* ===== USER REQUEST 2026-07-03: profile pill + hard-remove games UI ===== */
+#gx-games,
+#gx-game-page,
+#gx-games-browser-modal,
+#final-game-modal {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+body.gx-game-mode,
+body.gx-playground-open {
+  overflow: auto !important;
+}
+
+.gx-profile-pill {
+  width: 58px !important;
+  height: 58px !important;
+  min-width: 58px !important;
+  padding: 3px !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  overflow: hidden !important;
+  background: linear-gradient(135deg, rgba(255,255,255,.95), rgba(255,255,255,.18)) !important;
+  border: 1px solid rgba(255,255,255,.55) !important;
+  box-shadow: 0 12px 32px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.2) !important;
+  text-decoration: none !important;
+}
+
+.gx-profile-pill::before,
+.gx-profile-pill::after {
+  content: none !important;
+  display: none !important;
+}
+
+.gx-profile-pill-img {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  border-radius: 999px !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  pointer-events: none !important;
+}
+
+html.light .gx-profile-pill {
+  background: linear-gradient(135deg, rgba(255,255,255,.98), rgba(0,0,0,.06)) !important;
+  border-color: rgba(0,0,0,.14) !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,.16), inset 0 0 0 1px rgba(255,255,255,.6) !important;
+}
