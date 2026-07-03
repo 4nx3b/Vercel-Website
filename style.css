@@ -10849,37 +10849,40 @@ html.dark .gx-welcome-card .gx-hero-avatar {
   scroll-margin-top: 120px;
 }
 
-/* ===== USER REQUEST 2026-07-03: AMA inline input — block keyboard on main page ===== */
-/* This overrides the "RESTORE SIMPLE AMA POPUP" block and any other
-   rule that tries to make the inline field editable. The inline field
-   must behave like a button: no caret, no selection, no keyboard. */
-#ama-question-input {
-  caret-color: transparent !important;
-  -webkit-user-select: none !important;
-  -moz-user-select: none !important;
-  -ms-user-select: none !important;
-  user-select: none !important;
-  -webkit-touch-callout: none !important;
-  cursor: pointer !important;
+/* ===== USER REQUEST 2026-07-03: AMA inline input — FORCE KEYBOARD OPEN NORMALLY ===== */
+#ama-question-input,
+#ama-question-input.ama-question-trigger-btn,
+.ama-wrap #ama-question-input {
+  caret-color: auto !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+  cursor: text !important;
   pointer-events: auto !important;
 }
 #ama-question-input:focus,
-#ama-question-input:active {
+#ama-question-input:active,
+#ama-question-input.ama-question-trigger-btn:focus,
+.ama-wrap #ama-question-input:focus {
   outline: none !important;
-  caret-color: transparent !important;
-  -webkit-user-select: none !important;
-  user-select: none !important;
+  caret-color: auto !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
 }
 #ama-question-input::selection,
 #ama-question-input::-moz-selection {
-  background: transparent !important;
+  background: rgba(245, 242, 233, 0.2) !important;
 }
-/* Light mode: keep the same non-editable behavior */
+/* Light mode */
 html.light #ama-question-input,
 html.light #ama-question-input:focus,
-html.light #ama-question-input:active {
-  caret-color: transparent !important;
-  -webkit-user-select: none !important;
-  user-select: none !important;
-  cursor: pointer !important;
+html.light #ama-question-input:active,
+html.light .ama-wrap #ama-question-input,
+html.light .ama-wrap #ama-question-input:focus {
+  caret-color: auto !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  cursor: text !important;
 }

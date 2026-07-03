@@ -1241,7 +1241,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const resetTopbarMusicHover = () => {
     document.body.classList.add('suppress-topbar-hover');
     const active = document.activeElement;
-    if (active && typeof active.blur === 'function') active.blur();
+    if (active && typeof active.blur === 'function') {
+      const tag = (active.tagName || '').toUpperCase();
+      const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || active.isContentEditable || active.getAttribute('role') === 'textbox' || active.getAttribute('role') === 'search' || active.id === 'ama-question-input' || active.id === 'ama-popup-question-input' || active.id === 'ama-name-input';
+      if (!isInput) {
+        active.blur();
+      }
+    }
     clearTimeout(hoverResetTimer);
     hoverResetTimer = setTimeout(() => {
       document.body.classList.remove('suppress-topbar-hover');
@@ -6225,7 +6231,7 @@ document.addEventListener('click', function(e){
 
   // Turn the main-page "Drop a question..." field into a button: no caret,
   // no virtual keyboard, tapping it only opens the compose popup.
-  function buttonizeInlineField(){
+  function buttonizeInlineField(){ return;
     var input=$('ama-question-input');
     if(!input || input.dataset.buttonizedV23==='1') return;
     input.dataset.buttonizedV23='1';
@@ -6246,7 +6252,7 @@ document.addEventListener('click', function(e){
   // never opens on its own. Manual taps inside the popup still work fine
   // since this only fires once, right at open.
   var lastGuardedOpen=0;
-  function guardPopupAutoFocus(){
+  function guardPopupAutoFocus(){ return;
     var m=$('ama-name-modal');
     if(!m || !m.classList.contains('open')) return;
     var now=Date.now();
@@ -7469,4 +7475,39 @@ document.addEventListener('click', function(e){
       setTimeout(function(){ queued = false; run(); }, 80);
     }).observe(document.body, { childList:true, subtree:true });
   });
+})();
+
+/* ===== USER REQUEST 2026-07-03: PREVENT FORCE CLOSE OF KEYBOARD ON MOBILE SCROLL ===== */
+(function(){
+  function isInput(el){
+    if(!el) return false;
+    var tag = (el.tagName || '').toUpperCase();
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable || el.getAttribute('role') === 'textbox' || el.getAttribute('role') === 'search' || el.id === 'ama-question-input' || el.id === 'ama-popup-question-input' || el.id === 'ama-name-input';
+  }
+  var origBlur = HTMLElement.prototype.blur;
+  HTMLElement.prototype.blur = function(){
+    if(isInput(this) && window.__amaSuppressInputBlurUntil && Date.now() < window.__amaSuppressInputBlurUntil){
+      return;
+    }
+    return origBlur.apply(this, arguments);
+  };
+  function protectInputFocus(){
+    var active = document.activeElement;
+    if(isInput(active)){
+      window.__amaSuppressInputBlurUntil = Date.now() + 1000;
+    }
+  }
+  window.addEventListener('scroll', protectInputFocus, { passive: true, capture: true });
+  window.addEventListener('resize', protectInputFocus, { passive: true, capture: true });
+  window.addEventListener('touchmove', protectInputFocus, { passive: true, capture: true });
+  window.addEventListener('wheel', protectInputFocus, { passive: true, capture: true });
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', protectInputFocus, { passive: true, capture: true });
+    window.visualViewport.addEventListener('scroll', protectInputFocus, { passive: true, capture: true });
+  }
+  document.addEventListener('focus', function(e){
+    if(isInput(e.target)){
+      window.__amaSuppressInputBlurUntil = Date.now() + 1500;
+    }
+  }, true);
 })();
