@@ -4569,7 +4569,10 @@ document.addEventListener('click', function(e){
   };
 
   const musicSelectors = '.tb-music-icon, .sp-play-btn, #sp-play-btn, .topbar-music-widget, .tb-music-text, .tb-music-dots';
-  function isMusicPlayTarget(t){ return !!t?.closest?.(musicSelectors); }
+  function isMusicPlayTarget(t){
+    if(t?.closest?.('#theme-toggle-btn, .tb-theme-btn')) return false;
+    return !!t?.closest?.(musicSelectors);
+  }
 
   document.addEventListener('pointerdown', function(e){
     if(!isMusicPlayTarget(e.target)) return;
