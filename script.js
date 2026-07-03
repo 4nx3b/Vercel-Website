@@ -7301,7 +7301,7 @@ document.addEventListener('click', function(e){
       var filter = e.target && e.target.closest && e.target.closest('.gx-changelog-filter');
       if(openBtn){
         window.__clResetPage0703 = true;
-        [0, 80, 220, 600, 1300].forEach(function(t){ setTimeout(function(){ sortChangelogs('recent'); window.__clResetPage0703 = false; }, t); });
+        [0, 80, 220, 600, 1300].forEach(function(t){ setTimeout(function(){ if(Date.now() < (window.__clUserSelectedOrderUntil0703 || 0)){ window.__clResetPage0703 = false; return; } sortChangelogs('recent'); window.__clResetPage0703 = false; }, t); });
       }
       if(filter){
         var order = filter.dataset.order || 'recent';
@@ -7342,4 +7342,65 @@ document.addEventListener('click', function(e){
     [250, 900, 1800].forEach(function(t){ setTimeout(run, t); });
     setInterval(function(){ nudgeProfileCrop(); observeChangelogList(); }, 1200);
   });
+})();
+
+/* ===== USER REQUEST 2026-07-03 v3: keep Oldest filter from being overridden ===== */
+(function(){
+  function parseEntryTime(entry){
+    var d = entry && entry.querySelector && entry.querySelector('.gx-changelog-date');
+    if(!d) return 0;
+    var date = (d.childNodes[0] && d.childNodes[0].textContent || d.textContent || '').trim();
+    var time = (d.querySelector('span') && d.querySelector('span').textContent || '00:00').trim();
+    var stamp = Date.parse(date + ' ' + time.replace(/IST/i, '+05:30'));
+    if(!isFinite(stamp)) stamp = Date.parse(date) || 0;
+    return stamp || 0;
+  }
+  function paginate(list){
+    if(!list) return;
+    var card = list.closest('.gx-changelog-card') || document.querySelector('#gx-changelog-modal .gx-changelog-card');
+    var entries = Array.prototype.slice.call(list.querySelectorAll('.gx-changelog-entry'));
+    var per = 3;
+    var total = Math.max(1, Math.ceil(entries.length / per));
+    var page = Math.min(Math.max(1, Number(list.dataset.clPage) || 1), total);
+    list.dataset.clPage = String(page);
+    entries.forEach(function(entry, i){
+      entry.style.display = (Math.floor(i / per) + 1 === page) ? '' : 'none';
+    });
+    var wrap = card && card.querySelector('.gx-changelog-page-pills');
+    if(wrap){
+      wrap.querySelectorAll('.gx-changelog-page-pill').forEach(function(btn){
+        var active = Number(btn.dataset.page) === page;
+        btn.classList.toggle('active', active);
+      });
+    }
+  }
+  function forceOrder(order, resetPage){
+    var list = document.querySelector('#gx-changelog-modal .gx-changelog-list');
+    if(!list) return;
+    var entries = Array.prototype.slice.call(list.querySelectorAll('.gx-changelog-entry'));
+    entries.sort(function(a,b){
+      return order === 'oldest' ? parseEntryTime(a) - parseEntryTime(b) : parseEntryTime(b) - parseEntryTime(a);
+    });
+    window.__allowChangelogSortV19 = true;
+    entries.forEach(function(entry){ list.appendChild(entry); });
+    window.__allowChangelogSortV19 = false;
+    list.dataset.order = order;
+    if(resetPage) list.dataset.clPage = '1';
+    document.querySelectorAll('.gx-changelog-filter').forEach(function(btn){
+      btn.classList.toggle('active', (btn.dataset.order || 'recent') === order);
+    });
+    paginate(list);
+  }
+
+  document.addEventListener('click', function(e){
+    var filter = e.target && e.target.closest && e.target.closest('.gx-changelog-filter');
+    if(!filter) return;
+    var order = filter.dataset.order || 'recent';
+    window.__clUserSelectedOrderUntil0703 = Date.now() + 4000;
+    // Let the tap feel instant and prevent delayed "open popup = recent" timeouts from winning.
+    setTimeout(function(){ forceOrder(order, true); }, 0);
+    setTimeout(function(){ forceOrder(order, false); }, 120);
+    setTimeout(function(){ forceOrder(order, false); }, 500);
+    setTimeout(function(){ forceOrder(order, false); }, 1200);
+  }, true);
 })();
