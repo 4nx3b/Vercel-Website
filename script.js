@@ -7343,3 +7343,94 @@ document.addEventListener('click', function(e){
   },100);
 })();
 /* ====================================================================== */
+
+/* ======================================================================
+   FINAL FIX — prevent old dark-only code from undoing user light mode
+   ====================================================================== */
+(function(){
+  var root = document.documentElement;
+  var realRemove = DOMTokenList.prototype.remove;
+  var realToggle = DOMTokenList.prototype.toggle;
+  var realAdd = DOMTokenList.prototype.add;
+  var realSetItem = Storage.prototype.setItem;
+
+  window.__arenaThemeChoice = window.__arenaThemeChoice || null;
+
+  function isRootClassList(list){ return list === root.classList; }
+  function applyChoice(mode){
+    window.__arenaThemeChoice = (mode === 'light') ? 'light' : 'dark';
+    if(window.__arenaThemeChoice === 'light') realAdd.call(root.classList, 'light');
+    else realRemove.call(root.classList, 'light');
+    try{ realSetItem.call(localStorage, 'theme', window.__arenaThemeChoice); }catch(e){}
+  }
+  function toggleChoice(){ applyChoice(root.classList.contains('light') ? 'dark' : 'light'); }
+
+  if(!window.__arenaThemeAntiRevertPatched){
+    window.__arenaThemeAntiRevertPatched = true;
+
+    DOMTokenList.prototype.remove = function(){
+      if(isRootClassList(this) && window.__arenaThemeChoice === 'light'){
+        var args = Array.prototype.slice.call(arguments).filter(function(x){ return x !== 'light'; });
+        if(args.length) return realRemove.apply(this, args);
+        return;
+      }
+      return realRemove.apply(this, arguments);
+    };
+
+    DOMTokenList.prototype.toggle = function(token, force){
+      if(isRootClassList(this) && token === 'light' && window.__arenaThemeChoice === 'light' && force === false){
+        return true;
+      }
+      return realToggle.apply(this, arguments);
+    };
+
+    Storage.prototype.setItem = function(key, value){
+      if(this === localStorage && key === 'theme' && window.__arenaThemeChoice === 'light' && value === 'dark'){
+        return realSetItem.call(this, key, 'light');
+      }
+      return realSetItem.apply(this, arguments);
+    };
+  }
+
+  function isThemeTarget(e){
+    return !!(e && e.target && e.target.closest && e.target.closest('#arena-inline-theme-toggle,.arena-inline-theme-toggle,#arena-floating-theme-toggle'));
+  }
+  function stop(e){
+    e.preventDefault();
+    e.stopPropagation();
+    if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+  }
+  var last = 0;
+  function handler(e){
+    if(!isThemeTarget(e)) return;
+    stop(e);
+    if(e.type === 'click' || e.type === 'pointerup' || e.type === 'touchend'){
+      var now = Date.now();
+      if(now - last > 260){ last = now; toggleChoice(); }
+    }
+  }
+  ['pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','click'].forEach(function(ev){
+    window.addEventListener(ev, handler, {capture:true, passive:false});
+    document.addEventListener(ev, handler, {capture:true, passive:false});
+  });
+
+  function bootChoice(){
+    try{
+      var saved = localStorage.getItem('theme');
+      if(saved === 'light' || saved === 'dark') window.__arenaThemeChoice = saved;
+    }catch(e){}
+    if(window.__arenaThemeChoice) applyChoice(window.__arenaThemeChoice);
+    window.toggleTheme = toggleChoice;
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootChoice); else bootChoice();
+
+  setInterval(function(){
+    window.toggleTheme = toggleChoice;
+    if(window.__arenaThemeChoice === 'light' && !root.classList.contains('light')) realAdd.call(root.classList, 'light');
+    if(window.__arenaThemeChoice === 'dark' && root.classList.contains('light')) realRemove.call(root.classList, 'light');
+    try{
+      if(window.__arenaThemeChoice) realSetItem.call(localStorage, 'theme', window.__arenaThemeChoice);
+    }catch(e){}
+  }, 60);
+})();
+/* ====================================================================== */
