@@ -7781,3 +7781,14 @@ html.light #gx-game-page .gx-play-btn:hover{
   position:relative!important;
   z-index:2!important;
 }
+#hero{
+  min-height:auto!important;
+  justify-content:flex-start!important;
+  padding-top:24px!important;
+  padding-bottom:60px!important;
+}
+@media (max-width: 768px) {
+  #hero{
+    padding-top:16px!important;
+  }
+}
