@@ -60,9 +60,9 @@
 
   let dismissed = false;
   let currentDy = 0;
-  let preloadDone = false;
+  let preloadDone = true;          // Instantly allow swipe
   const introStartedAt = Date.now();
-  const MIN_INTRO_MS = 1800;
+  const MIN_INTRO_MS = 0;          // No preload delay
 
   function overlayVisible() {
     return overlay && overlay.style.display !== 'none' && overlay.dataset.forceDismissed !== '1';
@@ -82,6 +82,7 @@
   }
 
   function canDismissIntro() {
+    return true;                   // Always allow swipe immediately
     return preloadDone || (Date.now() - introStartedAt) >= MIN_INTRO_MS;
   }
 
@@ -118,7 +119,7 @@
   }
 
   function completeLoading() {
-    if (preloadDone) return;
+  // preloadDone check removed – instant swipe
     preloadDone = true;
     setTimeout(function() {
       overlay.classList.add('hint-ready');
