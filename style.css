@@ -10389,3 +10389,1094 @@ html.light body .ama-item * {
   color: #0f172a !important;
 }
 
+
+/* ============================================================
+   NEW FIXES v16 (2026-07-03) — Based on latest screenshots
+   ============================================================ */
+
+/* 1. CREDITS SECTION FIXES */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: transparent !important;
+  border-color: rgba(60,55,115,.18) !important;
+  box-shadow: none !important;
+}
+
+html.light body .site-credit-title {
+  color: #475569 !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .08em !important;
+}
+
+html.light body .site-credit-row,
+html.light body .site-credit-row * {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+
+html.light body .site-credit-row a,
+html.light body .site-credit-inner a {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  text-decoration: underline !important;
+}
+
+html.light body .gx-changelog-pill {
+  color: #0f172a !important;
+  background: rgba(60,55,115,.08) !important;
+  border-color: rgba(60,55,115,.25) !important;
+  font-weight: 700 !important;
+}
+
+/* 2. ASK ME ANYTHING FIXES */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html.light body .ama-item {
+  background: rgba(255,255,255,.92) !important;
+  border: 1px solid rgba(60,55,115,.12) !important;
+  border-radius: 16px !important;
+  margin-bottom: 10px !important;
+}
+
+/* Visible dividers between messages */
+html.light body .ama-item + .ama-item {
+  border-top: 1px solid rgba(60,55,115,.22) !important;
+}
+
+/* "From <user>" text clearly visible */
+html.light body .ama-label {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-q-row,
+html.light body .ama-q-row * {
+  color: #1e2937 !important;
+  font-weight: 600 !important;
+}
+
+html.light body .ama-a-row {
+  color: #0f172a !important;
+}
+
+/* 3. GAMES PLAY BUTTON — make text visible */
+html.light body .gx-game-play,
+html.light body .gx-play-btn {
+  color: #0f172a !important;
+  background: rgba(60,55,115,.08) !important;
+  border-color: rgba(60,55,115,.25) !important;
+  font-weight: 700 !important;
+}
+
+html.light body .gx-game-play:hover,
+html.light body .gx-play-btn:hover {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* 4. TOPBAR — Add proper divider between music and theme, remove left | */
+html.light body .topbar-pill {
+  gap: 4px !important;
+}
+
+html.light body .topbar-divider {
+  background: rgba(60,55,115,.22) !important;
+  width: 1px !important;
+  height: 18px !important;
+  margin: 0 6px !important;
+  opacity: 1 !important;
+}
+
+/* Remove any extra left divider */
+html.light body .topbar-pill > .topbar-divider:first-child,
+html.light body .topbar-pill > div:first-child.topbar-divider {
+  display: none !important;
+}
+
+/* Make sure music widget and theme are nicely separated */
+html.light body .topbar-music-widget {
+  margin-right: 4px !important;
+}
+
+
+/* ============================================================
+   MORE TARGETED FIXES v17 (2026-07-03)
+   ============================================================ */
+
+/* === 1. CREDITS: Remove outer white bg, fix headers + links === */
+html.light body #site-credit-card,
+html.light body .site-credit-card {
+  background: transparent !important;
+  border: 1px solid rgba(60,55,115,.15) !important;
+  box-shadow: none !important;
+}
+
+html.light body .site-credit-inner {
+  background: transparent !important;
+}
+
+html.light body .site-credit-title {
+  color: #475569 !important;
+  font-weight: 600 !important;
+  opacity: 0.9 !important;
+}
+
+html.light body .site-credit-row a {
+  font-weight: 600 !important;
+  color: #1e2937 !important;
+}
+
+/* === 2. ASK ME ANYTHING: Transparent container + visible dividers + "From" text === */
+html.light body .ama-wrap,
+html.light body #ama-widget {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html.light body .ama-list {
+  background: transparent !important;
+}
+
+/* Clear dividers between messages */
+html.light body .ama-item {
+  background: rgba(255,255,255,.95) !important;
+  border: 1px solid rgba(60,55,115,.12) !important;
+}
+
+html.light body .ama-item + .ama-item {
+  border-top: 1.5px solid rgba(60,55,115,.28) !important;
+}
+
+/* Make "From <name>" fully visible */
+html.light body .ama-label {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+  opacity: 1 !important;
+}
+
+html.light body .ama-q-row {
+  color: #1e2937 !important;
+}
+
+/* === 3. GAMES PLAY BUTTON — stronger dark text === */
+html.light body .gx-game-play,
+html.light body .gx-play-btn,
+html.light body .gx-game-play span,
+html.light body .gx-play-btn span {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+html.light body .gx-game-play:hover,
+html.light body .gx-play-btn:hover {
+  color: #ffffff !important;
+}
+
+/* === 5. TOPBAR DIVIDER — clean middle separator only === */
+html.light body .topbar-divider {
+  background: rgba(60,55,115,.25) !important;
+  width: 1px !important;
+  height: 16px !important;
+  margin: 0 8px !important;
+  opacity: 1 !important;
+}
+
+/* Remove any left-side divider before music */
+html.light body .topbar-pill > .topbar-divider:first-child,
+html.light body .topbar-pill > *:first-child.topbar-divider {
+  display: none !important;
+}
+
+
+/* ============================================================
+   FINAL TARGETED FIXES v18 (2026-07-03) — exact user requests
+   ============================================================ */
+
+/* === 1. CREDITS: transparent outer bg, better headers + links === */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: transparent !important;
+  border: 1px solid rgba(60,55,115,.14) !important;
+  box-shadow: none !important;
+}
+
+html.light body .site-credit-title {
+  color: #475569 !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  letter-spacing: .1em !important;
+  opacity: 0.85 !important;
+}
+
+html.light body .site-credit-row {
+  color: #334155 !important;
+  font-weight: 500 !important;
+}
+
+html.light body .site-credit-row a {
+  color: #1e2937 !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+}
+
+/* === 2. ASK ME ANYTHING: transparent outer + visible dividers + "From" === */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html.light body .ama-item {
+  background: rgba(255,255,255,.92) !important;
+  border: 1px solid rgba(60,55,115,.15) !important;
+  margin-bottom: 8px !important;
+}
+
+/* Clear divider between each message */
+html.light body .ama-item + .ama-item {
+  border-top: 1.5px solid rgba(60,55,115,.28) !important;
+}
+
+/* "From <name>" fully visible */
+html.light body .ama-label {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-q-row {
+  color: #1e2937 !important;
+}
+
+/* === 3. GAMES PLAY TEXT — dark and strong === */
+html.light body .gx-game-play,
+html.light body .gx-play-btn {
+  color: #0f172a !important;
+  background: rgba(60,55,115,.07) !important;
+  border-color: rgba(60,55,115,.22) !important;
+  font-weight: 700 !important;
+}
+
+html.light body .gx-game-play:hover,
+html.light body .gx-play-btn:hover {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* === 5. TOPBAR: proper middle divider only === */
+html.light body .topbar-divider {
+  background: rgba(60,55,115,.28) !important;
+  width: 1px !important;
+  height: 16px !important;
+  margin: 0 8px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Remove left divider before music */
+html.light body .topbar-pill > .topbar-divider:first-child,
+html.light body .topbar-pill > div:first-child.topbar-divider,
+html.light body .topbar-pill > *:first-child.topbar-divider {
+  display: none !important;
+}
+
+
+/* ============================================================
+   CLEAN TARGETED FIXES v19 (2026-07-03) — exact requests
+   ============================================================ */
+
+/* 1. CREDITS: transparent outer, better headers + links */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: transparent !important;
+  border-color: rgba(60,55,115,.16) !important;
+  box-shadow: none !important;
+}
+
+html.light body .site-credit-title {
+  color: #475569 !important;
+  font-weight: 600 !important;
+  opacity: 0.9 !important;
+}
+
+html.light body .site-credit-row {
+  color: #334155 !important;
+  font-weight: 500 !important;
+}
+
+html.light body .site-credit-row a {
+  color: #1e2937 !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+}
+
+/* 2. AMA: transparent container + visible dividers + clear "From" */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html.light body .ama-item {
+  background: rgba(255,255,255,.92) !important;
+  border: 1px solid rgba(60,55,115,.14) !important;
+  margin-bottom: 8px !important;
+}
+
+/* Strong dividers between messages */
+html.light body .ama-item + .ama-item {
+  border-top: 1.5px solid rgba(60,55,115,.28) !important;
+}
+
+/* "From <name>" clearly visible */
+html.light body .ama-label {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-q-row {
+  color: #1e2937 !important;
+}
+
+/* 3. GAMES PLAY TEXT — dark */
+html.light body .gx-game-play,
+html.light body .gx-play-btn {
+  color: #0f172a !important;
+  background: rgba(60,55,115,.07) !important;
+  border-color: rgba(60,55,115,.22) !important;
+  font-weight: 700 !important;
+}
+
+html.light body .gx-game-play:hover,
+html.light body .gx-play-btn:hover {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* 5. TOPBAR: only middle divider, remove left one */
+html.light body .topbar-divider {
+  background: rgba(60,55,115,.28) !important;
+  width: 1px !important;
+  height: 16px !important;
+  margin: 0 8px !important;
+}
+
+/* Kill left divider before music */
+html.light body .topbar-pill > .topbar-divider:first-child,
+html.light body .topbar-pill > div:first-child.topbar-divider {
+  display: none !important;
+}
+
+
+/* ============================================================
+   NEW TARGETED FIXES v20 (2026-07-03) — Latest screenshots
+   ============================================================ */
+
+/* 1. CREDITS: transparent outer, visible headers, clean links */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: transparent !important;
+  border: 1px solid rgba(60,55,115,.15) !important;
+  box-shadow: none !important;
+}
+
+html.light body .site-credit-title {
+  color: #334155 !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+  font-size: 11px !important;
+}
+
+html.light body .site-credit-row {
+  color: #1e2937 !important;
+  font-weight: 600 !important;
+}
+
+html.light body .site-credit-row a {
+  color: #1e2937 !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+}
+
+/* 2. ASK ME ANYTHING: transparent outer + strong dividers + visible "From" */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html.light body .ama-item {
+  background: rgba(255,255,255,.92) !important;
+  border: 1px solid rgba(60,55,115,.14) !important;
+  margin-bottom: 8px !important;
+}
+
+/* Strong visible dividers */
+html.light body .ama-item + .ama-item {
+  border-top: 1.5px solid rgba(60,55,115,.32) !important;
+}
+
+/* "From <name>" fully visible */
+html.light body .ama-label {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-q-row {
+  color: #1e2937 !important;
+}
+
+/* 3. GAMES PLAY BUTTON — dark and readable */
+html.light body .gx-game-play,
+html.light body .gx-play-btn {
+  color: #0f172a !important;
+  background: rgba(60,55,115,.08) !important;
+  border-color: rgba(60,55,115,.24) !important;
+  font-weight: 700 !important;
+}
+
+html.light body .gx-game-play:hover,
+html.light body .gx-play-btn:hover {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* 5. TOPBAR: proper middle divider only, remove left | */
+html.light body .topbar-divider {
+  background: rgba(60,55,115,.28) !important;
+  width: 1px !important;
+  height: 16px !important;
+  margin: 0 8px !important;
+}
+
+/* Kill any left divider before music */
+html.light body .topbar-pill > .topbar-divider:first-child,
+html.light body .topbar-pill > div:first-child.topbar-divider {
+  display: none !important;
+}
+
+
+/* ============================================================
+   V20 — PRECISE FIXES FROM LATEST SCREENSHOTS (2026-07-03)
+   ============================================================ */
+
+/* === 1. CREDITS BOX: fully transparent outside, clean text === */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: transparent !important;
+  border: 1px solid rgba(60,55,115,.14) !important;
+  box-shadow: none !important;
+}
+
+html.light body .site-credit-title {
+  color: #334155 !important;
+  font-weight: 700 !important;
+  font-size: 10.5px !important;
+  letter-spacing: .09em !important;
+  opacity: 1 !important;
+}
+
+html.light body .site-credit-row {
+  color: #1e2937 !important;
+  font-weight: 500 !important;
+}
+
+html.light body .site-credit-row a {
+  color: #1e2937 !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+}
+
+/* === 2. ASK ME ANYTHING: transparent container + dividers + visible From === */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html.light body .ama-item {
+  background: rgba(255,255,255,.93) !important;
+  border: 1px solid rgba(60,55,115,.13) !important;
+  margin-bottom: 8px !important;
+}
+
+/* Clear dividers between messages */
+html.light body .ama-item + .ama-item {
+  border-top: 1.5px solid rgba(60,55,115,.30) !important;
+}
+
+/* "From <name>" clearly visible */
+html.light body .ama-label {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-q-row {
+  color: #1e2937 !important;
+}
+
+/* === 3. GAMES PLAY TEXT — dark and strong === */
+html.light body .gx-game-play,
+html.light body .gx-play-btn {
+  color: #0f172a !important;
+  background: rgba(60,55,115,.07) !important;
+  border-color: rgba(60,55,115,.22) !important;
+  font-weight: 700 !important;
+}
+
+html.light body .gx-game-play:hover,
+html.light body .gx-play-btn:hover {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* === 5. TOPBAR: clean middle divider only, remove left | === */
+html.light body .topbar-divider {
+  background: rgba(60,55,115,.26) !important;
+  width: 1px !important;
+  height: 16px !important;
+  margin: 0 8px !important;
+}
+
+/* Remove left divider before music */
+html.light body .topbar-pill > .topbar-divider:first-child,
+html.light body .topbar-pill > div:first-child.topbar-divider {
+  display: none !important;
+}
+
+
+/* ============================================================
+   V21 — PRECISE FIXES FOR LATEST SCREENSHOTS (2026-07-03)
+   ============================================================ */
+
+/* === CREDITS: transparent outer, visible but not too bold headers + links === */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: transparent !important;
+  border: 1px solid rgba(60,55,115,.14) !important;
+  box-shadow: none !important;
+}
+
+html.light body .site-credit-title {
+  color: #475569 !important;
+  font-weight: 600 !important;
+  opacity: 1 !important;
+}
+
+html.light body .site-credit-row {
+  color: #334155 !important;
+  font-weight: 500 !important;
+}
+
+html.light body .site-credit-row a {
+  color: #1e2937 !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+}
+
+/* === AMA: transparent box + strong dividers + visible "From" === */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html.light body .ama-item {
+  background: rgba(255,255,255,.92) !important;
+  border: 1px solid rgba(60,55,115,.13) !important;
+  margin-bottom: 8px !important;
+}
+
+html.light body .ama-item + .ama-item {
+  border-top: 1.5px solid rgba(60,55,115,.30) !important;
+}
+
+html.light body .ama-label {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-q-row {
+  color: #1e2937 !important;
+}
+
+/* === GAMES PLAY — dark text === */
+html.light body .gx-game-play,
+html.light body .gx-play-btn {
+  color: #0f172a !important;
+  background: rgba(60,55,115,.07) !important;
+  border-color: rgba(60,55,115,.22) !important;
+  font-weight: 700 !important;
+}
+
+html.light body .gx-game-play:hover,
+html.light body .gx-play-btn:hover {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* === TOPBAR: middle divider only, no left | before music === */
+html.light body .topbar-divider {
+  background: rgba(60,55,115,.26) !important;
+  width: 1px !important;
+  height: 16px !important;
+  margin: 0 8px !important;
+}
+
+html.light body .topbar-pill > .topbar-divider:first-child,
+html.light body .topbar-pill > div:first-child.topbar-divider {
+  display: none !important;
+}
+
+
+/* ============================================================
+   V22 — FINAL CLEAN FIXES (2026-07-03)
+   ============================================================ */
+
+/* === CREDITS === */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: transparent !important;
+  border-color: rgba(60,55,115,.15) !important;
+  box-shadow: none !important;
+}
+
+html.light body .site-credit-title {
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+
+html.light body .site-credit-row a {
+  color: #1e2937 !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+}
+
+/* === AMA: transparent + dividers + From visible === */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: transparent !important;
+  border: none !important;
+}
+
+html.light body .ama-item {
+  background: rgba(255,255,255,.92) !important;
+  border: 1px solid rgba(60,55,115,.13) !important;
+}
+
+html.light body .ama-item + .ama-item {
+  border-top: 1.5px solid rgba(60,55,115,.30) !important;
+}
+
+html.light body .ama-label {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-q-row {
+  color: #1e2937 !important;
+}
+
+/* === GAMES PLAY === */
+html.light body .gx-game-play,
+html.light body .gx-play-btn {
+  color: #0f172a !important;
+  background: rgba(60,55,115,.07) !important;
+  border-color: rgba(60,55,115,.22) !important;
+  font-weight: 700 !important;
+}
+
+html.light body .gx-game-play:hover,
+html.light body .gx-play-btn:hover {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* === TOPBAR DIVIDER === */
+html.light body .topbar-divider {
+  background: rgba(60,55,115,.26) !important;
+  width: 1px !important;
+  height: 16px !important;
+  margin: 0 8px !important;
+}
+
+html.light body .topbar-pill > .topbar-divider:first-child,
+html.light body .topbar-pill > div:first-child.topbar-divider {
+  display: none !important;
+}
+
+
+/* ============================================================
+   V23 — EXACT FIXES FOR NEW SCREENSHOTS (2026-07-03)
+   ============================================================ */
+
+/* === 1. CREDITS: transparent outer bg, better header visibility, less bold links === */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: transparent !important;
+  border: 1px solid rgba(60,55,115,.14) !important;
+  box-shadow: none !important;
+}
+
+html.light body .site-credit-title {
+  color: #475569 !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+  font-size: 11px !important;
+}
+
+html.light body .site-credit-row {
+  color: #334155 !important;
+  font-weight: 500 !important;
+}
+
+html.light body .site-credit-row a {
+  color: #1e2937 !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+}
+
+/* === 2. AMA: transparent outer, dividers between messages, visible "From" === */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html.light body .ama-item {
+  background: rgba(255,255,255,.92) !important;
+  border: 1px solid rgba(60,55,115,.13) !important;
+  margin-bottom: 8px !important;
+}
+
+html.light body .ama-item + .ama-item {
+  border-top: 1.5px solid rgba(60,55,115,.30) !important;
+}
+
+html.light body .ama-label {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-q-row {
+  color: #1e2937 !important;
+}
+
+/* === 3. GAMES PLAY — dark text === */
+html.light body .gx-game-play,
+html.light body .gx-play-btn {
+  color: #0f172a !important;
+  background: rgba(60,55,115,.07) !important;
+  border-color: rgba(60,55,115,.22) !important;
+  font-weight: 700 !important;
+}
+
+html.light body .gx-game-play:hover,
+html.light body .gx-play-btn:hover {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* === 5. TOPBAR: middle | only, remove left | before music === */
+html.light body .topbar-divider {
+  background: rgba(60,55,115,.26) !important;
+  width: 1px !important;
+  height: 16px !important;
+  margin: 0 8px !important;
+}
+
+html.light body .topbar-pill > .topbar-divider:first-child,
+html.light body .topbar-pill > div:first-child.topbar-divider {
+  display: none !important;
+}
+
+
+/* ============================================================
+   V24 — EXACT MATCH FOR YOUR LATEST 3 SCREENSHOTS (2026-07-03)
+   ============================================================ */
+
+/* === 1. CREDITS: transparent outer, readable headers, clean links === */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: transparent !important;
+  border: 1px solid rgba(60,55,115,.14) !important;
+  box-shadow: none !important;
+}
+
+html.light body .site-credit-title {
+  color: #475569 !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+
+html.light body .site-credit-row {
+  color: #334155 !important;
+  font-weight: 500 !important;
+}
+
+html.light body .site-credit-row a {
+  color: #1e2937 !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+}
+
+/* === 2. AMA: transparent outer + strong dividers + visible "From" === */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html.light body .ama-item {
+  background: rgba(255,255,255,.92) !important;
+  border: 1px solid rgba(60,55,115,.13) !important;
+  margin-bottom: 8px !important;
+}
+
+html.light body .ama-item + .ama-item {
+  border-top: 1.5px solid rgba(60,55,115,.32) !important;
+}
+
+html.light body .ama-label {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-q-row {
+  color: #1e2937 !important;
+}
+
+/* === 3. GAMES PLAY TEXT — dark & strong === */
+html.light body .gx-game-play,
+html.light body .gx-play-btn {
+  color: #0f172a !important;
+  background: rgba(60,55,115,.07) !important;
+  border-color: rgba(60,55,115,.22) !important;
+  font-weight: 700 !important;
+}
+
+html.light body .gx-game-play:hover,
+html.light body .gx-play-btn:hover {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* === 5. TOPBAR: middle divider only, remove left | before music === */
+html.light body .topbar-divider {
+  background: rgba(60,55,115,.26) !important;
+  width: 1px !important;
+  height: 16px !important;
+  margin: 0 8px !important;
+}
+
+html.light body .topbar-pill > .topbar-divider:first-child,
+html.light body .topbar-pill > div:first-child.topbar-divider {
+  display: none !important;
+}
+
+
+/* ============================================================
+   V25 — FINAL PRECISE FIXES FOR YOUR EXACT COMPLAINTS (2026-07-03)
+   ============================================================ */
+
+/* === 1. CREDITS: transparent outer background + visible headers + clean links === */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: transparent !important;
+  border: 1px solid rgba(60,55,115,.13) !important;
+  box-shadow: none !important;
+}
+
+html.light body .site-credit-title {
+  color: #475569 !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+
+html.light body .site-credit-row {
+  color: #334155 !important;
+  font-weight: 500 !important;
+}
+
+html.light body .site-credit-row a {
+  color: #1e2937 !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+}
+
+/* === 2. ASK ME ANYTHING: transparent outer + dividers + visible "From" === */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html.light body .ama-item {
+  background: rgba(255,255,255,.92) !important;
+  border: 1px solid rgba(60,55,115,.12) !important;
+  margin-bottom: 8px !important;
+}
+
+/* Strong dividers between messages */
+html.light body .ama-item + .ama-item {
+  border-top: 1.5px solid rgba(60,55,115,.32) !important;
+}
+
+/* "From <name>" clearly visible */
+html.light body .ama-label {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-q-row {
+  color: #1e2937 !important;
+}
+
+/* === 3. GAMES PLAY TEXT — dark and visible === */
+html.light body .gx-game-play,
+html.light body .gx-play-btn {
+  color: #0f172a !important;
+  background: rgba(60,55,115,.08) !important;
+  border-color: rgba(60,55,115,.24) !important;
+  font-weight: 700 !important;
+}
+
+html.light body .gx-game-play:hover,
+html.light body .gx-play-btn:hover {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* === 5. TOPBAR: middle divider only, remove left | before music === */
+html.light body .topbar-divider {
+  background: rgba(60,55,115,.28) !important;
+  width: 1px !important;
+  height: 16px !important;
+  margin: 0 8px !important;
+}
+
+html.light body .topbar-pill > .topbar-divider:first-child,
+html.light body .topbar-pill > div:first-child.topbar-divider {
+  display: none !important;
+}
+
+
+/* ============================================================
+   FINAL CONSOLIDATED FIXES v26 (2026-07-03)
+   ============================================================ */
+
+/* === 1. CREDITS: transparent outer, visible header, clean links === */
+html.light body #site-credit-card,
+html.light body .site-credit-card,
+html.light body .site-credit-inner {
+  background: transparent !important;
+  border: 1px solid rgba(60,55,115,.14) !important;
+  box-shadow: none !important;
+}
+
+html.light body .site-credit-title {
+  color: #475569 !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+
+html.light body .site-credit-row {
+  color: #334155 !important;
+  font-weight: 500 !important;
+}
+
+html.light body .site-credit-row a {
+  color: #1e2937 !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+}
+
+/* === 2. AMA: transparent outer + dividers + visible From === */
+html.light body .ama-wrap,
+html.light body #ama-widget,
+html.light body .ama-list {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html.light body .ama-item {
+  background: rgba(255,255,255,.92) !important;
+  border: 1px solid rgba(60,55,115,.13) !important;
+  margin-bottom: 8px !important;
+}
+
+html.light body .ama-item + .ama-item {
+  border-top: 1.5px solid rgba(60,55,115,.32) !important;
+}
+
+html.light body .ama-label {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light body .ama-q-row {
+  color: #1e2937 !important;
+}
+
+/* === 3. GAMES PLAY TEXT — dark and visible === */
+html.light body .gx-game-play,
+html.light body .gx-play-btn {
+  color: #0f172a !important;
+  background: rgba(60,55,115,.08) !important;
+  border-color: rgba(60,55,115,.24) !important;
+  font-weight: 700 !important;
+}
+
+html.light body .gx-game-play:hover,
+html.light body .gx-play-btn:hover {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* === 5. TOPBAR: middle divider only, remove left | === */
+html.light body .topbar-divider {
+  background: rgba(60,55,115,.28) !important;
+  width: 1px !important;
+  height: 16px !important;
+  margin: 0 8px !important;
+}
+
+html.light body .topbar-pill > .topbar-divider:first-child,
+html.light body .topbar-pill > div:first-child.topbar-divider {
+  display: none !important;
+}
+
