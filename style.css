@@ -10426,3 +10426,39 @@ html.light body .site-credit-inner {
   border-radius: 22px !important;
 }
 
+
+/* ============================================================
+   FIX v39 — Credits box: thinner links + title color match
+   1) "Inspired by" / "Made using" labels → match the
+      Changelogs popup kicker color (#aaa79f dark / #62627b light)
+   2) Website links → thinner weight + switch font to var(--sans)
+   ============================================================ */
+
+/* Dark mode: title labels match changelogs kicker */
+#site-credit-card .site-credit-title {
+  color: #aaa79f !important;
+}
+
+/* Dark mode: links — thinner weight + sans font */
+#site-credit-card .site-credit-row a,
+#site-credit-card .site-credit-inner a {
+  font-weight: 500 !important;
+  font-family: var(--sans, system-ui, sans-serif) !important;
+}
+
+/* Light mode: title labels match light changelogs kicker */
+html.light #site-credit-card .site-credit-title,
+html.light body #site-credit-card .site-credit-title {
+  color: #62627b !important;
+}
+
+/* Light mode: links — thinner weight + sans font */
+html.light #site-credit-card .site-credit-row a,
+html.light #site-credit-card .site-credit-inner a,
+html.light body #site-credit-card .site-credit-row a,
+html.light body #site-credit-card .site-credit-inner a {
+  font-weight: 500 !important;
+  font-family: var(--sans, system-ui, sans-serif) !important;
+  color: #1e2937 !important;
+}
+
