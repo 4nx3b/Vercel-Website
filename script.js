@@ -5468,6 +5468,7 @@ document.addEventListener('click', function(e){
 
   // Highest-priority controls: prevent older handlers from starting YouTube/duplicate audio.
   window.addEventListener('click',function(e){
+    if(e.target && e.target.closest && e.target.closest('#theme-toggle-btn, .tb-theme-btn')) return;
     if(isThumb(e.target)||isMiniPlay(e.target)||isMiniOpen(e.target)||e.target.closest('.topbar-music-widget')){
       e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
       toggle();
@@ -7598,7 +7599,7 @@ document.addEventListener('click', function(e){
     list.dataset.changelogLightPopup0703 = '1';
     var a = document.createElement('article');
     a.className = 'gx-changelog-entry fx-scoped-reveal fx-scoped-visible';
-    a.innerHTML = '<div class="gx-changelog-date">2026-07-03 <span>21:55 IST</span></div><ul><li>Added a "← PREV" button to the Changelogs popup alongside "NEXT →". The PREV button appears when past the first page, and the NEXT button cleanly disappears when reaching the last page.</li><li>Adjusted the Changelogs popup sizing to leave exactly a 15px margin above and below the popup card on all screens.</li><li>Changed the text color of "What\'s your name?" (and all popup titles) to pitch black in light mode by overriding WebKit text-fill properties.</li><li>Stopped the popup card from squishing or becoming smaller when the mobile keyboard opens by removing dynamic height calculations.</li><li>Completely removed the music autoplay feature; music now only plays when clicked directly on the track name or thumbnail icon.</li><li>Fixed popup dialogs appearing in dark mode while the website is in light mode.</li></ul>';
+    a.innerHTML = '<div class="gx-changelog-date">2026-07-03 <span>22:05 IST</span></div><ul><li>Fixed the dark/light mode theme toggle switch in the topbar so clicking it cleanly toggles the website theme without pausing or resuming music playback.</li><li>Added a "← PREV" button to the Changelogs popup alongside "NEXT →". The PREV button appears when past the first page, and the NEXT button cleanly disappears when reaching the last page.</li><li>Adjusted the Changelogs popup sizing to leave exactly a 15px margin above and below the popup card on all screens.</li><li>Changed the text color of "What\'s your name?" (and all popup titles) to pitch black in light mode by overriding WebKit text-fill properties.</li><li>Stopped the popup card from squishing or becoming smaller when the mobile keyboard opens by removing dynamic height calculations.</li><li>Completely removed the music autoplay feature; music now only plays when clicked directly on the track name or thumbnail icon.</li><li>Fixed popup dialogs appearing in dark mode while the website is in light mode.</li></ul>';
     list.prepend(a);
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addLatestChangelog); else addLatestChangelog();
