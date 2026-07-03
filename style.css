@@ -10910,6 +10910,19 @@ html.light #gx-changelog-modal .gx-changelog-card * {
   color: inherit;
 }
 
+/* ===== PREVENT POPUP CARD FROM SHRINKING WHEN KEYBOARD OPENS ===== */
+#ama-name-modal .ama-modal-card,
+#ama-owner-v4-modal .ama-v2-card,
+.gx-changelog-modal .gx-changelog-card,
+#gx-changelog-modal .gx-changelog-card,
+html.light #ama-name-modal .ama-modal-card,
+html.light #ama-owner-v4-modal .ama-v2-card,
+html.light .gx-changelog-modal .gx-changelog-card,
+html.light #gx-changelog-modal .gx-changelog-card {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
 /* 2) Headings & Titles */
 html.light #ama-name-modal #ama-name-title,
 html.light #ama-name-modal h3,
@@ -10921,7 +10934,8 @@ html.light .gx-changelog-modal h3,
 html.light #gx-changelog-modal h3,
 html.light #force-game-modal .fgm-title,
 html.light #final-game-modal .fgm-title {
-  color: #17172b !important;
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
 }
 
 /* 3) Kickers, Subtitles, Paragraphs & Status Text */
@@ -10939,6 +10953,7 @@ html.light #gx-changelog-modal .gx-changelog-entry li,
 html.light #force-game-modal .fgm-status,
 html.light #final-game-modal .fgm-status {
   color: #62627b !important;
+  -webkit-text-fill-color: #62627b !important;
 }
 
 /* 4) Close Buttons */
@@ -10951,6 +10966,7 @@ html.light #force-game-modal .fgm-close,
 html.light #final-game-modal .fgm-close {
   background: rgba(60, 55, 115, 0.08) !important;
   color: #17172b !important;
+  -webkit-text-fill-color: #17172b !important;
   border: 1.5px solid rgba(60, 55, 115, 0.18) !important;
 }
 html.light #ama-name-modal #ama-name-close:hover,
@@ -10962,6 +10978,7 @@ html.light #force-game-modal .fgm-close:hover,
 html.light #final-game-modal .fgm-close:hover {
   background: rgba(60, 55, 115, 0.16) !important;
   color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
 }
 
 /* 5) Input & Textarea Fields */
@@ -11018,6 +11035,7 @@ html.light #ama-name-modal .ama-modal-send,
 html.light #ama-owner-v4-modal .ama-v2-btn:not(.ghost) {
   background: #17172b !important;
   color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
   border: 2px solid #17172b !important;
 }
 html.light #ama-name-modal #ama-final-send svg,
@@ -11031,6 +11049,7 @@ html.light #ama-owner-v4-modal .ama-v2-btn:not(.ghost):hover {
   background: #2d2d48 !important;
   border-color: #2d2d48 !important;
   color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
 html.light #ama-name-modal #ama-final-send:disabled,
 html.light #ama-name-modal .ama-modal-send:disabled {
@@ -11043,6 +11062,7 @@ html.light #ama-name-modal .ama-modal-send:disabled {
 html.light #ama-owner-v4-modal .ama-v2-btn.ghost {
   background: transparent !important;
   color: #17172b !important;
+  -webkit-text-fill-color: #17172b !important;
   border-color: rgba(60, 55, 115, 0.25) !important;
 }
 html.light #ama-owner-v4-modal .ama-v2-btn.ghost:hover {
@@ -11054,24 +11074,30 @@ html.light #ama-owner-v4-modal .ama-v2-item {
   background: rgba(60, 55, 115, 0.04) !important;
   border-color: rgba(60, 55, 115, 0.16) !important;
   color: #17172b !important;
+  -webkit-text-fill-color: #17172b !important;
 }
 html.light #ama-owner-v4-modal .ama-v2-meta {
   color: #62627b !important;
+  -webkit-text-fill-color: #62627b !important;
 }
 html.light #ama-owner-v4-modal .ama-v2-q {
   color: #17172b !important;
+  -webkit-text-fill-color: #17172b !important;
 }
 html.light .gx-changelog-modal .gx-changelog-entry,
 html.light #gx-changelog-modal .gx-changelog-entry {
   background: rgba(60, 55, 115, 0.04) !important;
   border-color: rgba(60, 55, 115, 0.16) !important;
   color: #17172b !important;
+  -webkit-text-fill-color: #17172b !important;
 }
 html.light .gx-changelog-modal .gx-changelog-date,
 html.light #gx-changelog-modal .gx-changelog-date {
   color: #17172b !important;
+  -webkit-text-fill-color: #17172b !important;
 }
 html.light .gx-changelog-modal .gx-changelog-date span,
 html.light #gx-changelog-modal .gx-changelog-date span {
   color: #62627b !important;
+  -webkit-text-fill-color: #62627b !important;
 }

@@ -1325,7 +1325,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fadeRaf = requestAnimationFrame(tick);
   }
 
-  function attemptAutoplay(){
+  function attemptAutoplay(){ return;
     const audio = getAudio();
     audio.muted = false;
     audio.volume = START_VOLUME;
@@ -1337,7 +1337,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function armFallback(){
+  function armFallback(){ return;
     if(armedFallback) return;
     armedFallback = true;
     const once = () => {
@@ -4454,7 +4454,7 @@ document.addEventListener('click', function(e){
     return a;
   }
 
-  async function attemptMutedAutoplay(){
+  async function attemptMutedAutoplay(){ return;
     const a = bootMusic();
     const prevMuted = a.muted;
     const prevVol = a.volume;
@@ -4498,30 +4498,12 @@ document.addEventListener('click', function(e){
     const playTargets = ['.tb-music-icon', '.sp-play-btn', '#sp-play-btn', '.tb-music-text'];
     playTargets.forEach(sel => document.querySelectorAll(sel).forEach(el => {
       el.addEventListener('click', async (e) => {
-        if(sel === '.tb-music-text') return;
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
         await window.togglePlay();
       }, true);
     }));
-
-    setTimeout(() => { attemptMutedAutoplay(); }, 120);
-    const once = async () => {
-      window.removeEventListener('pointerdown', once, true);
-      window.removeEventListener('touchstart', once, true);
-      window.removeEventListener('keydown', once, true);
-      await tryPlay();
-    };
-    window.addEventListener('pointerdown', once, true);
-    window.addEventListener('touchstart', once, true);
-    window.addEventListener('keydown', once, true);
-    document.addEventListener('pointerdown', () => {
-      const a = musicAudio();
-      window.__musicManuallyPaused = false;
-      window.__musicAllowPlayUntil = Date.now() + 86400000;
-      if(!a.paused && a.muted){ a.muted = false; a.volume = 0.85; ui(); }
-    }, { once:true, capture:true });
   });
 })();
 
@@ -4659,7 +4641,7 @@ document.addEventListener('click', function(e){
     try { await a.play(); } catch(e) {}
     ui();
   }
-  async function autoplayAudio(){
+  async function autoplayAudio(){ return;
     const a = musicAudio();
     window.__musicManuallyPaused = false;
     window.__musicAllowPlayUntil = Date.now() + 86400000;
@@ -5486,14 +5468,9 @@ document.addEventListener('click', function(e){
 
   // Highest-priority controls: prevent older handlers from starting YouTube/duplicate audio.
   window.addEventListener('click',function(e){
-    if(isThumb(e.target)||isMiniPlay(e.target)){
+    if(isThumb(e.target)||isMiniPlay(e.target)||isMiniOpen(e.target)||e.target.closest('.topbar-music-widget')){
       e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
       toggle();
-      return;
-    }
-    if(isMiniOpen(e.target)){
-      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
-      openMini();
       return;
     }
   },true);
@@ -6139,8 +6116,9 @@ document.addEventListener('click', function(e){
     if(!modal||!modal.classList.contains('open')) return;
     var card=modal.querySelector('.ama-modal-card');
     if(card){
-      card.style.setProperty('max-height','min(500px,52dvh)','important');
-      card.style.setProperty('overflow','auto','important');
+      card.style.removeProperty('max-height');
+      card.style.setProperty('max-height','none','important');
+      card.style.setProperty('overflow','visible','important');
     }
     var q=document.getElementById('ama-popup-question-input');
     if(q){
@@ -6811,9 +6789,10 @@ document.addEventListener('click', function(e){
     // the (now keyboard-reduced) viewport.
     var card = modal.querySelector('.ama-modal-card');
     if(card){
-      card.style.maxHeight = (height - 32) + 'px';
-      card.style.overflow = 'auto';
-      card.style.webkitOverflowScrolling = 'touch';
+      card.style.removeProperty('max-height');
+      card.style.removeProperty('maxHeight');
+      card.style.setProperty('max-height', 'none', 'important');
+      card.style.setProperty('overflow', 'visible', 'important');
     }
   }
   window.__amaAdjustModalToViewport = adjustModalToViewport;
@@ -7520,7 +7499,7 @@ document.addEventListener('click', function(e){
     list.dataset.changelogLightPopup0703 = '1';
     var a = document.createElement('article');
     a.className = 'gx-changelog-entry fx-scoped-reveal fx-scoped-visible';
-    a.innerHTML = '<div class="gx-changelog-date">2026-07-03 <span>21:10 IST</span></div><ul><li>Fixed the What\'s your name? popup (and all other modal dialogs) appearing in dark mode when the website is in light mode.</li><li>Added high-specificity light mode styles for popup cards, headers, subtitles, input fields, close buttons, and primary send buttons.</li><li>Resolved the mobile keyboard force-closing when tapping the Drop a question field in the middle or bottom of the screen.</li></ul>';
+    a.innerHTML = '<div class="gx-changelog-date">2026-07-03 <span>21:15 IST</span></div><ul><li>Changed the text color of "What\'s your name?" (and all popup titles) to pitch black in light mode by overriding WebKit text-fill properties.</li><li>Stopped the popup card from squishing or becoming smaller when the mobile keyboard opens by removing dynamic height calculations.</li><li>Completely removed the music autoplay feature; music now only plays when clicked directly on the track name or thumbnail icon.</li><li>Fixed popup dialogs appearing in dark mode while the website is in light mode.</li></ul>';
     list.prepend(a);
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addLatestChangelog); else addLatestChangelog();
