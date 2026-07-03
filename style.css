@@ -10708,3 +10708,171 @@ html.light .ama-status {
 html.light .ama-status.ok { color: #16a34a !important; }
 html.light .ama-status.err { color: #dc2626 !important; }
 
+
+/* ============================================================
+   FIX v42 — AMA LIGHT MODE: absolute final override.
+   Uses `html.light body .ama-wrap` specificity to beat
+   every earlier nuclear rule (they use `html.light body`).
+   ============================================================ */
+
+/* ---- Container ---- */
+html.light body .ama-wrap {
+  background: #ffffff !important;
+  border: 1.5px solid rgba(60, 55, 115, 0.16) !important;
+  border-radius: 30px !important;
+  color: #4b5563 !important;
+  font-family: var(--sans) !important;
+  font-weight: 400 !important;
+  box-shadow: 0 12px 40px rgba(60, 55, 115, 0.08) !important;
+}
+
+/* ---- Top bar ---- */
+html.light body .ama-wrap .ama-topline {
+  border-bottom: 1px solid rgba(60, 55, 115, 0.12) !important;
+}
+
+html.light body .ama-wrap .ama-title {
+  font-family: var(--mono) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  color: #9ca3af !important;
+}
+
+html.light body .ama-wrap .ama-used {
+  font-family: var(--sans) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #9ca3af !important;
+  background: rgba(60, 55, 115, 0.05) !important;
+}
+
+html.light body .ama-wrap .ama-owner-btn {
+  color: #9ca3af !important;
+  background: rgba(60, 55, 115, 0.03) !important;
+  border: 1px solid rgba(60, 55, 115, 0.12) !important;
+}
+
+/* ---- Question cards ---- */
+html.light body .ama-wrap .ama-item {
+  background: rgba(60, 55, 115, 0.03) !important;
+  border: 1px solid rgba(60, 55, 115, 0.10) !important;
+  border-radius: 18px !important;
+}
+
+/* Dividers between messages */
+html.light body .ama-wrap .ama-item + .ama-item {
+  border-top: 1px solid rgba(60, 55, 115, 0.12) !important;
+  margin-top: 6px !important;
+  padding-top: 14px !important;
+}
+
+/* "From" label — small muted mono kicker, NOT bold black */
+html.light body .ama-wrap .ama-label {
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.10em !important;
+  text-transform: uppercase !important;
+  color: #9ca3af !important;
+  display: block !important;
+  margin-bottom: 4px !important;
+}
+
+/* Sender name after "From" — slightly bolder, visible */
+html.light body .ama-wrap .ama-q-row {
+  font-family: var(--sans) !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  color: #6b7280 !important;
+  line-height: 1.5 !important;
+}
+
+/* Answer text — readable, not jet black */
+html.light body .ama-wrap .ama-a-row {
+  font-family: var(--sans) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #374151 !important;
+  line-height: 1.55 !important;
+}
+
+/* Timestamps */
+html.light body .ama-wrap .ama-time {
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  color: #b0b0b8 !important;
+}
+
+/* ---- Input area ---- */
+html.light body .ama-wrap .ama-question-row {
+  border-top: 1px solid rgba(60, 55, 115, 0.12) !important;
+}
+
+html.light body .ama-wrap .ama-question-row input {
+  color: #374151 !important;
+  font-family: var(--mono) !important;
+  font-weight: 400 !important;
+}
+
+html.light body .ama-wrap .ama-question-row input::placeholder {
+  color: #b0b0b8 !important;
+}
+
+/* Refresh / send button — clearly visible */
+html.light body .ama-wrap .ama-question-row button {
+  color: #6b7280 !important;
+  background: rgba(60, 55, 115, 0.05) !important;
+  border: 1.5px solid rgba(60, 55, 115, 0.18) !important;
+}
+
+html.light body .ama-wrap .ama-question-row button:hover {
+  color: #1f2937 !important;
+  background: rgba(60, 55, 115, 0.10) !important;
+}
+
+/* ---- Sort / page pills ---- */
+html.light body .ama-wrap .ama-sort-pill,
+html.light body .ama-wrap .ama-page-pill {
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #6b7280 !important;
+  background: rgba(60, 55, 115, 0.04) !important;
+  border: 1px solid rgba(60, 55, 115, 0.14) !important;
+}
+
+html.light body .ama-wrap .ama-sort-pill.active,
+html.light body .ama-wrap .ama-page-pill.active {
+  background: #374151 !important;
+  color: #ffffff !important;
+  border-color: #374151 !important;
+}
+
+/* ---- Upvote ---- */
+html.light body .ama-wrap .ama-upvote {
+  color: #6b7280 !important;
+  background: rgba(60, 55, 115, 0.04) !important;
+  border: 1px solid rgba(60, 55, 115, 0.14) !important;
+  font-weight: 500 !important;
+}
+
+/* ---- Status ---- */
+html.light body .ama-wrap .ama-status {
+  font-family: var(--sans) !important;
+  color: #9ca3af !important;
+  font-weight: 400 !important;
+}
+
+html.light body .ama-wrap .ama-status.ok { color: #16a34a !important; }
+html.light body .ama-wrap .ama-status.err { color: #dc2626 !important; }
+
+/* ---- Kill remaining nuclear overrides that force #0f172a everywhere ---- */
+html.light body .ama-wrap .ama-list,
+html.light body .ama-wrap .ama-list *,
+html.light body .ama-wrap .ama-item * {
+  color: inherit !important;
+}
+
