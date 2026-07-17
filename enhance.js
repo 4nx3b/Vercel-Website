@@ -269,7 +269,7 @@
   }
 
   /* ---- Magnetic buttons ---- */
-  function initMagnetic(selector = '[data-magnetic], .tb-icon-btn, .btn, .gx-chip, .picon, #theme-toggle-btn') {
+  function initMagnetic(selector = '[data-magnetic]:not(.picon):not(.op-link):not(.skill-tab):not(.anilist-tab), .tb-icon-btn, .btn, .gx-chip, #theme-toggle-btn') {
     if (env.isTouch || env.reducedMotion) return;
     document.addEventListener('pointermove', (e) => {
       const el = e.target.closest && e.target.closest(selector);
@@ -292,7 +292,7 @@
   }
 
   /* ---- Ripple ---- */
-  function initRipple(selector = '[data-ripple], .tb-icon-btn, .btn, .gx-chip, .skill-tab, .anilist-tab, .rom-dl-btn, .rom-support-btn, .picon, #theme-toggle-btn') {
+  function initRipple(selector = '[data-ripple]:not(.picon):not(.op-link):not(.skill-tab):not(.anilist-tab), .tb-icon-btn, .btn, .gx-chip, .rom-dl-btn, .rom-support-btn, #theme-toggle-btn') {
     document.addEventListener('pointerdown', (e) => {
       const el = e.target.closest && e.target.closest(selector);
       if (el) {
@@ -310,7 +310,7 @@
   }
 
   /* ---- Spotlight (radial glow tracking cursor) ---- */
-  function initSpotlight(selector = '[data-spotlight], .gx-welcome-card, .rom-card, .interest-card, .media-panel, .lastfm-stats-header, .project-card, .gx-widget-card, footer') {
+  function initSpotlight(selector = '[data-spotlight]:not(.picon):not(.op-link):not(.skill-tab):not(.anilist-tab), .gx-welcome-card, .rom-card, .interest-card, .media-panel, .lastfm-stats-header, .project-card, .gx-widget-card, footer') {
     if (env.isTouch) return;
     document.addEventListener(
       'pointermove',
@@ -428,7 +428,7 @@
      ========================================================================== */
 
   /* ---- 3D tilt ---- */
-  function initTilt(selector = '[data-tilt], .gx-welcome-card, .rom-card, .interest-card, .media-panel, .lastfm-stats-header, .project-card, .gx-widget-card') {
+  function initTilt(selector = '[data-tilt]:not(.picon):not(.op-link):not(.skill-tab):not(.anilist-tab), .gx-welcome-card, .rom-card, .interest-card, .media-panel, .lastfm-stats-header, .project-card, .gx-widget-card') {
     if (env.isTouch || env.reducedMotion) return;
     document.addEventListener('pointermove', (e) => {
       const el = e.target.closest && e.target.closest(selector);

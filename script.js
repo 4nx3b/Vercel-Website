@@ -1548,6 +1548,10 @@ document.addEventListener('click', function(e){
     if(!wrap || wrap.classList.contains('online-presence-list')) return;
     wrap.classList.add('online-presence-list');
     [...wrap.querySelectorAll('a')].forEach(a=>{
+      a.removeAttribute('data-magnetic');
+      a.removeAttribute('data-ripple');
+      a.removeAttribute('data-spotlight');
+      a.removeAttribute('data-tilt');
       a.classList.add('op-link');
       const title=a.getAttribute('title') || 'Link';
       const href=a.getAttribute('href') || '#';

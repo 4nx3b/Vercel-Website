@@ -11213,12 +11213,15 @@ html.light body .gx-profile-pill {
 }
 
 /* ===== USER REQUEST 2026-07-18: DARK MODE WELCOME BOX GLASS & CARD HOVER ANIMATIONS ===== */
-html:not(.light) .gx-welcome-card {
-  background: rgba(20, 20, 28, 0.46) !important;
-  backdrop-filter: blur(36px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(36px) saturate(180%) !important;
+html:not(.light) .gx-welcome-card,
+html.dark .gx-welcome-card,
+body .gx-welcome-card,
+#hero .gx-welcome-card {
+  background: rgba(16, 16, 22, 0.28) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
   border-color: rgba(230, 226, 203, 0.20) !important;
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38) !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38) !important;
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.4s ease, box-shadow 0.4s ease, background-color 0.4s ease !important;
 }
 
@@ -11235,6 +11238,26 @@ html:not(.light) footer {
   backdrop-filter: blur(32px) saturate(150%) !important;
   -webkit-backdrop-filter: blur(32px) saturate(150%) !important;
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.4s ease, box-shadow 0.4s ease !important;
+}
+
+/* Ensure clean, stable styling without hover jumps on category pills and online presence links */
+.skill-tab,
+.anilist-tab,
+.picon,
+.op-link,
+.presence-icons.online-presence-list .op-link {
+  transform: none !important;
+  box-shadow: none !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+}
+.skill-tab:hover,
+.anilist-tab:hover,
+.picon:hover,
+.op-link:hover,
+.presence-icons.online-presence-list .op-link:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  background: rgba(255, 255, 255, 0.08) !important;
 }
 
 /* Card hover lift & glow */
@@ -11272,10 +11295,7 @@ html.light footer:hover {
 .rom-dl-btn:hover,
 .rom-support-btn:hover,
 .btn:hover,
-.tb-icon-btn:hover,
-.skill-tab:hover,
-.anilist-tab:hover,
-.picon:hover {
+.tb-icon-btn:hover {
   transform: translateY(-3px) scale(1.04) !important;
   border-color: rgba(139, 123, 255, 0.6) !important;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3), 0 0 18px rgba(139, 123, 255, 0.22) !important;
