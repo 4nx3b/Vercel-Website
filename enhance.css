@@ -1,0 +1,311 @@
+/* ============================================================================
+   ENHANCE.CSS — additive premium interaction/visual layer
+   Namespaced with `enh-` prefix. Does not touch or override any existing
+   selectors from style.css. Uses your existing tokens (--white, --gray,
+   --gray-dim, --border, --bg, --surface, --mono, --sans, --radius-card)
+   so it inherits your dark/light theme automatically.
+   ============================================================================ */
+
+:root {
+  --enh-accent: #8b7bff;          /* subtle violet accent for the new layer only */
+  --enh-accent-soft: rgba(139,123,255,0.35);
+  --enh-ease: cubic-bezier(.16,.84,.44,1);
+  --enh-ease-out: cubic-bezier(.22,1,.36,1);
+  --enh-dur-fast: .18s;
+  --enh-dur: .4s;
+  --enh-dur-slow: .8s;
+}
+html.light { --enh-accent: #6d4fff; --enh-accent-soft: rgba(109,79,255,0.25); }
+
+/* Kill-switch: any element inside .enh-reduced-motion or when the OS asks for
+   reduced motion gets all enhance animations disabled instantly. */
+@media (prefers-reduced-motion: reduce) {
+  [class^="enh-"], [class*=" enh-"] { animation: none !important; transition: none !important; }
+}
+html.enh-reduced-motion [class^="enh-"],
+html.enh-reduced-motion [class*=" enh-"] { animation: none !important; transition: none !important; }
+
+/* ---------------------------------------------------------------------------
+   1. LENIS (smooth scroll) — Lenis injects no required CSS, but this keeps
+      scrollbars sane and prevents layout jump while it's active.
+--------------------------------------------------------------------------- */
+html.enh-lenis { scrollbar-gutter: stable; }
+html.enh-lenis.lenis, html.enh-lenis.lenis body { height: auto; }
+html.enh-lenis.lenis-smooth { scroll-behavior: auto !important; }
+html.enh-lenis.lenis-stopped { overflow: hidden; }
+
+/* ---------------------------------------------------------------------------
+   2/3. Perf + animation manager have no visual footprint of their own.
+--------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------
+   4. PHYSICS CURSOR
+--------------------------------------------------------------------------- */
+.enh-cursor-active, .enh-cursor-active * { cursor: none !important; }
+.enh-cursor-dot, .enh-cursor-ring {
+  position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999;
+  will-change: transform; transform: translate(-50%,-50%);
+}
+.enh-cursor-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--white); mix-blend-mode: difference;
+}
+.enh-cursor-ring {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid var(--enh-accent-soft);
+  transition: width var(--enh-dur-fast) var(--enh-ease-out),
+              height var(--enh-dur-fast) var(--enh-ease-out),
+              border-color var(--enh-dur-fast);
+}
+.enh-cursor-ring.is-hover { width: 52px; height: 52px; border-color: var(--enh-accent); }
+.enh-cursor-ring.is-down { width: 24px; height: 24px; }
+@media (hover: none), (pointer: coarse) { .enh-cursor-dot, .enh-cursor-ring { display: none !important; } .enh-cursor-active, .enh-cursor-active * { cursor: auto !important; } }
+
+/* ---------------------------------------------------------------------------
+   5. MAGNETIC BUTTONS
+--------------------------------------------------------------------------- */
+[data-magnetic] { display: inline-flex; will-change: transform; }
+[data-magnetic] > * { pointer-events: none; }
+
+/* ---------------------------------------------------------------------------
+   6. RIPPLE
+--------------------------------------------------------------------------- */
+[data-ripple] { position: relative; overflow: hidden; isolation: isolate; }
+.enh-ripple {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(255,255,255,0.35), rgba(255,255,255,0) 70%);
+  transform: scale(0); animation: enh-ripple-out .6s var(--enh-ease-out) forwards;
+}
+@keyframes enh-ripple-out { to { transform: scale(1); opacity: 0; } }
+
+/* ---------------------------------------------------------------------------
+   7. SPOTLIGHT (radial glow following cursor over a section/card)
+--------------------------------------------------------------------------- */
+[data-spotlight] { position: relative; isolation: isolate; }
+[data-spotlight]::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; opacity: 0;
+  pointer-events: none; border-radius: inherit;
+  background: radial-gradient(480px circle at var(--enh-x,50%) var(--enh-y,50%),
+              var(--enh-accent-soft), transparent 60%);
+  transition: opacity var(--enh-dur);
+}
+[data-spotlight]:hover::before { opacity: 1; }
+[data-spotlight] > * { position: relative; z-index: 1; }
+
+/* ---------------------------------------------------------------------------
+   9/10/11. TYPOGRAPHY — split reveal / text reveal / scramble
+--------------------------------------------------------------------------- */
+[data-split-reveal] .enh-char, [data-split-reveal] .enh-word {
+  display: inline-block; will-change: transform, opacity;
+}
+[data-text-reveal] {
+  position: relative; overflow: hidden; display: inline-block;
+}
+[data-text-reveal] .enh-reveal-mask {
+  display: inline-block; transform: translateY(110%);
+  will-change: transform;
+}
+[data-text-reveal].enh-in .enh-reveal-mask {
+  transform: translateY(0);
+  transition: transform var(--enh-dur-slow) var(--enh-ease);
+}
+[data-scramble] { font-variant-numeric: tabular-nums; }
+
+/* ---------------------------------------------------------------------------
+   12. 3D TILT
+--------------------------------------------------------------------------- */
+[data-tilt] { transform-style: preserve-3d; will-change: transform; transition: transform .15s var(--enh-ease-out); }
+[data-tilt] [data-tilt-layer] { transform: translateZ(20px); }
+
+/* ---------------------------------------------------------------------------
+   13. MOUSE LIGHTING on cards
+--------------------------------------------------------------------------- */
+[data-mouse-light] { position: relative; overflow: hidden; }
+[data-mouse-light]::after {
+  content: ""; position: absolute; inset: 0; opacity: 0; pointer-events: none;
+  background: radial-gradient(220px circle at var(--enh-x,50%) var(--enh-y,50%),
+              rgba(255,255,255,0.08), transparent 70%);
+  transition: opacity var(--enh-dur-fast);
+}
+[data-mouse-light]:hover::after { opacity: 1; }
+
+/* ---------------------------------------------------------------------------
+   14. STAGGERED REVEALS (new namespace — separate from your existing
+       .fade-in/.gx-reveal/.fx-reveal/.fx-scoped-reveal systems)
+--------------------------------------------------------------------------- */
+[data-enh-stagger] > * {
+  opacity: 0; transform: translateY(24px);
+  transition: opacity var(--enh-dur-slow) var(--enh-ease), transform var(--enh-dur-slow) var(--enh-ease);
+}
+[data-enh-stagger].enh-in > * { opacity: 1; transform: translateY(0); }
+
+/* ---------------------------------------------------------------------------
+   15. FLOATING
+--------------------------------------------------------------------------- */
+[data-float] { animation: enh-float 6s ease-in-out infinite; }
+[data-float="slow"] { animation-duration: 9s; }
+[data-float="fast"] { animation-duration: 4s; }
+@keyframes enh-float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ---------------------------------------------------------------------------
+   16-19. BACKGROUND LAYERS (particles / grid / noise / ambient)
+--------------------------------------------------------------------------- */
+.enh-bg-layer {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+}
+#enh-particles-canvas, #enh-grid-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.enh-noise-layer {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  opacity: 0.035; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.enh-ambient-layer {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+}
+.enh-ambient-blob {
+  position: absolute; width: 42vw; height: 42vw; max-width: 560px; max-height: 560px;
+  border-radius: 50%; filter: blur(90px); opacity: 0.16;
+  background: radial-gradient(circle, var(--enh-accent), transparent 70%);
+  will-change: transform;
+}
+
+/* ---------------------------------------------------------------------------
+   20. COMMAND PALETTE
+--------------------------------------------------------------------------- */
+.enh-cmdk-backdrop {
+  position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 12vh; opacity: 0; pointer-events: none;
+  transition: opacity var(--enh-dur-fast);
+}
+.enh-cmdk-backdrop.enh-open { opacity: 1; pointer-events: auto; }
+.enh-cmdk-panel {
+  width: min(560px, 90vw); max-height: 60vh; display: flex; flex-direction: column;
+  background: var(--surface, #0c0c0c); border: 1px solid var(--border);
+  border-radius: var(--radius-card, 16px); overflow: hidden;
+  transform: translateY(-12px) scale(.98); transition: transform var(--enh-dur-fast) var(--enh-ease-out);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.enh-cmdk-backdrop.enh-open .enh-cmdk-panel { transform: translateY(0) scale(1); }
+.enh-cmdk-input {
+  width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--border);
+  color: var(--white); font-family: var(--sans); font-size: 15px; padding: 16px 18px; outline: none;
+}
+.enh-cmdk-list { overflow-y: auto; padding: 8px; }
+.enh-cmdk-item {
+  padding: 10px 12px; border-radius: 10px; color: var(--gray, #a1a1aa);
+  font-family: var(--sans); font-size: 13px; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.enh-cmdk-item.enh-active, .enh-cmdk-item:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+.enh-cmdk-empty { padding: 24px; text-align: center; color: var(--gray-dim); font-family: var(--sans); font-size: 12px; }
+
+/* ---------------------------------------------------------------------------
+   21. TOASTS
+--------------------------------------------------------------------------- */
+.enh-toast-stack {
+  position: fixed; bottom: 20px; right: 20px; z-index: 10001;
+  display: flex; flex-direction: column; gap: 10px; max-width: min(360px, 90vw);
+}
+.enh-toast {
+  background: var(--surface, #111); border: 1px solid var(--border);
+  border-radius: 14px; padding: 12px 16px; color: var(--white);
+  font-family: var(--sans); font-size: 13px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  display: flex; align-items: center; gap: 10px;
+  transform: translateX(20px); opacity: 0;
+  animation: enh-toast-in var(--enh-dur) var(--enh-ease-out) forwards;
+}
+.enh-toast.enh-leaving { animation: enh-toast-out var(--enh-dur-fast) var(--enh-ease) forwards; }
+.enh-toast-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--enh-accent); }
+.enh-toast[data-type="success"] .enh-toast-dot { background: #4ade80; }
+.enh-toast[data-type="error"] .enh-toast-dot { background: #f87171; }
+@keyframes enh-toast-in { to { transform: translateX(0); opacity: 1; } }
+@keyframes enh-toast-out { to { transform: translateX(20px); opacity: 0; } }
+
+/* ---------------------------------------------------------------------------
+   22. POPUPS (generic — class-scoped as `enh-popup`, distinct from your
+       existing `ama-modal` family, so there's no selector collision)
+--------------------------------------------------------------------------- */
+.enh-popup-backdrop {
+  position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.6);
+  opacity: 0; pointer-events: none; transition: opacity var(--enh-dur-fast);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.enh-popup-backdrop.enh-open { opacity: 1; pointer-events: auto; }
+.enh-popup {
+  background: var(--surface, #0c0c0c); border: 1px solid var(--border);
+  border-radius: var(--radius-card, 20px); max-width: 460px; width: 100%;
+  padding: 24px; transform: scale(.96) translateY(8px); opacity: 0;
+  transition: transform var(--enh-dur) var(--enh-ease-out), opacity var(--enh-dur);
+}
+.enh-popup-backdrop.enh-open .enh-popup { transform: scale(1) translateY(0); opacity: 1; }
+
+/* ---------------------------------------------------------------------------
+   23. PROGRESS BAR
+--------------------------------------------------------------------------- */
+.enh-progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px; z-index: 10002;
+  background: linear-gradient(90deg, var(--enh-accent), var(--white));
+  width: 0%; transform-origin: left; pointer-events: none;
+}
+
+/* ---------------------------------------------------------------------------
+   24. DOCK NAVIGATION
+--------------------------------------------------------------------------- */
+.enh-dock {
+  position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+  z-index: 9000; display: flex; align-items: flex-end; gap: 6px;
+  padding: 10px 14px; border-radius: 999px;
+  background: rgba(12,12,12,0.6); border: 1px solid var(--border);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+html.light .enh-dock { background: rgba(240,240,248,0.7); }
+.enh-dock-item {
+  width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  color: var(--gray, #a1a1aa); cursor: pointer; will-change: transform;
+  transition: transform var(--enh-dur-fast) var(--enh-ease-out), color var(--enh-dur-fast), background var(--enh-dur-fast);
+}
+.enh-dock-item:hover, .enh-dock-item.enh-active { color: var(--white); background: rgba(255,255,255,0.08); }
+@media (hover: none), (pointer: coarse) { .enh-dock { bottom: 14px; padding: 8px 10px; } .enh-dock-item { width: 36px; height: 36px; } }
+
+/* ---------------------------------------------------------------------------
+   25/26. LOADER + PAGE TRANSITIONS (secondary, opt-in — only activates if
+   #enh-loader / #enh-transition exist in the DOM, so it never fights with
+   your existing #intro-overlay)
+--------------------------------------------------------------------------- */
+#enh-loader {
+  position: fixed; inset: 0; z-index: 10010; background: var(--bg, #000);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity var(--enh-dur-slow) var(--enh-ease), visibility var(--enh-dur-slow);
+}
+#enh-loader.enh-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.enh-loader-bar { width: 160px; height: 2px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden; border-radius: 2px; }
+.enh-loader-bar::after {
+  content: ""; position: absolute; inset: 0; width: var(--enh-progress, 0%);
+  background: var(--white); transition: width .2s var(--enh-ease-out);
+}
+#enh-transition-overlay {
+  position: fixed; inset: 0; z-index: 10009; background: var(--bg, #000);
+  transform: translateY(101%); pointer-events: none;
+}
+#enh-transition-overlay.enh-active { transition: transform var(--enh-dur) var(--enh-ease); transform: translateY(0); }
+#enh-transition-overlay.enh-out { transition: transform var(--enh-dur) var(--enh-ease); transform: translateY(-101%); }
+
+/* ---------------------------------------------------------------------------
+   28/29. ACCESSIBILITY + MOBILE TUNING
+--------------------------------------------------------------------------- */
+[class^="enh-"]:focus-visible, [class*=" enh-"]:focus-visible {
+  outline: 2px solid var(--enh-accent); outline-offset: 2px;
+}
+.enh-sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+@media (max-width: 768px) {
+  [data-tilt] { transform: none !important; }
+  .enh-ambient-blob { filter: blur(60px); opacity: 0.12; }
+}
