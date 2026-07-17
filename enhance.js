@@ -57,14 +57,32 @@
   const loadedScripts = new Map();
   function loadScript(src) {
     if (loadedScripts.has(src)) return loadedScripts.get(src);
-    const p = new Promise((resolve, reject) => {
+    const p = new Promise((resolve) => {
+      let settled = false;
       const s = document.createElement('script');
       s.src = src;
       s.async = true;
-      s.onload = () => resolve(true);
+      const timer = setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          console.warn('[Enhance] timeout loading', src);
+          resolve(false);
+        }
+      }, 4000);
+      s.onload = () => {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve(true);
+        }
+      };
       s.onerror = () => {
-        console.warn('[Enhance] failed to load', src);
-        resolve(false); // resolve, don't reject — keep boot resilient
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          console.warn('[Enhance] failed to load', src);
+          resolve(false);
+        }
       };
       document.head.appendChild(s);
     });
@@ -811,38 +829,32 @@
      BOOT SEQUENCE
      ========================================================================== */
   async function boot() {
-    const { gsap, ScrollTrigger, Lenis, SplitType } = await loadCore();
-
-    initLenis(gsap, Lenis);
-
-    // Cursor / interactions
+    // 1. Run all synchronous & pure DOM interactive effects immediately (no waiting on external CDNs)
     initPhysicsCursor();
     initMagnetic();
     initRipple();
     initSpotlight();
-
-    // Typography
-    initSplitReveal(gsap, SplitType);
-    initTextReveal();
-    initScramble();
-
-    // Cards & sections
     initTilt();
     initMouseLighting();
     initStaggerGroups();
-
-    // Background — only mounts if the matching container exists in the DOM
-    initParticles('#enh-particles');
-    initAnimatedGrid('#enh-grid');
+    initTextReveal();
+    initScramble();
     if (document.body.hasAttribute('data-enh-noise')) initNoise();
-    if (document.body.hasAttribute('data-enh-ambient')) initAmbientLighting();
-
-    // UI
     if (document.body.hasAttribute('data-enh-progress')) initProgressBar();
     initEnhanceLoader();
     initPageTransitions();
-
     manager.initAll();
+
+    // 2. Load external CDNs asynchronously for heavy animation engines
+    const { gsap, ScrollTrigger, Lenis, SplitType } = await loadCore();
+
+    // 3. Initialize features dependent on GSAP, SplitType, or Lenis
+    initLenis(gsap, Lenis);
+    initSplitReveal(gsap, SplitType);
+    initParticles('#enh-particles');
+    initAnimatedGrid('#enh-grid');
+    if (document.body.hasAttribute('data-enh-ambient')) initAmbientLighting();
+
     if (ScrollTrigger) ScrollTrigger.refresh();
 
     Enhance.ready = true;
