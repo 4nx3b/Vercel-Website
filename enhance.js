@@ -269,33 +269,33 @@
   }
 
   /* ---- Magnetic buttons ---- */
-  function initMagnetic(selector = '[data-magnetic]') {
+  function initMagnetic(selector = '[data-magnetic], .tb-icon-btn, .btn, .gx-chip, .picon, #theme-toggle-btn') {
     if (env.isTouch || env.reducedMotion) return;
-    document.querySelectorAll(selector).forEach((el) => {
-      const strength = parseFloat(el.dataset.magneticStrength) || 0.35;
-      let raf = null;
-      el.addEventListener('pointermove', (e) => {
+    document.addEventListener('pointermove', (e) => {
+      const el = e.target.closest && e.target.closest(selector);
+      if (el) {
+        const strength = parseFloat(el.dataset.magneticStrength) || 0.3;
         const r = el.getBoundingClientRect();
         const dx = (e.clientX - (r.left + r.width / 2)) * strength;
         const dy = (e.clientY - (r.top + r.height / 2)) * strength;
-        if (raf) cancelAnimationFrame(raf);
-        raf = requestAnimationFrame(() => {
-          el.style.transform = `translate(${dx}px, ${dy}px)`;
-        });
-      });
-      el.addEventListener('pointerleave', () => {
-        if (raf) cancelAnimationFrame(raf);
+        el.style.transform = `translate(${dx}px, ${dy}px)`;
+      }
+    }, { passive: true });
+    document.addEventListener('pointerout', (e) => {
+      const el = e.target.closest && e.target.closest(selector);
+      if (el && (!e.relatedTarget || !el.contains(e.relatedTarget))) {
         el.style.transition = 'transform .4s cubic-bezier(.22,1,.36,1)';
-        el.style.transform = 'translate(0,0)';
+        el.style.transform = '';
         setTimeout(() => (el.style.transition = ''), 400);
-      });
+      }
     });
   }
 
   /* ---- Ripple ---- */
-  function initRipple(selector = '[data-ripple]') {
-    document.querySelectorAll(selector).forEach((el) => {
-      el.addEventListener('pointerdown', (e) => {
+  function initRipple(selector = '[data-ripple], .tb-icon-btn, .btn, .gx-chip, .skill-tab, .anilist-tab, .rom-dl-btn, .rom-support-btn, .picon, #theme-toggle-btn') {
+    document.addEventListener('pointerdown', (e) => {
+      const el = e.target.closest && e.target.closest(selector);
+      if (el) {
         const r = el.getBoundingClientRect();
         const size = Math.max(r.width, r.height) * 1.6;
         const span = document.createElement('span');
@@ -305,23 +305,25 @@
         span.style.top = e.clientY - r.top - size / 2 + 'px';
         el.appendChild(span);
         span.addEventListener('animationend', () => span.remove());
-      });
+      }
     });
   }
 
   /* ---- Spotlight (radial glow tracking cursor) ---- */
-  function initSpotlight(selector = '[data-spotlight]') {
+  function initSpotlight(selector = '[data-spotlight], .gx-welcome-card, .rom-card, .interest-card, .media-panel, .lastfm-stats-header, .project-card, .gx-widget-card, footer') {
     if (env.isTouch) return;
-    document.querySelectorAll(selector).forEach((el) => {
-      el.addEventListener(
-        'pointermove',
-        utils.rafThrottle((e) => {
+    document.addEventListener(
+      'pointermove',
+      utils.rafThrottle((e) => {
+        const el = e.target.closest && e.target.closest(selector);
+        if (el) {
           const r = el.getBoundingClientRect();
           el.style.setProperty('--enh-x', e.clientX - r.left + 'px');
           el.style.setProperty('--enh-y', e.clientY - r.top + 'px');
-        })
-      );
-    });
+        }
+      }),
+      { passive: true }
+    );
   }
 
   /* ==========================================================================
@@ -426,19 +428,23 @@
      ========================================================================== */
 
   /* ---- 3D tilt ---- */
-  function initTilt(selector = '[data-tilt]') {
+  function initTilt(selector = '[data-tilt], .gx-welcome-card, .rom-card, .interest-card, .media-panel, .lastfm-stats-header, .project-card, .gx-widget-card') {
     if (env.isTouch || env.reducedMotion) return;
-    document.querySelectorAll(selector).forEach((el) => {
-      const max = parseFloat(el.dataset.tiltMax) || 10;
-      el.addEventListener('pointermove', (e) => {
+    document.addEventListener('pointermove', (e) => {
+      const el = e.target.closest && e.target.closest(selector);
+      if (el) {
+        const max = parseFloat(el.dataset.tiltMax) || 5;
         const r = el.getBoundingClientRect();
         const px = (e.clientX - r.left) / r.width - 0.5;
         const py = (e.clientY - r.top) / r.height - 0.5;
-        el.style.transform = `perspective(800px) rotateX(${(-py * max).toFixed(2)}deg) rotateY(${(px * max).toFixed(2)}deg)`;
-      });
-      el.addEventListener('pointerleave', () => {
-        el.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg)';
-      });
+        el.style.transform = `perspective(1000px) rotateX(${(-py * max).toFixed(2)}deg) rotateY(${(px * max).toFixed(2)}deg) translateY(-4px) scale(1.01)`;
+      }
+    }, { passive: true });
+    document.addEventListener('pointerout', (e) => {
+      const el = e.target.closest && e.target.closest(selector);
+      if (el && (!e.relatedTarget || !el.contains(e.relatedTarget))) {
+        el.style.transform = '';
+      }
     });
   }
 

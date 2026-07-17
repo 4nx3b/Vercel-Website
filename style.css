@@ -11211,3 +11211,72 @@ html.light body .gx-profile-pill {
   border: 1.5px solid rgba(60, 55, 115, 0.22) !important;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12) !important;
 }
+
+/* ===== USER REQUEST 2026-07-18: DARK MODE WELCOME BOX GLASS & CARD HOVER ANIMATIONS ===== */
+html:not(.light) .gx-welcome-card {
+  background: rgba(20, 20, 28, 0.46) !important;
+  backdrop-filter: blur(36px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(36px) saturate(180%) !important;
+  border-color: rgba(230, 226, 203, 0.20) !important;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38) !important;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.4s ease, box-shadow 0.4s ease, background-color 0.4s ease !important;
+}
+
+html:not(.light) .media-panel,
+html:not(.light) .lastfm-stats-header,
+html:not(.light) .rom-card,
+html:not(.light) .interest-card,
+html:not(.light) .project-card,
+html:not(.light) .gx-widget-card,
+html:not(.light) .gx-quote-card,
+html:not(.light) .contact-form-wrap,
+html:not(.light) footer {
+  background: rgba(23, 23, 30, 0.52) !important;
+  backdrop-filter: blur(32px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(150%) !important;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.4s ease, box-shadow 0.4s ease !important;
+}
+
+/* Card hover lift & glow */
+.gx-welcome-card:hover,
+.rom-card:hover,
+.interest-card:hover,
+.media-panel:hover,
+.lastfm-stats-header:hover,
+.project-card:hover,
+.gx-widget-card:hover,
+.gx-quote-card:hover,
+.contact-form-wrap:hover,
+footer:hover {
+  transform: translateY(-6px) scale(1.012) !important;
+  border-color: rgba(139, 123, 255, 0.55) !important;
+  box-shadow: 0 32px 85px rgba(0, 0, 0, 0.48), 0 0 36px rgba(139, 123, 255, 0.18) !important;
+}
+
+html.light .gx-welcome-card:hover,
+html.light .rom-card:hover,
+html.light .interest-card:hover,
+html.light .media-panel:hover,
+html.light .lastfm-stats-header:hover,
+html.light .project-card:hover,
+html.light .gx-widget-card:hover,
+html.light .gx-quote-card:hover,
+html.light .contact-form-wrap:hover,
+html.light footer:hover {
+  border-color: rgba(109, 79, 255, 0.45) !important;
+  box-shadow: 0 28px 75px rgba(60, 55, 115, 0.22), 0 0 32px rgba(109, 79, 255, 0.15) !important;
+}
+
+/* Interactive button & icon hover depth */
+.gx-chip:hover,
+.rom-dl-btn:hover,
+.rom-support-btn:hover,
+.btn:hover,
+.tb-icon-btn:hover,
+.skill-tab:hover,
+.anilist-tab:hover,
+.picon:hover {
+  transform: translateY(-3px) scale(1.04) !important;
+  border-color: rgba(139, 123, 255, 0.6) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3), 0 0 18px rgba(139, 123, 255, 0.22) !important;
+}

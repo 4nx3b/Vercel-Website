@@ -1422,15 +1422,18 @@ document.addEventListener('click', function(e){
       if(a[2]) links=a[2].getAttribute('href')||links;
       const card=document.createElement('div');
       card.className='gx-welcome-card';
+      card.setAttribute('data-spotlight', '');
+      card.setAttribute('data-tilt', '');
+      card.setAttribute('data-tilt-max', '4');
       card.innerHTML=`
         <div class="gx-kicker">welcome</div>
         <div class="gx-intro-text">Hi, I'm <strong>therealreze</strong>. I build Android root modules, custom ROMs, and small experiments around anime, music, and systems that should probably not be touched but absolutely will be.</div>
         <div class="gx-mail">asaxxhiii@gmail.com</div>
         <div class="gx-hero-actions">
-          <a class="gx-chip round" href="${github}" target="_blank" rel="noopener" aria-label="GitHub">⌘</a>
-          <div class="gx-note-pill"><span>note&nbsp;&nbsp; now</span><span>|</span><em>root, roms, modules</em></div>
-          <a class="gx-chip" href="${project}" onclick="scrollToSection(event,'projects')">About me</a>
-          <a class="gx-chip" href="${links}" target="_blank" rel="noopener">Links</a>
+          <a class="gx-chip round" data-magnetic data-ripple href="${github}" target="_blank" rel="noopener" aria-label="GitHub">⌘</a>
+          <div class="gx-note-pill" data-ripple><span>note&nbsp;&nbsp; now</span><span>|</span><em>root, roms, modules</em></div>
+          <a class="gx-chip" data-magnetic data-ripple href="${project}" onclick="scrollToSection(event,'projects')">About me</a>
+          <a class="gx-chip" data-magnetic data-ripple href="${links}" target="_blank" rel="noopener">Links</a>
         </div>`;
       hero.appendChild(card);
     }
@@ -3327,6 +3330,7 @@ document.addEventListener('click', function(e){
     });
     const refresh=$('ama-public-refresh');
     if(refresh){
+      refresh.setAttribute('type', 'button');
       refresh.style.setProperty('margin','0','important');
       refresh.style.setProperty('float','none','important');
       refresh.style.setProperty('clear','both','important');
@@ -3871,10 +3875,15 @@ document.addEventListener('click', function(e){
     // Public refresh button (icon-only, right aligned)
     const pubRefresh=$('ama-public-refresh');
     if(pubRefresh){
+      pubRefresh.setAttribute('type', 'button');
       setRefreshIcon(pubRefresh); polishAmaLayout();
-      pubRefresh.addEventListener('click', ()=>{
+      pubRefresh.addEventListener('click', (e)=>{
+        if(e){ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
         setRefreshIcon(pubRefresh); pubRefresh.disabled=true;
         loadPublic().finally(()=>{ setRefreshIcon(pubRefresh); pubRefresh.disabled=false; });
+      });
+      pubRefresh.addEventListener('pointerdown', (e)=>{
+        if(e){ e.stopPropagation(); }
       });
     }
 
