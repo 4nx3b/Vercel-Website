@@ -1,0 +1,9 @@
+# Firebase Auth redirect proxy for Google sign-in on Netlify
+# Required because Firebase redirect auth can fail when authDomain is *.firebaseapp.com
+# while the actual site is on *.netlify.app.
+
+[[redirects]]
+  from = "/__/auth/*"
+  to = "https://therealreze-2a3bf.firebaseapp.com/__/auth/:splat"
+  status = 200
+  force = true

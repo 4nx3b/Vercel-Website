@@ -1,0 +1,7 @@
+name = "vercel-website-ama"
+compatibility_date = "2026-06-29"
+pages_build_output_dir = "."
+
+[[kv_namespaces]]
+binding = "AMA_KV"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
