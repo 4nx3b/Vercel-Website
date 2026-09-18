@@ -26,6 +26,9 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 96px;
+  /* reserves scrollbar space so opening/closing the mobile menu or
+     navigating to anchors never causes a horizontal layout shift */
+  scrollbar-gutter: stable;
   /* guards against horizontal panning on iOS/Android (bug fix, not visual):
      clip is the modern fix (clips fixed descendants, no scroll container) */
   overflow-x: hidden;
@@ -110,7 +113,12 @@ body {
 
 /* ---------- motion ---------- */
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-.marquee-track { animation: marquee var(--marquee-dur, 36s) linear infinite; }
+.marquee-track {
+  animation: marquee var(--marquee-dur, 36s) linear infinite;
+  /* hoists the animating track onto its own compositor layer for a
+     smoother, jank-free infinite scroll */
+  will-change: transform;
+}
 .marquee-track:hover { animation-play-state: paused; }
 
 @keyframes blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }

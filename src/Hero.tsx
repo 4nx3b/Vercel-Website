@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { HERO_CHIPS, HERO_COPY, HERO_STATS, PHOTOS, TERMINAL_LINES, TICKER_TOOLS } from "./data";
 import { useClock, useCountUp, useInView, useScramble, useTypedLines } from "./hooks";
 import { ButtonGhost, ButtonPrimary, LineReveal, Marquee, Reveal } from "./ui";
@@ -75,6 +75,10 @@ export default function Hero() {
   const ist = useClock("Asia/Kolkata");
   const spotRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
+  const spotRaf = useRef(0);
+
+  // cancel any in-flight spotlight frame on unmount
+  useEffect(() => () => cancelAnimationFrame(spotRaf.current), []);
 
   return (
     <section
@@ -82,11 +86,17 @@ export default function Hero() {
       ref={heroRef}
       className="relative overflow-hidden"
       onMouseMove={(e) => {
-        // spotlight via direct style writes — a setState here re-rendered
-        // the whole Hero on every mousemove frame
-        const r = heroRef.current?.getBoundingClientRect();
-        if (!r || !spotRef.current) return;
-        spotRef.current.style.background = `radial-gradient(640px circle at ${((e.clientX - r.left) / r.width) * 100}% ${((e.clientY - r.top) / r.height) * 100}%, rgba(200,240,79,0.075), transparent 62%)`;
+        // spotlight via direct style writes, rAF-throttled — at most one
+        // paint per frame, and getBoundingClientRect runs inside the
+        // frame callback instead of on every mousemove event
+        if (spotRaf.current) return;
+        const { clientX, clientY } = e;
+        spotRaf.current = requestAnimationFrame(() => {
+          spotRaf.current = 0;
+          const r = heroRef.current?.getBoundingClientRect();
+          if (!r || !spotRef.current) return;
+          spotRef.current.style.background = `radial-gradient(640px circle at ${((clientX - r.left) / r.width) * 100}% ${((clientY - r.top) / r.height) * 100}%, rgba(200,240,79,0.075), transparent 62%)`;
+        });
       }}
     >
       <div className="grid-lines pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_75%_65%_at_50%_35%,black,transparent)]" aria-hidden />
