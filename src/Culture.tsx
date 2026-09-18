@@ -26,7 +26,12 @@ function MusicSection() {
 
   return (
     <section id="music" ref={ref} className="relative border-t border-line py-24 md:py-32">
-      <div className="pointer-events-none absolute left-0 top-24 h-[420px] w-[420px] rounded-full bg-skyy/[0.05] blur-[110px]" aria-hidden />
+      {/* glow in a clip wrapper — keeps the 420px bleed from feeding the
+          document's horizontal scrollable overflow; the on-screen paint
+          is unchanged (anything past the section edge is off-viewport) */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div className="absolute left-0 top-24 h-[420px] w-[420px] rounded-full bg-skyy/[0.05] blur-[110px]" />
+      </div>
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <SectionHead
           index="06"

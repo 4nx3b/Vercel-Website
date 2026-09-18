@@ -37,7 +37,7 @@ export default function Work() {
           kicker="work · selected releases"
           title={
             <>
-              Shipped to real devices —<br className="hidden md:block" /> and still <span className="text-lime">compounding.</span>
+              Shipped to real devices —<br className="hidden md:block" /> and still <span className="text-lime">com&shy;pounding.</span>
             </>
           }
           note="Every build below is named, dated and reproducible. No vapor, no private-mirror mystique."

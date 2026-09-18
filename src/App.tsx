@@ -36,7 +36,9 @@ export default function App() {
 
       <Footer />
 
-      <div className="noise-layer" aria-hidden />
+      <div className="noise-wrap" aria-hidden>
+        <div className="noise-layer" />
+      </div>
     </div>
   );
 }

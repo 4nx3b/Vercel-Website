@@ -122,7 +122,7 @@ export default function Hero() {
               </p>
             </Reveal>
 
-            <h1 className="mt-7 font-display text-[clamp(2.7rem,8.5vw,6.2rem)] font-extrabold uppercase leading-[0.95] tracking-[-0.02em] text-snow">
+            <h1 className="mt-7 font-display text-[min(2.7rem,9vw)] sm:text-[clamp(2.7rem,8.5vw,6.2rem)] font-extrabold uppercase leading-[0.95] tracking-[-0.02em] text-snow">
               <LineReveal delay={100}>We root</LineReveal>
               <LineReveal delay={220}>
                 <span className="whitespace-nowrap text-lime" aria-label={WORDS.join(", ")}>
