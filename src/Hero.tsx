@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { HERO_CHIPS, HERO_COPY, HERO_STATS, PHOTOS, TERMINAL_LINES, TICKER_TOOLS } from "./data";
 import { useClock, useCountUp, useInView, useScramble, useTypedLines } from "./hooks";
 import { ButtonGhost, ButtonPrimary, LineReveal, Marquee, Reveal } from "./ui";
@@ -14,9 +14,10 @@ function lineColor(line: string) {
 
 function Terminal() {
   const lines = useMemo(() => TERMINAL_LINES, []);
-  const { done, current } = useTypedLines(lines);
+  const { ref, inView } = useInView<HTMLDivElement>();
+  const { done, current } = useTypedLines(lines, 26, 420, 3400, inView);
   return (
-    <div className="relative border border-line bg-ink-850/90 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)] backdrop-blur-sm">
+    <div ref={ref} className="relative border border-line bg-ink-850/90 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
       <div className="flex items-center justify-between border-b border-line px-4 py-3">
         <div className="flex items-center gap-2" aria-hidden>
           <span className="h-2.5 w-2.5 rounded-full bg-coral/80" />
@@ -69,9 +70,10 @@ function Stat({ value, suffix, label, delay }: { value: number; suffix: string; 
 }
 
 export default function Hero() {
-  const word = useScramble(WORDS, 2400);
+  const { ref: headRef, inView: headIn } = useInView<HTMLDivElement>();
+  const word = useScramble(WORDS, 2400, headIn);
   const ist = useClock("Asia/Kolkata");
-  const [spot, setSpot] = useState({ x: 50, y: 40 });
+  const spotRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -80,15 +82,18 @@ export default function Hero() {
       ref={heroRef}
       className="relative overflow-hidden"
       onMouseMove={(e) => {
+        // spotlight via direct style writes — a setState here re-rendered
+        // the whole Hero on every mousemove frame
         const r = heroRef.current?.getBoundingClientRect();
-        if (!r) return;
-        setSpot({ x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 });
+        if (!r || !spotRef.current) return;
+        spotRef.current.style.background = `radial-gradient(640px circle at ${((e.clientX - r.left) / r.width) * 100}% ${((e.clientY - r.top) / r.height) * 100}%, rgba(200,240,79,0.075), transparent 62%)`;
       }}
     >
       <div className="grid-lines pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_75%_65%_at_50%_35%,black,transparent)]" aria-hidden />
       <div
-        className="pointer-events-none absolute inset-0 transition-opacity duration-700"
-        style={{ background: `radial-gradient(640px circle at ${spot.x}% ${spot.y}%, rgba(200,240,79,0.075), transparent 62%)` }}
+        ref={spotRef}
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "radial-gradient(640px circle at 50% 40%, rgba(200,240,79,0.075), transparent 62%)" }}
         aria-hidden
       />
       <div className="glow-breathe pointer-events-none absolute -top-40 right-[-10%] h-[560px] w-[560px] rounded-full bg-lime/[0.05] blur-[120px]" aria-hidden />
@@ -97,7 +102,7 @@ export default function Hero() {
       <div className="relative mx-auto max-w-7xl px-5 pb-16 pt-14 sm:px-8 md:pb-24 md:pt-20">
         <div className="grid items-center gap-14 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
           {/* left — statement */}
-          <div>
+          <div ref={headRef}>
             <Reveal>
               <p className="flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-[0.3em] text-fog">
                 <span className="border border-line bg-ink-850/80 px-3 py-1.5 text-mint">Android root specialist</span>

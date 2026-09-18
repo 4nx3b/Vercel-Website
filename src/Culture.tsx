@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, Music2, Pause, Play, Volume2 } from "lucide-react";
 import { ANIME, INTERESTS, MUSIC } from "./data";
-import { useClock } from "./hooks";
+import { useClock, useInView } from "./hooks";
 import { Reveal, SectionHead } from "./ui";
 import { cn } from "./utils/cn";
 
@@ -15,15 +15,17 @@ function MusicSection() {
   const [playing, setPlaying] = useState(true);
   const [progress, setProgress] = useState(18);
   const [vol, setVol] = useState(MUSIC.now.vol);
+  const { ref, inView } = useInView<HTMLDivElement>();
 
   useEffect(() => {
-    if (!playing) return;
+    // only tick while visible — this interval re-rendered 8×/s forever
+    if (!playing || !inView) return;
     const iv = setInterval(() => setProgress((p) => (p >= 100 ? 0 : p + 0.25)), 120);
     return () => clearInterval(iv);
-  }, [playing]);
+  }, [playing, inView]);
 
   return (
-    <section id="music" className="relative border-t border-line py-24 md:py-32">
+    <section id="music" ref={ref} className="relative overflow-hidden border-t border-line py-24 md:py-32">
       <div className="pointer-events-none absolute left-0 top-24 h-[420px] w-[420px] rounded-full bg-skyy/[0.05] blur-[110px]" aria-hidden />
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <SectionHead

@@ -81,7 +81,7 @@ function MeanScoreCard() {
         </svg>
         <span className="absolute inset-0 flex items-center justify-center font-display text-xl font-extrabold text-snow">{n.toFixed(1)}</span>
       </div>
-      <div>
+      <div className="min-w-0">
         <p className="font-mono text-[11px] uppercase tracking-[0.26em] text-mint">mean score / 100</p>
         <p className="mt-2 text-[15px] leading-relaxed text-fog">
           Not everything gets a 90. The ones that do, <span className="text-snow">get rewatched</span> — same as a ROM worth keeping.
@@ -121,7 +121,7 @@ export default function Proof() {
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center border border-line text-lime transition-all duration-500 group-hover:border-lime/50 group-hover:bg-lime group-hover:text-ink-900">
                     <Icon className="h-6 w-6" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <h3 className="font-display text-lg font-bold uppercase tracking-tight text-snow">{b.title}</h3>
                     <p className="mt-2 text-sm leading-relaxed text-fog">{b.desc}</p>
                   </div>

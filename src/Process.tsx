@@ -67,7 +67,10 @@ function StepCard({ step, i, isLast }: { step: (typeof PROCESS_STEPS)[number]; i
 export default function Process() {
   return (
     <section id="process" className="relative border-t border-line py-24 md:py-32">
-      <div className="pointer-events-none absolute right-0 top-24 h-[420px] w-[420px] rounded-full bg-mint/[0.04] blur-[110px]" aria-hidden />
+      {/* glow wrapped in a clip layer — section-level overflow-hidden would break the sticky column below */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div className="absolute right-0 top-24 h-[420px] w-[420px] rounded-full bg-mint/[0.04] blur-[110px]" />
+      </div>
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <div className="grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
           <div className="lg:sticky lg:top-32 lg:self-start">

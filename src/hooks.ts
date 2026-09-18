@@ -56,32 +56,35 @@ export function useInView<T extends HTMLElement>(threshold = 0.18, rootMargin = 
 
 const GLYPHS = "!<>-_\\/[]{}—=+*^?#______01345789";
 
-/** Scramble-decode text animation, cycling through phrases. */
-export function useScramble(words: string[], holdMs = 2600) {
+/** Scramble-decode text animation, cycling through phrases.
+ *  `enabled` gates the loop (pass the element's inView state) — otherwise
+ *  this runs a rAF + re-render every frame forever, even scrolled away. */
+export function useScramble(words: string[], holdMs = 2600, enabled = true) {
   const reduced = usePrefersReducedMotion();
   const [text, setText] = useState(words[0]);
   const idx = useRef(0);
 
   useEffect(() => {
-    if (reduced || words.length <= 1) {
-      setText(words[0]);
+    if (reduced || words.length <= 1 || !enabled) {
+      setText(words[idx.current]);
       return;
     }
     let frame = 0;
     let raf = 0;
-    let hold = 0;
+    let holdTimer: ReturnType<typeof setTimeout> | undefined;
     let phase: "scramble" | "hold" = "scramble";
-    let from = words[0];
-    let to = words[1 % words.length];
+    let from = words[idx.current];
+    let to = words[idx.current];
+
+    const textRef = { current: words[idx.current] };
 
     const scrambleTo = (next: string) => {
       from = textRef.current;
       to = next;
       frame = 0;
       phase = "scramble";
+      raf = requestAnimationFrame(tick);
     };
-
-    const textRef = { current: words[0] };
 
     const tick = () => {
       if (phase === "scramble") {
@@ -102,24 +105,24 @@ export function useScramble(words: string[], holdMs = 2600) {
           textRef.current = to;
           setText(to);
           phase = "hold";
-          hold = 0;
+          // during hold: no rAF at all — a timer resumes the loop
+          holdTimer = setTimeout(() => {
+            idx.current = (idx.current + 1) % words.length;
+            scrambleTo(words[idx.current]);
+          }, holdMs);
+          return;
         }
-      } else {
-        hold += 16;
-        if (hold >= holdMs) {
-          idx.current = (idx.current + 1) % words.length;
-          scrambleTo(words[idx.current]);
-        }
+        raf = requestAnimationFrame(tick);
       }
-      raf = requestAnimationFrame(tick);
     };
 
-    // initial decode from glyphs into the first word
-    scrambleTo(words[0]);
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    scrambleTo(words[idx.current]);
+    return () => {
+      cancelAnimationFrame(raf);
+      if (holdTimer) clearTimeout(holdTimer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reduced, words.join("|"), holdMs]);
+  }, [reduced, enabled, words.join("|"), holdMs]);
 
   return text;
 }
@@ -148,16 +151,15 @@ export function useCountUp(target: number, start: boolean, duration = 1600, deci
   return value;
 }
 
-/** Terminal typing effect across multiple lines, loops. */
-export function useTypedLines(lines: string[], speed = 26, pauseBetween = 420, holdEnd = 3400) {
+/** Terminal typing effect across multiple lines, loops.
+ *  `enabled` gates the loop (pass inView) so it stops re-rendering
+ *  ~30×/s once the terminal has scrolled out of the viewport. */
+export function useTypedLines(lines: string[], speed = 26, pauseBetween = 420, holdEnd = 3400, enabled = true) {
   const reduced = usePrefersReducedMotion();
   const [state, setState] = useState<{ done: string[]; current: string }>({ done: [], current: "" });
 
   useEffect(() => {
-    if (reduced) {
-      setState({ done: lines, current: "" });
-      return;
-    }
+    if (reduced || !enabled) return; // keep current state, stop the loop
     let li = 0;
     let ci = 0;
     let cancelled = false;
@@ -194,32 +196,39 @@ export function useTypedLines(lines: string[], speed = 26, pauseBetween = 420, h
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [lines, speed, pauseBetween, holdEnd, reduced]);
+  }, [lines, speed, pauseBetween, holdEnd, reduced, enabled]);
 
   return state;
 }
 
-/** Scroll progress of the whole page, 0..1 (rAF-throttled). */
-export function useScrollProgress() {
-  const [p, setP] = useState(0);
+/** Scroll progress of the whole page, 0..1 — imperatively.
+ *  Returns a ref for the progress bar element; updates style.width directly
+ *  in a rAF so scrolling never re-renders React (the old state version
+ *  re-rendered the whole nav every scroll frame). */
+export function useScrollProgressRef() {
+  const ref = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     let raf = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const h = document.documentElement;
-        const max = h.scrollHeight - h.clientHeight;
-        setP(max > 0 ? h.scrollTop / max : 0);
-      });
+    const apply = () => {
+      raf = 0;
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      const p = max > 0 ? h.scrollTop / max : 0;
+      if (ref.current) ref.current.style.width = `${(p * 100).toFixed(2)}%`;
     };
-    onScroll();
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(apply);
+    };
+    apply();
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
       cancelAnimationFrame(raf);
     };
   }, []);
-  return p;
+  return ref;
 }
 
 /** Live clock string for a timezone label. */

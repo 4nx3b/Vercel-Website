@@ -7,6 +7,7 @@ import Process from "./Process";
 import Proof from "./Proof";
 import Culture from "./Culture";
 import Playground from "./Playground";
+import Ask from "./Ask";
 import Footer from "./Footer";
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
         <Proof />
         <Culture />
         <Playground />
+        <Ask />
       </main>
 
       <Footer />

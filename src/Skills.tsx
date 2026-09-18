@@ -104,9 +104,9 @@ export default function Skills() {
                 </span>
 
                 <span className="min-w-0">
-                  <span className="flex items-center gap-3">
+                  <span className="flex min-w-0 items-center gap-3">
                     <span className="text-lg" aria-hidden>{c.icon}</span>
-                    <span className="block font-display text-2xl font-bold uppercase tracking-tight text-snow transition-all duration-500 group-hover:translate-x-2 group-hover:text-lime sm:text-3xl">
+                    <span className="block min-w-0 break-words font-display text-2xl font-bold uppercase tracking-tight text-snow transition-all duration-500 group-hover:translate-x-2 group-hover:text-lime sm:text-3xl">
                       {c.name}
                     </span>
                   </span>
@@ -116,7 +116,7 @@ export default function Skills() {
                 </span>
 
                 <span className="flex items-center gap-5">
-                  <span className={cn("border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors duration-300", active === i ? "border-lime/40 text-lime" : "border-line text-fog-dim")}>
+                  <span className={cn("hidden min-[420px]:inline-block border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors duration-300", active === i ? "border-lime/40 text-lime" : "border-line text-fog-dim")}>
                     {c.cat}
                   </span>
                   <svg
