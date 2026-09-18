@@ -51,14 +51,12 @@ export default function Nav() {
 
       <header
         className={cn(
-          "sticky top-0 z-50 transition-colors duration-500",
-          // no backdrop-blur: a blurred sticky bar forces the GPU to re-blur
-          // the whole scrolled page every frame — the #1 mobile jank source
-          scrolled ? "border-b border-line bg-ink-900/95" : "border-b border-transparent bg-transparent"
+          "sticky top-0 z-50 transition-all duration-500",
+          scrolled ? "border-b border-line bg-ink-900/85 backdrop-blur-md" : "border-b border-transparent bg-transparent"
         )}
       >
         <div className="absolute inset-x-0 top-0 h-[2px] bg-transparent" aria-hidden>
-          <div ref={progressRef} className="h-full w-0 bg-gradient-to-r from-lime via-mint to-skyy" />
+          <div ref={progressRef} className="h-full w-0 bg-gradient-to-r from-lime via-mint to-skyy transition-[width] duration-150 ease-out" />
         </div>
 
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8" aria-label="Primary">

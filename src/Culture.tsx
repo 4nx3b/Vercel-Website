@@ -25,7 +25,7 @@ function MusicSection() {
   }, [playing, inView]);
 
   return (
-    <section id="music" ref={ref} className="relative overflow-hidden border-t border-line py-24 md:py-32">
+    <section id="music" ref={ref} className="relative border-t border-line py-24 md:py-32">
       <div className="pointer-events-none absolute left-0 top-24 h-[420px] w-[420px] rounded-full bg-skyy/[0.05] blur-[110px]" aria-hidden />
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <SectionHead

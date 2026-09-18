@@ -24,11 +24,9 @@
 }
 
 html {
-  /* no scroll-behavior:smooth — native smooth needs 1.6s+ over this page
-     height and gets cancelled mid-flight on mobile. Jumps are instant;
-     scroll-padding still clears the sticky header. */
+  scroll-behavior: smooth;
   scroll-padding-top: 96px;
-  /* belt + suspenders against horizontal panning on iOS/Android:
+  /* guards against horizontal panning on iOS/Android (bug fix, not visual):
      clip is the modern fix (clips fixed descendants, no scroll container) */
   overflow-x: hidden;
   overflow-x: clip;
@@ -54,15 +52,14 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: var(--color-lime-deep); }
 
 /* ---------- textures ---------- */
-/* inset:0 instead of inset:-50%/200% — a 4×-viewport fixed layer was the
-   horizontal-pan source on mobile and quadrupled compositing cost. The
-   fractal noise tiles seamlessly (stitchTiles), so small translates stay
-   invisible at 100% size. */
+/* full 200% grain layer as designed — the ±4-5% grain translates pan
+   within the -50% bleed without exposing edges. Contained horizontally
+   by the html-level overflow-x clip above (no pan, same paint). */
 .noise-layer {
   position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
   z-index: 90;
   pointer-events: none;
   opacity: 0.05;
@@ -91,26 +88,23 @@ body {
 }
 
 /* ---------- reveal system ---------- */
-/* Snappier + calmer: 16px/0.55s reads as a quick settle, not text
-   repositioning itself mid-scroll. No will-change — dozens of permanent
-   composited layers was exploding memory on mobile. */
 .rv {
   opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(26px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .rv.rv-on { opacity: 1; transform: none; }
-.rv-left { transform: translateX(-20px); }
-.rv-right { transform: translateX(20px); }
-.rv-scale { transform: scale(0.96); }
+.rv-left { transform: translateX(-32px); }
+.rv-right { transform: translateX(32px); }
+.rv-scale { transform: scale(0.94); }
 .rv-left.rv-on, .rv-right.rv-on, .rv-scale.rv-on { transform: none; }
 
 .line-mask { overflow: hidden; display: block; }
 .line-mask > span {
   display: block;
   transform: translateY(110%);
-  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .line-mask.rv-on > span { transform: translateY(0); }
 
@@ -214,18 +208,6 @@ body {
 /* grid/flex children must shrink (and wrap) instead of overflowing the
    viewport on narrow screens — the classic min-width:auto blowout */
 .grid > * { min-width: 0; }
-
-/* ---------- perf: decorative infinite animations off on touch/mobile ----------
-   Big blurred glows, ken-burns images and floating cards animating forever
-   are the classic mid-range Android scroll-jank combo. Marquees, pulse dots
-   and eq bars stay (tiny, transform-only, or user-triggered). */
-@media (max-width: 1023px) {
-  .glow-breathe,
-  .floaty,
-  .kenburns,
-  .spin-slow,
-  .scanline::after { animation: none; }
-}
 
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {

@@ -625,7 +625,7 @@ export default function Ask() {
   return (
     <section id="ask" className="relative overflow-hidden border-t border-line py-24 md:py-32">
       <div className="grid-lines pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_70%_70%_at_50%_40%,black,transparent)]" aria-hidden />
-      <div className="glow-breathe pointer-events-none absolute left-1/2 top-1/2 h-[420px] w-[720px] max-w-none -translate-x-1/2 -translate-y-1/2 rounded-full bg-lime/[0.05] blur-[120px]" aria-hidden />
+      <div className="glow-breathe pointer-events-none absolute left-1/2 top-1/2 h-[480px] w-[760px] max-w-none -translate-x-1/2 -translate-y-1/2 rounded-full bg-lime/[0.06] blur-[130px]" aria-hidden />
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <SectionHead
@@ -638,7 +638,7 @@ export default function Ask() {
         <div className="grid items-start gap-4 lg:grid-cols-[0.92fr_1.08fr]">
           {/* left — the answered log */}
           <Reveal variant="left">
-            <div className="border border-line bg-ink-850">
+            <div className="border border-line bg-ink-850/90 backdrop-blur-sm">
               <div className="flex flex-wrap items-center gap-3 border-b border-line px-5 py-3.5 sm:px-7">
                 <span className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-fog-dim">ama.log — answered</span>
                 <span className="ml-auto flex items-center gap-3">
@@ -695,7 +695,7 @@ export default function Ask() {
 
           {/* right — the form */}
           <Reveal variant="right" delay={120}>
-            <div className="border border-line bg-ink-850 p-7 sm:p-8">
+            <div className="border border-line bg-ink-850/90 p-7 backdrop-blur-sm sm:p-8">
               <p className="font-mono text-[10px] uppercase tracking-[0.26em] text-fog-dim">$ new question --from you</p>
               <label htmlFor="ama-handle" className="mt-5 block font-mono text-[10.5px] uppercase tracking-[0.22em] text-fog-dim">your handle</label>
               <input id="ama-handle" value={handle} onChange={(e) => { setHandle(e.target.value); setFormErr(""); setSent(false); }} placeholder="@you" maxLength={60} autoComplete="off"

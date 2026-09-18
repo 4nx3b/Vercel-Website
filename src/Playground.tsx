@@ -322,7 +322,7 @@ export default function Playground() {
   const game = GAMES.find((g) => g.id === open);
 
   return (
-    <section id="play" className="relative overflow-hidden border-t border-line py-24 md:py-32">
+    <section id="play" className="relative border-t border-line py-24 md:py-32">
       <div className="pointer-events-none absolute bottom-10 right-10 h-[380px] w-[380px] rounded-full bg-skyy/[0.05] blur-[110px]" aria-hidden />
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <SectionHead

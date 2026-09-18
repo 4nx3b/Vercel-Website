@@ -17,7 +17,7 @@ function Terminal() {
   const { ref, inView } = useInView<HTMLDivElement>();
   const { done, current } = useTypedLines(lines, 26, 420, 3400, inView);
   return (
-    <div ref={ref} className="relative border border-line bg-ink-850/90 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
+    <div ref={ref} className="relative border border-line bg-ink-850/90 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)] backdrop-blur-sm">
       <div className="flex items-center justify-between border-b border-line px-4 py-3">
         <div className="flex items-center gap-2" aria-hidden>
           <span className="h-2.5 w-2.5 rounded-full bg-coral/80" />
@@ -92,7 +92,7 @@ export default function Hero() {
       <div className="grid-lines pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_75%_65%_at_50%_35%,black,transparent)]" aria-hidden />
       <div
         ref={spotRef}
-        className="pointer-events-none absolute inset-0"
+        className="pointer-events-none absolute inset-0 transition-opacity duration-700"
         style={{ background: "radial-gradient(640px circle at 50% 40%, rgba(200,240,79,0.075), transparent 62%)" }}
         aria-hidden
       />

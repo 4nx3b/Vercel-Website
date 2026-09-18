@@ -116,7 +116,7 @@ export default function Skills() {
                 </span>
 
                 <span className="flex items-center gap-5">
-                  <span className={cn("hidden min-[420px]:inline-block border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors duration-300", active === i ? "border-lime/40 text-lime" : "border-line text-fog-dim")}>
+                  <span className={cn("border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors duration-300", active === i ? "border-lime/40 text-lime" : "border-line text-fog-dim")}>
                     {c.cat}
                   </span>
                   <svg
