@@ -26,11 +26,7 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 96px;
-  /* reserves scrollbar space so opening/closing the mobile menu or
-     navigating to anchors never causes a horizontal layout shift */
   scrollbar-gutter: stable;
-  /* guards against horizontal panning on iOS/Android (bug fix, not visual):
-     clip is the modern fix (clips fixed descendants, no scroll container) */
   overflow-x: hidden;
   overflow-x: clip;
   overscroll-behavior-x: none;
@@ -54,10 +50,6 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--color-ink-600); border-radius: 8px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-lime-deep); }
 
-/* ---------- textures ---------- */
-/* full 200% grain layer as designed — the ±4-5% grain translates pan
-   within the -50% bleed without exposing edges. Contained horizontally
-   by the html-level overflow-x clip above (no pan, same paint). */
 .noise-layer {
   position: fixed;
   inset: -50%;
@@ -90,7 +82,6 @@ body {
   color: transparent;
 }
 
-/* ---------- reveal system ---------- */
 .rv {
   opacity: 0;
   transform: translateY(26px);
@@ -111,12 +102,9 @@ body {
 }
 .line-mask.rv-on > span { transform: translateY(0); }
 
-/* ---------- motion ---------- */
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .marquee-track {
   animation: marquee var(--marquee-dur, 36s) linear infinite;
-  /* hoists the animating track onto its own compositor layer for a
-     smoother, jank-free infinite scroll */
   will-change: transform;
 }
 .marquee-track:hover { animation-play-state: paused; }
@@ -179,7 +167,6 @@ body {
   pointer-events: none;
 }
 
-/* ---------- micro-interactions ---------- */
 .link-sweep { position: relative; }
 .link-sweep::after {
   content: "";
@@ -212,12 +199,60 @@ body {
   border-radius: 2px;
 }
 
-/* ---------- layout hardening ---------- */
-/* grid/flex children must shrink (and wrap) instead of overflowing the
-   viewport on narrow screens — the classic min-width:auto blowout */
 .grid > * { min-width: 0; }
 
-/* ---------- reduced motion ---------- */
+/* ---------- premium effects ---------- */
+.glass {
+  background: linear-gradient(135deg, rgba(230, 240, 255, 0.055), rgba(230, 240, 255, 0.015));
+  backdrop-filter: blur(14px) saturate(1.25);
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+  border: 1px solid rgba(230, 240, 255, 0.10);
+}
+
+.text-shimmer {
+  background: linear-gradient(100deg, var(--color-snow) 30%, var(--color-lime) 50%, var(--color-snow) 70%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 7s linear infinite;
+}
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+.shine { position: relative; overflow: hidden; }
+.shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 42%;
+  left: -60%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  transform: skewX(-18deg);
+  transition: left 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.shine:hover::after, .shine:focus-visible::after { left: 130%; }
+
+.aurora {
+  background: radial-gradient(closest-side, rgba(200, 240, 79, 0.16), transparent 70%),
+    radial-gradient(closest-side at 70% 60%, rgba(138, 184, 255, 0.13), transparent 70%);
+  animation: aurora-drift 22s ease-in-out infinite alternate;
+}
+@keyframes aurora-drift {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(4%, -3%) scale(1.08); }
+  100% { transform: translate(-3%, 3%) scale(1.02); }
+}
+
+.tilt-wrap { transform-style: preserve-3d; perspective: 900px; }
+.tilt-card {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
@@ -228,4 +263,7 @@ body {
   .rv, .rv-left, .rv-right, .rv-scale { opacity: 1; transform: none; }
   .line-mask > span { transform: none; }
   .noise-layer { animation: none; }
+  .text-shimmer { animation: none; color: var(--color-lime); background: none; }
+  .shine::after { display: none; }
+  .aurora { animation: none; }
 }
