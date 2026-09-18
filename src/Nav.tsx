@@ -28,6 +28,16 @@ export default function Nav() {
     return () => io.disconnect();
   }, []);
 
+  // Escape closes the mobile menu — standard keyboard affordance
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => {
@@ -98,6 +108,7 @@ export default function Nav() {
             <button
               onClick={() => setOpen(!open)}
               aria-expanded={open}
+              aria-controls="mobile-menu"
               aria-label={open ? "Close menu" : "Open menu"}
               className="flex h-11 w-11 flex-col items-center justify-center gap-[5px] border border-line lg:hidden"
             >
@@ -109,11 +120,13 @@ export default function Nav() {
         </nav>
       </header>
 
-      {/* mobile overlay */}
+      {/* mobile overlay — `invisible` when closed so its links are
+          removed from the tab order and screen readers, not just faded out */}
       <div
+        id="mobile-menu"
         className={cn(
           "fixed inset-0 z-40 flex flex-col justify-end bg-ink-950/97 backdrop-blur-xl transition-all duration-500 lg:hidden",
-          open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+          open ? "pointer-events-auto visible opacity-100" : "pointer-events-none invisible opacity-0"
         )}
         aria-hidden={!open}
       >
@@ -129,6 +142,7 @@ export default function Nav() {
                 <a
                   href={l.href}
                   onClick={() => setOpen(false)}
+                  tabIndex={open ? 0 : -1}
                   className="flex items-baseline gap-4 border-b border-line py-4 font-display text-4xl font-bold uppercase tracking-tight text-snow transition-colors hover:text-lime"
                 >
                   <span className="font-mono text-xs text-fog-dim">0{i + 1}</span>
