@@ -412,7 +412,7 @@ function GameShell({ game, onClose }: { game: Game; onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-obsidian-canvas/90 p-4 sm:p-6"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-obsidian-canvas/80 p-4 backdrop-blur-md sm:p-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -450,48 +450,36 @@ export function Play() {
 
   return (
     <section id="play" className="mx-auto max-w-[1200px] px-6 pb-24 lg:pb-28">
-      <SectionHead index="07" title="Play" note="07 units · 04 online" />
+      <SectionHead index="05" title="Play" note="04 units online" />
 
-      <div className="mt-12 flex flex-wrap items-end justify-between gap-6">
+      <div className="mt-10 flex flex-wrap items-end justify-between gap-6">
         <Reveal>
-          <h2 className="max-w-xl font-geist text-heading-lg tracking-[-0.025em] text-bone">
+          <h2 className="max-w-xl font-geist text-heading tracking-[-0.031em] text-bone">
             The playground<span className="text-signal-orange">.</span>
           </h2>
         </Reveal>
         <Reveal delay={80}>
           <p className="max-w-sm text-body-sm text-warm-granite">
-            Small canvas games, modal shells, zero stakes. Four units online in this build — the rest stay in standby.
+            Four canvas games, modal shells, zero stakes. High scores persist locally.
           </p>
         </Reveal>
       </div>
 
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {GAMES.map((game, i) => (
+      <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {GAMES.filter((g) => g.playable).map((game, i) => (
           <Reveal key={game.id} delay={i * 45} className="h-full">
-            {game.playable ? (
-              <button
-                onClick={() => setActive(game)}
-                className="group flex h-full w-full flex-col rounded-lg border border-carbon-lift p-5 text-left transition-colors duration-150 ease-[cubic-bezier(0.4,0,0.2,1)] hover:border-ash-stroke hover:bg-carbon-lift/40"
-              >
-                <span className="font-geist-mono text-[22px] leading-none text-pale-stone transition-colors duration-150 group-hover:text-signal-orange">{game.mark}</span>
-                <span className="mt-6 font-geist text-[20px] tracking-[-0.02em] text-bone">{game.name}</span>
-                <span className="mt-1.5 flex-1 text-body-sm text-warm-granite">{game.desc}</span>
-                <span className="mt-5 flex items-center gap-2 border-t border-carbon-lift pt-4">
-                  <StatusDot tone="green" />
-                  <MonoTag className="text-metric-green">Online — insert coin</MonoTag>
-                </span>
-              </button>
-            ) : (
-              <div className="flex h-full flex-col rounded-lg border border-carbon-lift p-5 opacity-70">
-                <span className="font-geist-mono text-[22px] leading-none text-graphite-mid">{game.mark}</span>
-                <span className="mt-6 font-geist text-[20px] tracking-[-0.02em] text-warm-granite">{game.name}</span>
-                <span className="mt-1.5 flex-1 text-body-sm text-graphite-mid">{game.desc}</span>
-                <span className="mt-5 flex items-center gap-2 border-t border-carbon-lift pt-4">
-                  <StatusDot tone="orange" />
-                  <MonoTag className="text-signal-orange">Standby — this build</MonoTag>
-                </span>
+            <button
+              onClick={() => setActive(game)}
+              className="lift group flex h-full w-full flex-col rounded-md border border-carbon-lift bg-carbon-lift/15 p-4 text-left backdrop-blur-sm hover:border-ash-stroke"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-geist-mono text-[18px] leading-none text-pale-stone transition-colors duration-150 group-hover:text-signal-orange">{game.mark}</span>
+                <StatusDot tone="green" />
               </div>
-            )}
+              <span className="mt-4 font-geist text-body-sm uppercase tracking-[0.02em] text-bone transition-colors duration-150 group-hover:text-chalk">{game.name}</span>
+              <span className="mt-1 text-[13px] leading-snug text-warm-granite">{game.desc}</span>
+              <MonoTag className="mt-3 border-t border-carbon-lift pt-3 text-metric-green">Insert coin</MonoTag>
+            </button>
           </Reveal>
         ))}
       </div>

@@ -6,7 +6,7 @@ import { Reveal } from "./Reveal";
 export function Links() {
   return (
     <section id="links" className="mx-auto max-w-[1200px] px-6 pb-24 lg:pb-28">
-      <SectionHead index="09" title="Links" note="12 channels · all monitored" />
+      <SectionHead index="07" title="Links" note="12 channels · all monitored" />
 
       <div className="mt-12 grid gap-px border border-carbon-lift bg-carbon-lift sm:grid-cols-2 lg:grid-cols-3">
         {SOCIALS.map((s, i) => (

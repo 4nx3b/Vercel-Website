@@ -19,8 +19,10 @@ export function Nav() {
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-colors duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]",
-        scrolled || open ? "border-b border-carbon-lift bg-obsidian-canvas" : "border-b border-transparent bg-transparent"
+        "fixed inset-x-0 top-0 z-50 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+        scrolled || open
+          ? "border-b border-carbon-lift bg-obsidian-canvas/80 backdrop-blur-md"
+          : "border-b border-transparent bg-transparent"
       )}
     >
       <nav className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">

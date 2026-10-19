@@ -6,9 +6,8 @@ export const NAV_LINKS: { label: string; href: string }[] = [
   { label: "About", href: "#about" },
   { label: "Skills", href: "#skills" },
   { label: "Work", href: "#work" },
-  { label: "Process", href: "#process" },
-  { label: "Proof", href: "#proof" },
   { label: "Play", href: "#play" },
+  { label: "Ask", href: "#ask" },
 ];
 
 /* ---------- Ticker ---------- */
@@ -403,3 +402,28 @@ export const SOCIALS: Social[] = [
 ];
 
 export const LIVE_SITE = "https://therealreze.vercel.app";
+
+/* ---------- AMA backend (ported from the previous build, keys preserved) ---------- */
+
+export const FIREBASE = {
+  apiKey: "AIzaSyCUG-oxLlGWKulnV8E0PwSEmr_s0EyCRUk",
+  projectId: "therealreze-2a3bf",
+};
+export const ADMIN_EMAIL = "asaxxhiii@gmail.com";
+export const FORMSPREE_ENDPOINT = "https://formspree.io/f/mwvdqnyn";
+export const AMA_COLLECTION = "amaQuestions";
+export const AMA_KEYS = {
+  ownerAuth: "ama_owner_auth_v4",
+  publicAuth: "ama_public_anon_auth_v4",
+  queue: "ama_pending_questions_v4",
+  voted: "ama_voted_question_ids_v6",
+  sort: "ama_public_sort_v6",
+};
+
+/* ---------- Signal radio (real audio streams) ---------- */
+
+export const RADIO_TRACKS = [
+  { id: "01", title: "in the pool", artist: "kensuke ushio", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+  { id: "02", title: "night drive", artist: "signal radio", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" },
+  { id: "03", title: "zephyr loop", artist: "signal radio", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
+];

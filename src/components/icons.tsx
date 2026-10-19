@@ -42,6 +42,12 @@ export const CloseIcon = (p: P) => (
   </svg>
 );
 
+export const RefreshIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3M19.5 3.5v4h-4" />
+  </svg>
+);
+
 export const SearchIcon = (p: P) => (
   <svg {...base} {...p}>
     <circle cx="10.5" cy="10.5" r="6" />

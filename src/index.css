@@ -48,6 +48,8 @@
   --animate-pulse-ring: pulse-ring 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   --animate-fade-up: fade-up 0.22s cubic-bezier(0.4, 0, 0.2, 1) both;
   --animate-eq: eq 1.1s ease-in-out infinite;
+  --animate-ambient: ambient 18s ease-in-out infinite alternate;
+  --animate-ambient-slow: ambient 26s ease-in-out infinite alternate-reverse;
 
   @keyframes marquee {
     to {
@@ -113,6 +115,27 @@
       transform: scaleY(1);
     }
   }
+  @keyframes ambient {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    100% {
+      transform: translate3d(-60px, 40px, 0) scale(1.15);
+    }
+  }
+}
+
+/* Fluid hover lift shared by instrument cards */
+.lift {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px -18px rgba(0, 0, 0, 0.9);
 }
 
 @layer base {
