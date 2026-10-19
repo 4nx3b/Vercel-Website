@@ -1,44 +1,35 @@
-import Nav from "./Nav";
-import Hero from "./Hero";
-import About from "./About";
-import Skills from "./Skills";
-import Work from "./Work";
-import Process from "./Process";
-import Proof from "./Proof";
-import Culture from "./Culture";
-import Playground from "./Playground";
-import Ask from "./Ask";
-import Footer from "./Footer";
+import { Nav } from "./components/Nav";
+import { Hero } from "./components/Hero";
+import { Marquee } from "./components/Marquee";
+import { About } from "./components/About";
+import { Skills } from "./components/Skills";
+import { Work } from "./components/Work";
+import { Process } from "./components/Process";
+import { Proof } from "./components/Proof";
+import { Now } from "./components/Now";
+import { Play } from "./components/Play";
+import { Ask } from "./components/Ask";
+import { Links } from "./components/Links";
+import { Footer } from "./components/Footer";
 
 export default function App() {
   return (
-    <div className="relative min-h-screen bg-ink-900 font-body text-snow antialiased">
-      <a
-        href="#about"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[110] focus:bg-lime focus:px-5 focus:py-3 focus:font-mono focus:text-[12px] focus:font-bold focus:uppercase focus:tracking-[0.14em] focus:text-ink-900"
-      >
-        Skip to content
-      </a>
-
+    <div className="min-h-screen bg-obsidian-canvas text-bone">
       <Nav />
-
       <main>
         <Hero />
+        <Marquee />
         <About />
         <Skills />
         <Work />
         <Process />
         <Proof />
-        <Culture />
-        <Playground />
+        <Now />
+        <Play />
         <Ask />
+        <Links />
       </main>
-
       <Footer />
-
-      <div className="noise-wrap" aria-hidden>
-        <div className="noise-layer" />
-      </div>
     </div>
   );
 }
