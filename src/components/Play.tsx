@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "../utils/cn";
 import { GAMES, QUIZ, type Game } from "../lib/data";
-import { CloseIcon } from "./icons";
-import { MonoTag, SectionHead, StatusDot } from "./ui";
-import { Reveal } from "./Reveal";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Crosshair, Flag, Gauge, Gamepad2, HelpCircle, Timer, Wind, X, type LucideIcon } from "lucide-react";
+import { MonoTag, Pill, StatusDot } from "./ui";
 
 /* ================= Snake ================= */
 
@@ -69,9 +68,9 @@ function SnakeGame() {
 
     const draw = () => {
       const s = state.current;
-      ctx.fillStyle = "#0d0d0d";
+      ctx.fillStyle = "#fbf9f4";
       ctx.fillRect(0, 0, cv.width, cv.height);
-      ctx.strokeStyle = "#1d1a18";
+      ctx.strokeStyle = "#e9e3d5";
       ctx.lineWidth = 1;
       for (let i = 1; i < SNAKE_N; i++) {
         ctx.beginPath();
@@ -83,10 +82,10 @@ function SnakeGame() {
         ctx.lineTo(cv.width, i * SNAKE_CELL + 0.5);
         ctx.stroke();
       }
-      ctx.fillStyle = "#ee6018";
+      ctx.fillStyle = "#ff4a1c";
       ctx.fillRect(s.food.x * SNAKE_CELL + 5, s.food.y * SNAKE_CELL + 5, SNAKE_CELL - 10, SNAKE_CELL - 10);
       s.snake.forEach((c, i) => {
-        ctx.fillStyle = i === 0 ? "#fafafa" : "#eeeeee";
+        ctx.fillStyle = i === 0 ? "#14130f" : "#3a372f";
         ctx.fillRect(c.x * SNAKE_CELL + 2, c.y * SNAKE_CELL + 2, SNAKE_CELL - 4, SNAKE_CELL - 4);
       });
     };
@@ -123,15 +122,15 @@ function SnakeGame() {
   return (
     <div className="flex flex-col items-center">
       <div className="flex w-full items-center justify-between pb-4">
-        <MonoTag className="text-pale-stone tabular">Score {String(score).padStart(2, "0")}</MonoTag>
-        <MonoTag className="text-graphite-mid tabular">Best {String(best).padStart(2, "0")}</MonoTag>
+        <MonoTag className="text-ink-soft tabular">Score {String(score).padStart(2, "0")}</MonoTag>
+        <MonoTag className="text-graphite tabular">Best {String(best).padStart(2, "0")}</MonoTag>
       </div>
       <div className="relative">
-        <canvas ref={canvasRef} width={SNAKE_N * SNAKE_CELL} height={SNAKE_N * SNAKE_CELL} className="border border-carbon-lift" />
+        <canvas ref={canvasRef} width={SNAKE_N * SNAKE_CELL} height={SNAKE_N * SNAKE_CELL} className="block h-auto max-w-full rounded-[var(--radius-sm)] border border-rule-strong" />
         {dead && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-obsidian-canvas/85">
-            <MonoTag className="text-signal-orange">Signal lost — self-sabotage confirmed</MonoTag>
-            <button onClick={reset} className="rounded-sm bg-chalk px-4 py-2 text-body-sm text-obsidian-canvas transition-colors duration-150 hover:bg-bone">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-composer/90">
+            <MonoTag className="text-vermilion-ink">Signal lost — self-sabotage confirmed</MonoTag>
+            <button onClick={reset} className="inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-[15px] font-medium text-paper transition-colors duration-[var(--dur-2)] hover:bg-ink-soft">
               Restart
             </button>
           </div>
@@ -140,13 +139,13 @@ function SnakeGame() {
       {/* D-pad for touch */}
       <div className="mt-4 grid grid-cols-3 gap-1.5 sm:hidden">
         <span />
-        <button aria-label="Up" onClick={() => turn(0, -1)} className="border border-carbon-lift px-4 py-2 font-geist-mono text-caption text-bone">▲</button>
+        <button aria-label="Up" onClick={() => turn(0, -1)} className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-sm)] border border-rule-strong font-mono text-xs text-ink"><ChevronUp aria-hidden className="h-4 w-4" /></button>
         <span />
-        <button aria-label="Left" onClick={() => turn(-1, 0)} className="border border-carbon-lift px-4 py-2 font-geist-mono text-caption text-bone">◀</button>
-        <button aria-label="Down" onClick={() => turn(0, 1)} className="border border-carbon-lift px-4 py-2 font-geist-mono text-caption text-bone">▼</button>
-        <button aria-label="Right" onClick={() => turn(1, 0)} className="border border-carbon-lift px-4 py-2 font-geist-mono text-caption text-bone">▶</button>
+        <button aria-label="Left" onClick={() => turn(-1, 0)} className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-sm)] border border-rule-strong font-mono text-xs text-ink"><ChevronLeft aria-hidden className="h-4 w-4" /></button>
+        <button aria-label="Down" onClick={() => turn(0, 1)} className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-sm)] border border-rule-strong font-mono text-xs text-ink"><ChevronDown aria-hidden className="h-4 w-4" /></button>
+        <button aria-label="Right" onClick={() => turn(1, 0)} className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-sm)] border border-rule-strong font-mono text-xs text-ink"><ChevronRight aria-hidden className="h-4 w-4" /></button>
       </div>
-      <MonoTag className="mt-4 hidden text-graphite-mid sm:block">Arrows / WASD to steer</MonoTag>
+      <MonoTag className="mt-4 hidden text-graphite sm:block">Arrows / WASD to steer</MonoTag>
     </div>
   );
 }
@@ -211,19 +210,19 @@ function PongGame() {
         }
       }
 
-      ctx.fillStyle = "#0d0d0d";
+      ctx.fillStyle = "#fbf9f4";
       ctx.fillRect(0, 0, 300, 220);
-      ctx.strokeStyle = "#1d1a18";
+      ctx.strokeStyle = "#d8d0bf";
       ctx.setLineDash([4, 6]);
       ctx.beginPath();
       ctx.moveTo(150.5, 0);
       ctx.lineTo(150.5, 220);
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = "#eeeeee";
+      ctx.fillStyle = "#14130f";
       ctx.fillRect(10, st.py, 5, 60);
       ctx.fillRect(285, st.ay, 5, 60);
-      ctx.fillStyle = "#ee6018";
+      ctx.fillStyle = "#ff4a1c";
       ctx.fillRect(st.bx - 3, st.by - 3, 6, 6);
       raf = requestAnimationFrame(loop);
     };
@@ -237,24 +236,24 @@ function PongGame() {
   return (
     <div className="flex flex-col items-center">
       <div className="flex w-full items-center justify-between pb-4">
-        <MonoTag className="text-pale-stone tabular">You {scores.you}</MonoTag>
-        <MonoTag className="text-graphite-mid">First to 5</MonoTag>
-        <MonoTag className="text-signal-orange tabular">AI {scores.ai}</MonoTag>
+        <MonoTag className="text-ink-soft tabular">You {scores.you}</MonoTag>
+        <MonoTag className="text-graphite">First to 5</MonoTag>
+        <MonoTag className="text-vermilion-ink tabular">AI {scores.ai}</MonoTag>
       </div>
       <div className="relative">
-        <canvas ref={canvasRef} width={300} height={220} className="cursor-none border border-carbon-lift touch-none" />
+        <canvas ref={canvasRef} width={300} height={220} className="block h-auto max-w-full cursor-none touch-none rounded-[var(--radius-sm)] border border-rule-strong" />
         {winner && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-obsidian-canvas/85">
-            <MonoTag className={winner === "you" ? "text-metric-green" : "text-signal-orange"}>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-composer/90">
+            <MonoTag className={winner === "you" ? "text-moss-ink" : "text-vermilion-ink"}>
               {winner === "you" ? "Match — you win" : "Match — the machine wins"}
             </MonoTag>
-            <button onClick={() => reset(true)} className="rounded-sm bg-chalk px-4 py-2 text-body-sm text-obsidian-canvas transition-colors duration-150 hover:bg-bone">
+            <button onClick={() => reset(true)} className="inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-[15px] font-medium text-paper transition-colors duration-[var(--dur-2)] hover:bg-ink-soft">
               Rematch
             </button>
           </div>
         )}
       </div>
-      <MonoTag className="mt-4 text-graphite-mid">Move pointer over the court to steer</MonoTag>
+      <MonoTag className="mt-4 text-graphite">Move pointer over the court to steer</MonoTag>
     </div>
   );
 }
@@ -303,27 +302,27 @@ function ReactionGame() {
       <button
         onClick={click}
         className={cn(
-          "flex h-56 w-full flex-col items-center justify-center gap-3 border transition-colors duration-150",
-          phase === "go" ? "border-metric-green bg-metric-green/15" : phase === "armed" ? "border-signal-orange bg-obsidian-canvas" : "border-carbon-lift bg-carbon-lift/30 hover:border-ash-stroke"
+          "flex h-56 w-full flex-col items-center justify-center gap-3 rounded-[var(--radius-md)] border transition-colors duration-[var(--dur-2)]",
+          phase === "go" ? "border-moss bg-[#4f7a3a26]" : phase === "armed" ? "border-vermilion bg-vermilion-wash" : "border-rule-strong bg-card hover:border-ink"
         )}
       >
-        {phase === "idle" && <MonoTag className="text-pale-stone">Click to arm</MonoTag>}
-        {phase === "armed" && <MonoTag className="animate-pulse-ring rounded-full px-2 py-1 text-signal-orange">Wait for green…</MonoTag>}
-        {phase === "go" && <span className="font-geist text-heading-lg tracking-[-0.025em] text-metric-green">CLICK</span>}
+        {phase === "idle" && <MonoTag className="text-ink-soft">Click to arm</MonoTag>}
+        {phase === "armed" && <MonoTag className="rounded-full px-2 py-1 text-vermilion-ink">Wait for green…</MonoTag>}
+        {phase === "go" && <span className="font-display text-display text-moss-ink">Click</span>}
         {phase === "result" && ms === -1 && (
           <>
-            <MonoTag className="text-signal-orange">False start — too eager</MonoTag>
-            <MonoTag className="text-graphite-mid">Click to re-arm</MonoTag>
+            <MonoTag className="text-vermilion-ink">False start — too eager</MonoTag>
+            <MonoTag className="text-graphite">Click to re-arm</MonoTag>
           </>
         )}
         {phase === "result" && ms > 0 && (
           <>
-            <span className="font-geist text-heading-lg tracking-[-0.025em] text-bone tabular">{ms} ms</span>
-            <MonoTag className="text-graphite-mid">Click to run again</MonoTag>
+            <span className="font-display text-display text-ink tabular">{ms}&nbsp;ms</span>
+            <MonoTag className="text-graphite">Click to run again</MonoTag>
           </>
         )}
       </button>
-      <MonoTag className="mt-4 text-center text-graphite-mid tabular">
+      <MonoTag className="mt-4 text-center text-graphite tabular">
         Personal best: {best > 0 ? `${best} ms` : "—"}
       </MonoTag>
     </div>
@@ -351,18 +350,18 @@ function QuizGame() {
   if (step >= QUIZ.length) {
     return (
       <div className="flex flex-col gap-4">
-        <MonoTag className="text-metric-green">Diagnosis complete</MonoTag>
-        <ul className="space-y-2 border-y border-carbon-lift py-4">
+        <MonoTag className="text-moss-ink">Diagnosis complete</MonoTag>
+        <ul className="space-y-2 border-y border-rule py-4">
           {roasts.map((r, i) => (
-            <li key={i} className="font-geist-mono text-caption tracking-[-0.02em] text-warm-granite">
-              <span className="mr-2 text-signal-orange">▸</span>
+            <li key={i} className="font-mono text-sm text-ink-soft">
+              <span aria-hidden className="mr-2 text-vermilion-ink">›</span>
               {r}
             </li>
           ))}
         </ul>
         <button
           onClick={() => { setStep(0); setRoasts([]); }}
-          className="self-start rounded-sm bg-chalk px-4 py-2 text-body-sm text-obsidian-canvas transition-colors duration-150 hover:bg-bone"
+          className="self-start inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-[15px] font-medium text-paper transition-colors duration-[var(--dur-2)] hover:bg-ink-soft"
         >
           Run it back
         </button>
@@ -374,25 +373,25 @@ function QuizGame() {
   return (
     <div>
       <div className="flex items-center justify-between pb-4">
-        <MonoTag className="text-graphite-mid tabular">Question {step + 1} / {QUIZ.length}</MonoTag>
-        <MonoTag className="text-signal-orange">Roast mode</MonoTag>
+        <MonoTag className="text-graphite tabular">Question {step + 1} / {QUIZ.length}</MonoTag>
+        <MonoTag className="text-vermilion-ink">Roast mode</MonoTag>
       </div>
-      <p className="font-geist text-[20px] tracking-[-0.02em] text-bone">{q.q}</p>
+      <p className="font-display text-title text-ink">{q.q}</p>
       <div className="mt-5 flex flex-col gap-2.5">
         {q.opts.map((opt, i) => (
           <button
             key={opt}
             onClick={() => pick(i)}
             className={cn(
-              "border px-4 py-3 text-left text-body-sm transition-colors duration-150",
-              picked === i ? "border-signal-orange bg-signal-orange/10 text-bone" : "border-carbon-lift text-warm-granite hover:border-ash-stroke hover:text-bone"
+              "min-h-11 rounded-[var(--radius-sm)] border px-4 py-3 text-left text-md transition-colors duration-[var(--dur-2)]",
+              picked === i ? "border-vermilion bg-vermilion-wash text-ink" : "border-rule-strong text-ink-soft hover:border-ink hover:text-ink"
             )}
           >
             {opt}
           </button>
         ))}
       </div>
-      {picked !== null && <MonoTag className="mt-4 block animate-log-in text-signal-orange">{q.roasts[picked]}</MonoTag>}
+      {picked !== null && <MonoTag className="m-swap mt-4 block text-vermilion-ink">{q.roasts[picked]}</MonoTag>}
     </div>
   );
 }
@@ -412,23 +411,23 @@ function GameShell({ game, onClose }: { game: Game; onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-obsidian-canvas/80 p-4 backdrop-blur-md sm:p-6"
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-[#14130f8c] p-4 sm:p-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={`${game.name} game`}
     >
       <div
-        className="w-full max-w-lg animate-frame-in rounded-lg border border-ash-stroke bg-panel"
+        className="m-settle max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-[var(--radius-lg)] border border-ink bg-composer shadow-[var(--shadow-ink)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-carbon-lift bg-carbon-lift/40 px-5 py-3">
-          <div className="flex items-center gap-2.5">
-            <StatusDot tone="orange" pulse />
-            <MonoTag className="text-pale-stone">{game.name.toLowerCase().replace(/\s/g, "-")} — play.exe</MonoTag>
+        <div className="flex items-center justify-between border-b border-rule px-5 py-2">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <StatusDot tone="vermilion" label="Playing" className="shrink-0" />
+            <MonoTag className="truncate text-graphite">{game.name.toLowerCase().replace(/\s/g, "-")} — play.exe</MonoTag>
           </div>
-          <button onClick={onClose} aria-label="Close game" className="text-warm-granite transition-colors duration-150 hover:text-chalk">
-            <CloseIcon className="h-4 w-4" />
+          <button onClick={onClose} aria-label="Close game" className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition-colors duration-[var(--dur-2)] hover:bg-[#14130f0d] hover:text-ink">
+            <X aria-hidden className="h-5 w-5" strokeWidth={1.75} />
           </button>
         </div>
         <div className="p-5 sm:p-6">
@@ -437,54 +436,74 @@ function GameShell({ game, onClose }: { game: Game; onClose: () => void }) {
           {game.id === "reaction" && <ReactionGame />}
           {game.id === "quiz" && <QuizGame />}
         </div>
-        <div className="border-t border-carbon-lift px-5 py-3">
-          <MonoTag className="text-graphite-mid">ESC to eject · scores persist locally</MonoTag>
+        <div className="border-t border-rule px-5 py-3">
+          <MonoTag className="text-graphite">ESC to eject · scores persist locally</MonoTag>
         </div>
       </div>
     </div>
   );
 }
 
+const GAME_ICONS: Record<Game["icon"], LucideIcon> = {
+  snake: Gamepad2,
+  pong: Gauge,
+  quiz: HelpCircle,
+  flappy: Wind,
+  mines: Flag,
+  reaction: Timer,
+  dodge: Crosshair,
+};
+
+/** The playground — game rows inside the § 04 "Play" tab. Game logic is unchanged. */
 export function Play() {
   const [active, setActive] = useState<Game | null>(null);
+  const opener = useRef<HTMLButtonElement | null>(null);
+
+  const close = useCallback(() => {
+    setActive(null);
+    opener.current?.focus();
+  }, []);
 
   return (
-    <section id="play" className="mx-auto max-w-[1200px] px-6 pb-24 lg:pb-28">
-      <SectionHead index="05" title="Play" note="04 units online" />
+    <div>
+      <ul className="grid gap-px overflow-hidden rounded-[var(--radius-md)] border border-rule bg-rule sm:grid-cols-2">
+        {GAMES.map((game) => {
+          const Icon = GAME_ICONS[game.icon];
+          return (
+            <li key={game.id} className="bg-card">
+              <button
+                type="button"
+                disabled={!game.playable}
+                onClick={(e) => {
+                  opener.current = e.currentTarget;
+                  setActive(game);
+                }}
+                className="group flex h-full min-h-[88px] w-full items-start gap-4 p-4 text-left transition-colors duration-[var(--dur-2)] enabled:hover:bg-composer disabled:cursor-not-allowed"
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors duration-[var(--dur-2)]",
+                    game.playable ? "border-ink text-ink group-hover:bg-vermilion" : "border-rule-strong text-graphite"
+                  )}
+                >
+                  <Icon className="h-4 w-4" strokeWidth={1.75} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className={cn("text-md font-semibold", game.playable ? "text-ink" : "text-ink-soft")}>{game.name}</span>
+                    {!game.playable && <Pill className="py-0.5">soon</Pill>}
+                  </span>
+                  <span className="mt-1 block text-sm text-ink-soft">{game.desc}</span>
+                </span>
+                {game.playable && <MonoTag className="hidden shrink-0 pt-0.5 text-vermilion-ink sm:inline">Play</MonoTag>}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
 
-      <div className="mt-10 flex flex-wrap items-end justify-between gap-6">
-        <Reveal>
-          <h2 className="max-w-xl font-geist text-heading tracking-[-0.031em] text-bone">
-            The playground<span className="text-signal-orange">.</span>
-          </h2>
-        </Reveal>
-        <Reveal delay={80}>
-          <p className="max-w-sm text-body-sm text-warm-granite">
-            Four canvas games, modal shells, zero stakes. High scores persist locally.
-          </p>
-        </Reveal>
-      </div>
-
-      <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {GAMES.filter((g) => g.playable).map((game, i) => (
-          <Reveal key={game.id} delay={i * 45} className="h-full">
-            <button
-              onClick={() => setActive(game)}
-              className="lift group flex h-full w-full flex-col rounded-md border border-carbon-lift bg-carbon-lift/15 p-4 text-left backdrop-blur-sm hover:border-ash-stroke"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-geist-mono text-[18px] leading-none text-pale-stone transition-colors duration-150 group-hover:text-signal-orange">{game.mark}</span>
-                <StatusDot tone="green" />
-              </div>
-              <span className="mt-4 font-geist text-body-sm uppercase tracking-[0.02em] text-bone transition-colors duration-150 group-hover:text-chalk">{game.name}</span>
-              <span className="mt-1 text-[13px] leading-snug text-warm-granite">{game.desc}</span>
-              <MonoTag className="mt-3 border-t border-carbon-lift pt-3 text-metric-green">Insert coin</MonoTag>
-            </button>
-          </Reveal>
-        ))}
-      </div>
-
-      {active && <GameShell game={active} onClose={() => setActive(null)} />}
-    </section>
+      {active && <GameShell game={active} onClose={close} />}
+    </div>
   );
 }
