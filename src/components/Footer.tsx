@@ -1,96 +1,85 @@
-import { LIVE_SITE, NAV_LINKS, SOCIALS } from "../lib/data";
-import { GitHubIcon, TelegramIcon } from "./icons";
-import { MonoTag, StatusDot } from "./ui";
+import { ArrowUpRight } from "lucide-react";
+import { NAV_LINKS } from "../lib/data";
 import { useIstClock } from "../hooks/useInView";
+import { Wordmark } from "./Wordmark";
+import { Kicker, StatusDot } from "./ui";
+
+/** Decorative signature, one span per letter for the hover play (aria-hidden). */
+const SIGNATURE = Array.from("therealreze.");
+
+const ELSEWHERE = [
+  { name: "GitHub", url: "https://github.com/4nx3b" },
+  { name: "Telegram", url: "https://t.me/therealreze" },
+  { name: "Last.fm", url: "https://www.last.fm/user/zensxin" },
+  { name: "AniList", url: "https://anilist.co/user/zensxin/" },
+];
 
 export function Footer() {
   const clock = useIstClock();
-  const topChannels = SOCIALS.filter((s) => ["GitHub", "Telegram", "Discord", "Email"].includes(s.name));
-
   return (
-    <footer id="company" className="relative overflow-hidden border-t border-carbon-lift">
-      <div className="mx-auto max-w-[1200px] px-6 pt-24">
-        <div className="grid gap-12 md:grid-cols-[1.4fr_repeat(2,1fr)] md:gap-9">
+    <footer className="relative overflow-hidden border-t border-ink bg-paper">
+      <div className="page relative pt-16">
+        <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
-            <a href="#top" className="flex items-center gap-2.5">
-              <span aria-hidden className="h-2 w-2 bg-signal-orange" />
-              <span className="font-geist-mono text-caption uppercase tracking-[0.18em] text-bone">therealreze</span>
-            </a>
-            <p className="mt-5 max-w-[260px] text-body-sm text-warm-granite">
-              Android root specialist & custom ROM developer. The hardware answers to you.
+            <Wordmark spark={false} />
+            <p className="mt-5 max-w-[38ch] text-lg text-ink-soft">
+              Android root specialist. Custom ROMs, root modules, music players.
             </p>
-            <div className="mt-6 flex items-center gap-2.5">
-              <StatusDot tone="green" />
-              <MonoTag className="text-pale-stone">Open for collabs</MonoTag>
+            <div className="mt-6 inline-flex items-center gap-3 rounded-full border border-rule-strong px-4 py-2">
+              <StatusDot tone="moss" label="Open for collabs" />
+              <span aria-hidden className="h-3 w-px bg-rule-strong" />
+              <span className="font-mono text-xs text-graphite tabular">IST {clock}</span>
             </div>
-            <MonoTag className="mt-2 block text-graphite-mid tabular">IST {clock} · GMT+5:30</MonoTag>
-            <a
-              href={LIVE_SITE}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-4 inline-block font-geist-mono text-caption uppercase tracking-[-0.02em] text-warm-granite underline decoration-ash-stroke underline-offset-4 transition-colors duration-150 hover:text-chalk"
-            >
-              therealreze.vercel.app
-            </a>
           </div>
 
-          <nav aria-label="Navigate">
-            <h4 className="font-geist-mono text-caption font-medium uppercase tracking-[0.08em] text-bone">Navigate</h4>
-            <ul className="mt-5 space-y-3">
+          <nav aria-label="Site">
+            <Kicker>Site</Kicker>
+            <ul className="mt-4 flex flex-col">
               {NAV_LINKS.map((l) => (
-                <li key={l.label}>
-                  <a href={l.href} className="text-body-sm text-warm-granite transition-colors duration-150 hover:text-chalk">
+                <li key={l.href}>
+                  <a href={l.href} className="inline-flex min-h-11 min-w-11 items-center text-md text-ink-soft transition-colors duration-[var(--dur-2)] hover:text-ink">
                     {l.label}
                   </a>
                 </li>
               ))}
-              <li>
-                <a href="#ask" className="text-body-sm text-warm-granite transition-colors duration-150 hover:text-chalk">Ask (AMA)</a>
-              </li>
-              <li>
-                <a href="#links" className="text-body-sm text-warm-granite transition-colors duration-150 hover:text-chalk">Links</a>
-              </li>
             </ul>
           </nav>
 
-          <nav aria-label="Channels">
-            <h4 className="font-geist-mono text-caption font-medium uppercase tracking-[0.08em] text-bone">Channels</h4>
-            <ul className="mt-5 space-y-3">
-              {topChannels.map((s) => (
-                <li key={s.name}>
-                  <a href={s.url} target={s.url.startsWith("#") ? undefined : "_blank"} rel="noreferrer" className="text-body-sm text-warm-granite transition-colors duration-150 hover:text-chalk">
-                    {s.name} — {s.handle}
+          <nav aria-label="Elsewhere">
+            <Kicker>Elsewhere</Kicker>
+            <ul className="mt-4 flex flex-col">
+              {ELSEWHERE.map((l) => (
+                <li key={l.name}>
+                  <a
+                    href={l.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group inline-flex min-h-11 items-center gap-1.5 text-md text-ink-soft transition-colors duration-[var(--dur-2)] hover:text-ink"
+                  >
+                    {l.name}
+                    <ArrowUpRight aria-hidden className="h-3.5 w-3.5 text-graphite group-hover:text-ink" strokeWidth={1.75} />
                   </a>
                 </li>
               ))}
-              <li>
-                <a href="https://github.com/4nx3b/Vercel-Website" target="_blank" rel="noreferrer" className="text-body-sm text-warm-granite transition-colors duration-150 hover:text-chalk">
-                  Source
-                </a>
-              </li>
             </ul>
           </nav>
         </div>
 
-        {/* Oversized watermark */}
-        <div aria-hidden className="pointer-events-none mt-16 select-none overflow-hidden">
-          <div className="translate-y-[18%] text-center font-geist text-[30vw] leading-[0.8] tracking-[-0.04em] text-carbon-lift md:text-[240px]">
-            REZE
-          </div>
+        <div className="relative mt-16 flex flex-wrap items-center justify-between gap-3 border-t border-rule pt-6">
+          <span className="font-mono text-xs text-graphite">© 2026 therealreze</span>
+          <span className="font-mono text-xs text-graphite">Versioned in public, tested on real hardware.</span>
         </div>
+        {/* Giant clipped signature */}
+        <p
+          aria-hidden
+          className="sig mt-12 -mb-[0.24em] select-none whitespace-nowrap font-display leading-[0.8] tracking-[-0.03em]"
+          style={{ fontSize: "clamp(80px, 16vw, 240px)" }}
+        >
+          {SIGNATURE.map((ch, i) => (
+            <span key={i}>{ch}</span>
+          ))}
+        </p>
 
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-carbon-lift py-8 sm:flex-row">
-          <MonoTag className="text-graphite-mid">© 2026 therealreze · built like a system, not a page</MonoTag>
-          <div className="flex items-center gap-5">
-            <MonoTag className="hidden text-graphite-mid sm:block">Factory chrome · SIGNAL data</MonoTag>
-            <a href="https://github.com/4nx3b" target="_blank" rel="noreferrer" aria-label="GitHub" className="text-warm-granite transition-colors duration-150 hover:text-chalk">
-              <GitHubIcon className="h-4 w-4" />
-            </a>
-            <a href="https://t.me/therealreze" target="_blank" rel="noreferrer" aria-label="Telegram" className="text-warm-granite transition-colors duration-150 hover:text-chalk">
-              <TelegramIcon className="h-4 w-4" />
-            </a>
-          </div>
-        </div>
       </div>
     </footer>
   );

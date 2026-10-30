@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { ArrowUpRight, Check, Pause, Play as PlayIcon, Volume2 } from "lucide-react";
 import { cn } from "../utils/cn";
-import { MUSIC, QUOTES, RADIO_TRACKS } from "../lib/data";
-import { ArrowRight, ArrowUpRight } from "./icons";
-import { MonoTag, SectionHead, StatusDot } from "./ui";
+import { ANIME, INTERESTS, MUSIC, RADIO_TRACKS } from "../lib/data";
+import { Play } from "./Play";
 import { Reveal } from "./Reveal";
+import { Kicker, SectionHead, StatusDot } from "./ui";
 
 const fmt = (s: number) => {
   if (!Number.isFinite(s)) return "0:00";
@@ -12,7 +13,7 @@ const fmt = (s: number) => {
   return `${m}:${String(ss).padStart(2, "0")}`;
 };
 
-/** Real audio engine — play/pause, seek, volume, track switching. */
+/** Real audio engine — play/pause, seek, volume, track switching. Never autoplays. */
 function Radio() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [idx, setIdx] = useState(0);
@@ -89,57 +90,35 @@ function Radio() {
   const track = RADIO_TRACKS[idx];
 
   return (
-    <div className="lift flex h-full flex-col rounded-lg border border-carbon-lift bg-carbon-lift/15 p-6 backdrop-blur-sm hover:border-ash-stroke sm:p-7">
-      <div className="flex items-center justify-between">
-        <MonoTag className="text-pale-stone">signal radio</MonoTag>
-        <span className="flex items-center gap-2">
-          <StatusDot tone={playing ? "green" : "orange"} pulse={playing} />
-          <MonoTag className={playing ? "text-metric-green" : "text-signal-orange"}>{playing ? "On air" : "Standby"}</MonoTag>
-        </span>
+    <div className="rounded-[var(--radius-lg)] border border-ink bg-composer p-5 shadow-[var(--shadow-ink-sm)]">
+      <div className="flex items-center justify-between gap-3">
+        <Kicker className="text-ink-soft">Signal radio</Kicker>
+        <StatusDot tone={playing ? "moss" : "graphite"} label={playing ? "On air" : "Standby"} />
       </div>
 
-      <div className="mt-6 flex items-center gap-4">
-        {/* Play / pause */}
+      <div className="mt-5 flex items-center gap-4">
         <button
           type="button"
           onClick={toggle}
           aria-label={playing ? "Pause" : "Play"}
           className={cn(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
-            playing
-              ? "border-metric-green/60 bg-metric-green/15 text-metric-green"
-              : "border-ash-stroke bg-carbon-lift text-bone hover:border-pale-stone hover:text-chalk active:scale-95"
+            "flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-colors duration-[var(--dur-2)]",
+            playing ? "bg-ink text-paper hover:bg-ink-soft" : "bg-vermilion text-ink hover:bg-vermilion-deep"
           )}
         >
           {playing ? (
-            <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" /></svg>
+            <Pause aria-hidden className="h-4 w-4 fill-current" strokeWidth={1.5} />
           ) : (
-            <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 translate-x-[1px]"><path d="M7 4.5v15L19.5 12 7 4.5Z" /></svg>
+            <PlayIcon aria-hidden className="h-4 w-4 translate-x-px fill-current" strokeWidth={1.5} />
           )}
         </button>
-
-        {/* Eq + now playing */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-3">
-            <span className={cn("flex h-5 items-end gap-[3px]", !playing && "opacity-40")} aria-hidden>
-              {[70, 100, 55, 85, 40].map((h, i) => (
-                <span
-                  key={i}
-                  className="w-[3px] origin-bottom animate-eq bg-metric-green"
-                  style={{ height: `${h}%`, animationDelay: `${i * 130}ms`, animationPlayState: playing ? "running" : "paused" }}
-                />
-              ))}
-            </span>
-            <div className="min-w-0">
-              <p className="truncate font-geist text-[18px] leading-tight tracking-[-0.02em] text-bone">{track.title}</p>
-              <MonoTag className="block truncate text-warm-granite">{track.artist} · stream {track.id}</MonoTag>
-            </div>
-          </div>
+        <div className="min-w-0">
+          <p className="truncate font-display text-title text-ink">{track.title}</p>
+          <p className="truncate font-mono text-xs text-graphite">{track.artist} · stream {track.id}</p>
         </div>
       </div>
 
-      {/* Seek */}
-      <div className="mt-5">
+      <div className="mt-4">
         <input
           type="range"
           min={0}
@@ -147,25 +126,26 @@ function Radio() {
           value={Math.floor(progress)}
           onChange={(e) => seek(Number(e.target.value))}
           aria-label="Seek"
-          className="h-1 w-full cursor-pointer appearance-none rounded-full bg-carbon-lift accent-[#a0ca92]"
+          className="range w-full"
         />
-        <div className="mt-1.5 flex justify-between font-geist-mono text-[10px] uppercase tracking-[0.04em] text-graphite-mid tabular">
+        <div className="flex justify-between font-mono text-xs text-graphite tabular">
           <span>{fmt(progress)}</span>
           <span>{err ? "stream offline" : fmt(duration)}</span>
         </div>
       </div>
 
-      {/* Track switcher + volume */}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-carbon-lift pt-4">
-        <div className="flex gap-1.5">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-rule pt-4">
+        <div className="flex gap-1.5" role="group" aria-label="Streams">
           {RADIO_TRACKS.map((t, i) => (
             <button
               key={t.id}
+              type="button"
               onClick={() => setIdx(i)}
-              aria-label={`Stream ${t.id}`}
+              aria-label={`Stream ${t.id}: ${t.title}`}
+              aria-pressed={i === idx}
               className={cn(
-                "rounded-sm border px-2.5 py-1 font-geist-mono text-caption uppercase tracking-[-0.02em] transition-colors duration-150",
-                i === idx ? "border-signal-orange/60 text-signal-orange" : "border-carbon-lift text-graphite-mid hover:border-ash-stroke hover:text-bone"
+                "flex h-11 min-w-11 items-center justify-center rounded-full border px-2.5 font-mono text-xs transition-colors duration-[var(--dur-2)]",
+                i === idx ? "border-ink bg-ink text-paper" : "border-rule-strong text-ink-soft hover:border-ink hover:text-ink"
               )}
             >
               {t.id}
@@ -173,81 +153,243 @@ function Radio() {
           ))}
         </div>
         <label className="flex items-center gap-2.5">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.25} className="h-3.5 w-3.5 text-graphite-mid"><path d="M4 9.5v5h3.5L13 19V5L7.5 9.5H4ZM16 9a4.5 4.5 0 0 1 0 6" /></svg>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={vol}
-            onChange={(e) => setVol(Number(e.target.value))}
-            aria-label="Volume"
-            className="h-1 w-24 cursor-pointer appearance-none rounded-full bg-carbon-lift accent-[#ee6018]"
-          />
-          <span className="w-8 text-right font-geist-mono text-[10px] text-warm-granite tabular">{vol}%</span>
+          <Volume2 aria-hidden className="h-4 w-4 text-graphite" strokeWidth={1.75} />
+          <span className="sr-only">Volume</span>
+          <input type="range" min={0} max={100} value={vol} onChange={(e) => setVol(Number(e.target.value))} className="range w-24" />
+          <span className="w-9 text-right font-mono text-xs text-graphite tabular">{vol}%</span>
         </label>
       </div>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        {MUSIC.genres.map((g) => (
-          <span key={g} className="border border-carbon-lift px-2 py-1 font-geist-mono text-[10px] lowercase tracking-[-0.02em] text-graphite-mid">{g}</span>
-        ))}
-      </div>
-
-      <a href={MUSIC.url} target="_blank" rel="noreferrer" className="group mt-5 flex items-center gap-2 border-t border-carbon-lift pt-4">
-        <MonoTag className="text-pale-stone transition-colors duration-150 group-hover:text-chalk">zensxin on last.fm</MonoTag>
-        <ArrowUpRight className="h-3 w-3 text-pale-stone transition-transform duration-150 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-chalk" />
-      </a>
     </div>
   );
 }
 
-export function Now() {
-  const [i, setI] = useState(0);
+/* ---------- Use-case panel layout ---------- */
 
+function UseCase({
+  title,
+  prompt,
+  checks,
+  get,
+  link,
+  aside,
+}: {
+  title: string;
+  prompt: string;
+  checks: ReactNode[];
+  get: string;
+  link?: { href: string; label: string };
+  aside?: ReactNode;
+}) {
+  return (
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
+      <div>
+        <h3 className="font-display text-page font-normal text-ink">{title}</h3>
+        <div className="mt-6 rounded-[var(--radius-md)] border border-rule-strong bg-card p-4">
+          <Kicker>Example</Kicker>
+          <p className="mt-2 font-mono text-md text-ink">
+            <span aria-hidden className="mr-2 text-vermilion-ink">›</span>
+            {prompt}
+          </p>
+        </div>
+        <ul className="mt-6 flex flex-col gap-3">
+          {checks.map((c, i) => (
+            <li key={i} className="flex gap-3 text-lg text-ink-soft">
+              <Check aria-hidden className="mt-1 h-4 w-4 shrink-0 text-moss-ink" strokeWidth={2} />
+              <span>{c}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-ink pt-4">
+          <div>
+            <Kicker>You get</Kicker>
+            <p className="mt-1 text-sm text-ink-soft">{get}</p>
+          </div>
+          {link && (
+            <a
+              href={link.href}
+              target={link.href.startsWith("#") ? undefined : "_blank"}
+              rel="noreferrer"
+              className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-ink underline decoration-rule-strong underline-offset-4 transition-colors duration-[var(--dur-2)] hover:decoration-ink"
+            >
+              {link.label}
+              <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+            </a>
+          )}
+        </div>
+      </div>
+      {aside && <div>{aside}</div>}
+    </div>
+  );
+}
+
+function AnimeStats() {
+  const rows = [
+    { v: ANIME.count.toLocaleString("en-US"), l: "titles completed" },
+    { v: ANIME.episodes.toLocaleString("en-US"), l: "episodes logged" },
+    { v: ANIME.minutes.toLocaleString("en-US"), l: "minutes watched" },
+    { v: ANIME.mean.toFixed(1), l: "mean score" },
+  ];
+  return (
+    <dl className="grid grid-cols-2 border-t border-ink">
+      {rows.map((r, i) => (
+        <div key={r.l} className={cn("flex flex-col-reverse border-b border-rule py-5", i % 2 === 1 && "border-l pl-5")}>
+          <dt className="mt-1 font-mono text-xs text-graphite">{r.l}</dt>
+          <dd className="font-display text-page text-ink tabular">{r.v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+const TABS = [
+  {
+    id: "anime",
+    label: "Anime",
+    render: () => (
+      <UseCase
+        title="Arcs with real structure."
+        prompt="anilist stats --user zensxin"
+        checks={[INTERESTS[0].desc, `${ANIME.count} titles in and still taking recommendations.`, "Tracked on AniList, every episode logged."]}
+        get="The full watch list, scored."
+        link={{ href: ANIME.url, label: "zensxin on AniList" }}
+        aside={<AnimeStats />}
+      />
+    ),
+  },
+  {
+    id: "music",
+    label: "Music",
+    render: () => (
+      <UseCase
+        title="City pop for compile times."
+        prompt={`last.fm now --user ${MUSIC.handle}`}
+        checks={[INTERESTS[2].desc, `Now on rotation: “${MUSIC.now.track}” by ${MUSIC.now.artist}.`, `Genres: ${MUSIC.genres.join(", ")}.`]}
+        get="Scrobbles, top artists, the lot."
+        link={{ href: MUSIC.url, label: "zensxin on Last.fm" }}
+        aside={<Radio />}
+      />
+    ),
+  },
+  {
+    id: "gaming",
+    label: "Gaming",
+    render: () => (
+      <UseCase
+        title="Systems worth mastering."
+        prompt="ls ~/games --sort=depth"
+        checks={[INTERESTS[1].desc, "Same instinct as reading a kernel config: learn the rules, then bend them.", "Four small games live in the next tab."]}
+        get="A playground you can open right here."
+        link={{ href: "#now-tab-play", label: "Open the Play tab" }}
+      />
+    ),
+  },
+  {
+    id: "play",
+    label: "Play",
+    render: () => (
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
+        <div>
+          <h3 className="font-display text-page font-normal text-ink">The playground.</h3>
+          <p className="mt-4 max-w-[48ch] text-lg text-ink-soft">
+            Four canvas games in a modal, nothing at stake. High scores stay in your browser. Escape closes any of them.
+          </p>
+          <div className="mt-6 rounded-[var(--radius-md)] border border-rule-strong bg-card p-4">
+            <Kicker>Example</Kicker>
+            <p className="mt-2 font-mono text-md text-ink">
+              <span aria-hidden className="mr-2 text-vermilion-ink">›</span>
+              ./snake --wasd
+            </p>
+          </div>
+        </div>
+        <Play />
+      </div>
+    ),
+  },
+] as const;
+
+export function Now() {
+  const [active, setActive] = useState(0);
+  const tabs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const go = (i: number) => {
+    const n = (i + TABS.length) % TABS.length;
+    setActive(n);
+    tabs.current[n]?.focus();
+  };
+
+  const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowRight") { e.preventDefault(); go(active + 1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); go(active - 1); }
+    else if (e.key === "Home") { e.preventDefault(); go(0); }
+    else if (e.key === "End") { e.preventDefault(); go(TABS.length - 1); }
+  };
+
+  // "#now-tab-play" links switch to the Play tab
   useEffect(() => {
-    const id = setInterval(() => setI((n) => (n + 1) % QUOTES.length), 6000);
-    return () => clearInterval(id);
+    const onHash = () => {
+      const i = TABS.findIndex((t) => `#now-tab-${t.id}` === window.location.hash);
+      if (i >= 0) setActive(i);
+    };
+    onHash();
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  const q = QUOTES[i];
+  const tab = TABS[active];
 
   return (
-    <section id="now" className="mx-auto max-w-[1200px] px-6 pb-24 lg:pb-28">
-      <SectionHead index="04" title="Now" note="Currently orbiting" />
+    <section id="now" aria-labelledby="now-title" className="page py-24 lg:py-32">
+      <SectionHead
+        num="04"
+        label="Now & Play"
+        title={
+          <span id="now-title">
+            What I'm into
+            <br />
+            when <em className="ital">nothing</em> is flashing.
+          </span>
+        }
+      />
 
-      <div className="mt-12 grid items-stretch gap-6 lg:grid-cols-2">
-        {/* Rotating quote — the bright object in the room */}
-        <Reveal>
-          <button
-            type="button"
-            onClick={() => setI((n) => (n + 1) % QUOTES.length)}
-            className="grain group block h-full w-full rounded-lg bg-bone p-8 text-left transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 sm:p-10"
-            aria-label="Next quote"
-          >
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2.5">
-                <StatusDot tone="orange" />
-                <MonoTag className="text-obsidian-canvas">Now playing — thought</MonoTag>
-              </span>
-              <MonoTag className="text-graphite-mid tabular">{String(i + 1).padStart(2, "0")} / {String(QUOTES.length).padStart(2, "0")}</MonoTag>
-            </div>
+      <Reveal delay={80} className="mt-12">
+        <div role="tablist" aria-label="Interests" onKeyDown={onKey} className="grid grid-cols-2 gap-x-4 border-b border-rule min-[360px]:flex min-[360px]:gap-x-4 sm:gap-x-8">
+          {TABS.map((t, i) => {
+            const on = i === active;
+            return (
+              <button
+                key={t.id}
+                ref={(el) => { tabs.current[i] = el; }}
+                id={`now-tab-${t.id}`}
+                role="tab"
+                type="button"
+                aria-selected={on}
+                aria-controls={`now-panel-${t.id}`}
+                tabIndex={on ? 0 : -1}
+                onClick={() => setActive(i)}
+                className={cn(
+                  "relative flex min-h-12 shrink-0 items-baseline gap-2.5 pb-3 pt-2 text-[17px] transition-colors duration-[var(--dur-2)]",
+                  on ? "text-ink" : "text-ink-soft hover:text-ink"
+                )}
+              >
+                <span className={cn("font-mono text-xs tabular", on ? "text-vermilion-ink" : "text-graphite")}>{String(i + 1).padStart(2, "0")}</span>
+                <span className={on ? "font-medium" : ""}>{t.label}</span>
+                {on && <span aria-hidden className="m-grow-x absolute inset-x-0 -bottom-px h-0.5 bg-ink" />}
+              </button>
+            );
+          })}
+        </div>
 
-            <blockquote key={i} className="animate-log-in mt-10 min-h-[110px] font-geist text-heading tracking-[-0.031em] text-obsidian-canvas">
-              “{q.text}”
-            </blockquote>
-            <MonoTag className="mt-5 block text-graphite-mid">— {q.author}</MonoTag>
-
-            <span className="mt-9 flex items-center gap-2 border-t border-obsidian-canvas/15 pt-5">
-              <MonoTag className="text-obsidian-canvas transition-colors duration-150 group-hover:text-carbon-lift">Next transmission</MonoTag>
-              <ArrowRight className="h-3 w-3 text-obsidian-canvas transition-transform duration-150 group-hover:translate-x-0.5" />
-            </span>
-          </button>
-        </Reveal>
-
-        <Reveal delay={100}>
-          <Radio />
-        </Reveal>
-      </div>
+        <div
+          key={tab.id}
+          id={`now-panel-${tab.id}`}
+          role="tabpanel"
+          aria-labelledby={`now-tab-${tab.id}`}
+          tabIndex={0}
+          className="m-swap rounded-[var(--radius-sm)] pt-10"
+        >
+          {tab.render()}
+        </div>
+      </Reveal>
     </section>
   );
 }

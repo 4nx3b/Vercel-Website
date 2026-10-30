@@ -1,107 +1,190 @@
-import type { AnchorHTMLAttributes, ReactNode } from "react";
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "../utils/cn";
-import { ArrowRight } from "./icons";
+import { Reveal } from "./Reveal";
+
+/* ---------- Mono label (12px, functional text) ---------- */
+
+export function MonoTag({ children, className }: { children: ReactNode; className?: string }) {
+  return <span className={cn("font-mono text-xs", className)}>{children}</span>;
+}
+
+/* ---------- Kicker: mono micro label ---------- */
+
+export function Kicker({ children, className }: { children: ReactNode; className?: string }) {
+  return <span className={cn("kicker", className)}>{children}</span>;
+}
+
+/** "§ 0N ── LABEL" — every section opens with this row. */
+export function SectionMark({ num, label, className }: { num: string; label: string; className?: string }) {
+  return (
+    <p className={cn("flex items-center gap-3 font-mono text-micro uppercase tracking-[0.18em]", className)}>
+      <span className="text-[var(--accent-text)]">§ {num}</span>
+      <span aria-hidden className="h-px w-8 bg-[var(--border-strong)]" />
+      <span className="text-[var(--text-3)]">{label}</span>
+    </p>
+  );
+}
+
+export function SectionHead({
+  num,
+  label,
+  title,
+  lede,
+  className,
+  titleClassName,
+}: {
+  num: string;
+  label: string;
+  title: ReactNode;
+  lede?: ReactNode;
+  className?: string;
+  titleClassName?: string;
+}) {
+  return (
+    <Reveal className={className}>
+      <SectionMark num={num} label={label} />
+      <Reveal as="h2" variant="focus" delay={60} className={cn("mt-6 font-display text-display font-normal text-[var(--text)]", titleClassName)}>
+        {title}
+      </Reveal>
+      {lede && <p className="mt-6 max-w-[60ch] text-lede text-[var(--text-2)]">{lede}</p>}
+    </Reveal>
+  );
+}
 
 /* ---------- Buttons ---------- */
 
-type BtnProps = AnchorHTMLAttributes<HTMLAnchorElement>;
+type Variant = "ink" | "outline" | "accent";
 
-export function ButtonDark({ className, children, ...rest }: BtnProps) {
+const BTN_BASE =
+  "inline-flex min-h-11 items-center justify-center gap-2.5 rounded-full px-6 text-[15px] font-medium leading-none whitespace-nowrap " +
+  "transition-[background-color,color,border-color] duration-[var(--dur-2)] ease-[var(--ease-out)] disabled:opacity-50";
+
+const BTN_VARIANT: Record<Variant, string> = {
+  ink: "bg-ink text-paper hover:bg-ink-soft",
+  outline: "border border-[var(--border-strong)] text-[var(--text)] hover:bg-[#14130f0d] hover:border-[var(--text)]",
+  accent: "bg-vermilion text-ink hover:bg-vermilion-deep",
+};
+
+export function buttonClass(variant: Variant = "ink", className?: string) {
+  return cn(BTN_BASE, BTN_VARIANT[variant], className);
+}
+
+export function Button({
+  variant = "ink",
+  className,
+  children,
+  ...rest
+}: AnchorHTMLAttributes<HTMLAnchorElement> & { variant?: Variant }) {
   return (
-    <a
-      {...rest}
-      className={cn(
-        "inline-flex h-10 items-center gap-2 rounded-sm bg-carbon-lift px-4 font-geist text-body-sm text-bone",
-        "transition-colors duration-150 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-graphite-mid hover:text-chalk",
-        className
-      )}
-    >
+    <a {...rest} className={buttonClass(variant, className)}>
       {children}
     </a>
   );
 }
 
-export function ButtonGhost({ className, children, arrow = true, ...rest }: BtnProps & { arrow?: boolean }) {
+export function ActionButton({
+  variant = "ink",
+  className,
+  children,
+  type = "button",
+  ...rest
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
   return (
-    <a
-      {...rest}
-      className={cn(
-        "group inline-flex h-10 items-center gap-2 border border-ash-stroke px-4 font-geist text-body-sm text-bone",
-        "transition-colors duration-150 ease-[cubic-bezier(0.4,0,0.2,1)] hover:border-pale-stone hover:text-chalk",
-        className
-      )}
-    >
+    <button type={type} {...rest} className={buttonClass(variant, className)}>
       {children}
-      {arrow && (
-        <ArrowRight className="h-3.5 w-3.5 transition-transform duration-150 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-0.5" />
-      )}
-    </a>
+    </button>
   );
 }
 
-/** Ghost link inverted for bone cards. */
-export function ButtonGhostDark({ className, children, ...rest }: BtnProps) {
-  return (
-    <a
-      {...rest}
-      className={cn(
-        "group inline-flex h-10 items-center gap-2 border border-obsidian-canvas/30 px-4 font-geist text-body-sm text-obsidian-canvas",
-        "transition-colors duration-150 ease-[cubic-bezier(0.4,0,0.2,1)] hover:border-obsidian-canvas hover:bg-obsidian-canvas hover:text-bone"
-      , className)}
-    >
-      {children}
-      <ArrowRight className="h-3.5 w-3.5 transition-transform duration-150 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-0.5" />
-    </a>
-  );
-}
+/* ---------- Chip: dark mono receipt with a vermilion › ---------- */
 
-/* ---------- Terminal voice ---------- */
-
-export function StatusDot({ tone = "orange", pulse = false, className }: { tone?: "orange" | "green"; pulse?: boolean; className?: string }) {
+export function Chip({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <span
-      aria-hidden
       className={cn(
-        "inline-block h-1.5 w-1.5 shrink-0 rounded-full",
-        tone === "orange" ? "bg-signal-orange" : "bg-metric-green",
-        pulse && tone === "orange" && "animate-pulse-ring",
+        "inline-flex max-w-full items-center gap-2 rounded-[var(--radius-xs)] bg-ink px-2.5 py-1.5 font-mono text-xs text-paper",
         className
       )}
-    />
-  );
-}
-
-export function MonoTag({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <span className={cn("font-geist-mono text-caption uppercase tracking-[-0.02em]", className)}>
-      {children}
+    >
+      <span aria-hidden className="text-vermilion">›</span>
+      <span className="min-w-0 break-words">{children}</span>
     </span>
   );
 }
 
-/* ---------- Section header — numbered like an instrument schematic ---------- */
+/* ---------- Pill ---------- */
 
-export function SectionHead({
-  index,
-  title,
-  note,
+export function Pill({ children, badge, className }: { children: ReactNode; badge?: string; className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex max-w-full items-center gap-2 rounded-full border border-[#ff4a1c4d] bg-vermilion-wash py-1 pl-1 pr-3 font-mono text-xs text-ink",
+        !badge && "pl-3",
+        className
+      )}
+    >
+      {badge && (
+        <span className="rounded-full bg-vermilion px-2 py-0.5 text-xs font-medium uppercase tracking-[0.06em] text-ink">
+          {badge}
+        </span>
+      )}
+      <span className="min-w-0 truncate">{children}</span>
+    </span>
+  );
+}
+
+/* ---------- Status: a dot that always comes with a word ---------- */
+
+type Tone = "moss" | "vermilion" | "graphite" | "ok";
+
+const DOT: Record<Tone, string> = {
+  moss: "bg-moss",
+  vermilion: "bg-vermilion",
+  graphite: "bg-graphite",
+  ok: "bg-panel-ok",
+};
+
+export function StatusDot({
+  tone = "moss",
+  label,
   className,
+  spark = false,
 }: {
-  index: string;
-  title: string;
-  note: string;
+  tone?: Tone;
+  label: ReactNode;
   className?: string;
+  spark?: boolean;
 }) {
   return (
-    <div className={cn("border-t border-carbon-lift pt-6", className)}>
-      <div className="flex items-baseline justify-between gap-4">
-        <MonoTag className="text-pale-stone">
-          <span className="text-signal-orange">SEC.{index}</span>
-          <span className="mx-2 text-graphite-mid">—</span>
-          {title}
-        </MonoTag>
-        <MonoTag className="hidden text-graphite-mid sm:block">{note}</MonoTag>
+    <span className={cn("inline-flex items-center gap-2 font-mono text-xs text-[var(--text-2)]", className)}>
+      <span aria-hidden className={cn("h-1.5 w-1.5 shrink-0 rounded-full", DOT[tone], spark && "m-spark")} />
+      {label}
+    </span>
+  );
+}
+
+/* ---------- Figure with crop marks + caption ---------- */
+
+export function Figure({
+  caption,
+  children,
+  className,
+  bodyClassName,
+}: {
+  caption: string;
+  children: ReactNode;
+  className?: string;
+  bodyClassName?: string;
+}) {
+  return (
+    <figure className={cn("m-0", className)}>
+      <div className={cn("crop p-4 sm:p-6", bodyClassName)}>
+        <span className="crop-b" aria-hidden />
+        {children}
       </div>
-    </div>
+      <figcaption className="mt-3 border-t border-[var(--text)] pt-3 font-mono text-xs uppercase tracking-[0.14em] text-[var(--text-3)]">
+        {caption}
+      </figcaption>
+    </figure>
   );
 }

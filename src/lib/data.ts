@@ -3,10 +3,10 @@ export type Tone = "orange" | "green";
 /* ---------- Navigation ---------- */
 
 export const NAV_LINKS: { label: string; href: string }[] = [
-  { label: "About", href: "#about" },
   { label: "Skills", href: "#skills" },
+  { label: "Process", href: "#process" },
   { label: "Work", href: "#work" },
-  { label: "Play", href: "#play" },
+  { label: "Now", href: "#now" },
   { label: "Ask", href: "#ask" },
 ];
 
@@ -86,6 +86,17 @@ export const CAT_TONE: Record<string, Tone | "neutral"> = {
   TOOLS: "green",
   DEV: "neutral",
 };
+
+/* ---------- FIG. 1 partitions ---------- */
+
+export const PARTITIONS = [
+  { key: "boot", label: "BOOT", note: "kernel + ramdisk · where Magisk patches in" },
+  { key: "system", label: "SYSTEM", note: "the OS image · read-only, overlaid by modules" },
+  { key: "vendor", label: "VENDOR", note: "blobs + HALs · different on every device" },
+  { key: "userdata", label: "USERDATA", note: "your apps and data · back this up first" },
+] as const;
+
+export type PartitionKey = (typeof PARTITIONS)[number]["key"];
 
 /* ---------- Work ---------- */
 
@@ -333,16 +344,16 @@ export const INTERESTS: { glyph: string; title: string; desc: string }[] = [
 
 /* ---------- Play ---------- */
 
-export type Game = { id: string; mark: string; name: string; desc: string; playable: boolean };
+export type Game = { id: string; icon: "snake" | "pong" | "quiz" | "flappy" | "mines" | "reaction" | "dodge"; name: string; desc: string; playable: boolean };
 
 export const GAMES: Game[] = [
-  { id: "snake", mark: "♞", name: "Snake", desc: "Classic game. High chance of self-sabotage.", playable: true },
-  { id: "pong", mark: "◉", name: "Ping Pong", desc: "You vs an AI paddle. First to 5 wins.", playable: true },
-  { id: "quiz", mark: "▱", name: "Roast Quiz", desc: "A personality test but every answer is a personal attack.", playable: true },
-  { id: "flappy", mark: "⌁", name: "Flappy", desc: "Infuriating physics. Avoid the pipes.", playable: false },
-  { id: "mines", mark: "⚑", name: "Minesweeper", desc: "Classic logic. Avoid the mines.", playable: false },
-  { id: "reaction", mark: "◌", name: "Reaction Test", desc: "Click when it turns green.", playable: true },
-  { id: "dodge", mark: "⌖", name: "Dodge", desc: "Survive against angry geometry.", playable: false },
+  { id: "snake", icon: "snake", name: "Snake", desc: "Classic game. High chance of self-sabotage.", playable: true },
+  { id: "pong", icon: "pong", name: "Ping Pong", desc: "You vs an AI paddle. First to 5 wins.", playable: true },
+  { id: "quiz", icon: "quiz", name: "Roast Quiz", desc: "A personality test but every answer is a personal attack.", playable: true },
+  { id: "flappy", icon: "flappy", name: "Flappy", desc: "Infuriating physics. Avoid the pipes.", playable: false },
+  { id: "mines", icon: "mines", name: "Minesweeper", desc: "Classic logic. Avoid the mines.", playable: false },
+  { id: "reaction", icon: "reaction", name: "Reaction Test", desc: "Click when it turns green.", playable: true },
+  { id: "dodge", icon: "dodge", name: "Dodge", desc: "Survive against angry geometry.", playable: false },
 ];
 
 export const QUIZ = [

@@ -1,213 +1,737 @@
 @import "tailwindcss";
 
+/* ══════════════════════════════════════════════════════════════════════
+   therealreze — editorial field-notes system
+   Warm drafting paper, ink, one vermilion mark. Visual system modelled on
+   curialy.tech (tokens, type, motion); copy and artwork are original.
+   ══════════════════════════════════════════════════════════════════════ */
+
 @theme {
-  /* Colors — Factory design system */
-  --color-obsidian-canvas: #101010;
-  --color-carbon-lift: #1d1a18;
-  --color-ash-stroke: #3d3a39;
-  --color-graphite-mid: #4d4947;
-  --color-warm-granite: #8a8380;
-  --color-pale-stone: #b8b3b0;
-  --color-bone: #eeeeee;
-  --color-chalk: #fafafa;
-  --color-signal-orange: #ee6018;
-  --color-metric-green: #a0ca92;
-  --color-panel: #0d0d0d;
+  /* ---------- colour primitives ---------- */
+  --color-paper: #f3efe6;
+  --color-paper-deep: #e9e3d5;
+  --color-card: #f8f5ee;
+  --color-composer: #fbf9f4;
+  --color-ink: #14130f;
+  --color-ink-soft: #3a372f;
+  --color-graphite: #6f6a5d;
+  --color-rule: #d8d0bf;
+  --color-rule-strong: #8a8475;
+  --color-vermilion: #ff4a1c;
+  --color-vermilion-ink: #b8300c;
+  --color-vermilion-deep: #d93a10;
+  --color-vermilion-wash: #fbe3d9;
+  --color-moss: #4f7a3a;
+  --color-moss-ink: #3f6630;
+  --color-panel: #1b1a15;
+  --color-panel-2: #211f19;
+  --color-panel-3: #141310;
+  --color-panel-text: #f3efe6;
+  --color-panel-text-2: #f3efe6cc;
+  --color-panel-muted: #f3efe69e;
+  --color-panel-rule: #f3efe61f;
+  --color-panel-ok: #9bd17b;
+  --color-panel-err: #ff8a6b;
 
-  /* Typography */
-  --font-geist: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-geist-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  /* ---------- type ---------- */
+  --font-display: "Instrument Serif", "Iowan Old Style", "Times New Roman", ui-serif, Georgia, serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  --text-caption: 12px;
-  --text-caption--line-height: 1;
-  --text-caption--letter-spacing: -0.02em;
-  --text-body-sm: 14px;
-  --text-body-sm--line-height: 1.43;
-  --text-body: 16px;
-  --text-body--line-height: 1.5;
-  --text-heading: 36px;
-  --text-heading--line-height: 1.1;
-  --text-heading--letter-spacing: -0.031em;
-  --text-heading-lg: 44px;
-  --text-heading-lg--line-height: 1.12;
-  --text-heading-lg--letter-spacing: -0.025em;
-  --text-display: 72px;
-  --text-display--line-height: 1;
-  --text-display--letter-spacing: -0.04em;
+  --text-micro: 10.5px;
+  --text-micro--line-height: 1.4;
+  --text-xs: 12px;
+  --text-xs--line-height: 1.45;
+  --text-sm: 13px;
+  --text-sm--line-height: 1.5;
+  --text-md: 14px;
+  --text-md--line-height: 1.55;
+  --text-lg: 16px;
+  --text-lg--line-height: 1.5;
+  --text-lede: clamp(18px, 0.3vw + 16.8px, 20px);
+  --text-lede--line-height: 1.65;
+  --text-title: 24px;
+  --text-title--line-height: 1.2;
+  --text-page: clamp(30px, 1.6vw + 18px, 40px);
+  --text-page--line-height: 1.1;
+  --text-display: clamp(36px, 3.4vw + 14px, 60px);
+  --text-display--line-height: 1.04;
+  --text-display--letter-spacing: -0.015em;
+  --text-hero: clamp(44px, 4.2vw + 20px, 96px);
+  --text-hero--line-height: 1;
+  --text-hero--letter-spacing: -0.02em;
 
-  /* Radii — the system is not soft */
-  --radius-sm: 3px;
-  --radius-lg: 10px;
-  --radius-2xl: 20px;
+  /* ---------- radii + elevation ---------- */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --shadow-ink: 6px 6px 0 #14130f;
+  --shadow-ink-sm: 3px 3px 0 #14130f;
+  --shadow-card: 0 0 0 1px #d8d0bf;
 
-  /* Named motion — mechanical, short, deliberate */
-  --animate-marquee: marquee 46s linear infinite;
-  --animate-frame-in: sf-frame-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
-  --animate-caret: caret 1s steps(1) infinite;
-  --animate-log-in: log-in 0.18s cubic-bezier(0.4, 0, 0.2, 1) both;
-  --animate-pulse-ring: pulse-ring 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  --animate-fade-up: fade-up 0.22s cubic-bezier(0.4, 0, 0.2, 1) both;
-  --animate-eq: eq 1.1s ease-in-out infinite;
-  --animate-ambient: ambient 18s ease-in-out infinite alternate;
-  --animate-ambient-slow: ambient 26s ease-in-out infinite alternate-reverse;
+  /* ---------- keyframes exposed as utilities ---------- */
+  --animate-marquee: marquee 38s linear infinite;
+}
 
-  @keyframes marquee {
-    to {
-      transform: translateX(-50%);
-    }
-  }
-  @keyframes sf-frame-in {
-    from {
-      opacity: 0;
-      transform: translateY(16px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  @keyframes caret {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0;
-    }
-  }
-  @keyframes log-in {
-    from {
-      opacity: 0;
-      transform: translateY(3px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-  @keyframes pulse-ring {
-    0% {
-      box-shadow: 0 0 0 0 rgba(238, 96, 24, 0.4);
-    }
-    70% {
-      box-shadow: 0 0 0 6px rgba(238, 96, 24, 0);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(238, 96, 24, 0);
-    }
-  }
-  @keyframes fade-up {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-  @keyframes eq {
-    0%,
-    100% {
-      transform: scaleY(0.25);
-    }
-    50% {
-      transform: scaleY(1);
-    }
-  }
-  @keyframes ambient {
-    0% {
-      transform: translate3d(0, 0, 0) scale(1);
-    }
-    100% {
-      transform: translate3d(-60px, 40px, 0) scale(1.15);
-    }
+:root {
+  /* motion */
+  --dur-1: 0.12s;
+  --dur-2: 0.18s;
+  --dur-3: 0.24s;
+  --dur-enter: 0.56s;
+  --dur-reveal: 0.75s;
+  --dur-hero: 0.9s;
+  --dur-figure: 1.2s;
+  --dur-swap: 0.4s;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+  --stagger: 70ms;
+
+  /* alive layer */
+  --blur-header: 14px;
+  --blur-in: 8px;
+  --parallax: 6px;
+  --lift-slab: 10px;
+  --dur-flash-in: 0.45s;
+  --dur-flash-out: 0.65s;
+  --tick-stage: 2.4s;
+
+  /* spacing (4px base) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 40px;
+  --s-9: 48px;
+  --s-10: 64px;
+  --page-max: 1240px;
+  --gutter: 20px;
+
+  /* semantic */
+  --surface: var(--color-paper);
+  --surface-raised: var(--color-card);
+  --surface-sunk: var(--color-paper-deep);
+  --text: var(--color-ink);
+  --text-2: var(--color-ink-soft);
+  --text-3: var(--color-graphite);
+  --border: var(--color-rule);
+  --border-strong: var(--color-rule-strong);
+  --accent: var(--color-vermilion);
+  --accent-text: var(--color-vermilion-ink);
+  --focus: var(--color-ink);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
   }
 }
 
-/* Fluid hover lift shared by instrument cards */
-.lift {
-  transition:
-    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+/* Sunk paper bands: graphite drops to 4.2:1 on paper-deep, so muted text steps up to ink-soft */
+.sunk-scope {
+  --text-3: var(--color-ink-soft);
+  background: var(--color-paper-deep);
 }
-.lift:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px -18px rgba(0, 0, 0, 0.9);
+
+/* Dark ink panel (§ 03) remaps the semantics */
+.panel-scope {
+  --surface: var(--color-panel);
+  --surface-raised: var(--color-panel-2);
+  --surface-sunk: var(--color-panel-3);
+  --text: var(--color-panel-text);
+  --text-2: var(--color-panel-text-2);
+  --text-3: var(--color-panel-muted);
+  --border: var(--color-panel-rule);
+  --border-strong: #f3efe659;
+  --accent: var(--color-vermilion);
+  --accent-text: var(--color-panel-err);
+  --focus: var(--color-paper);
+  background: var(--surface);
+  color: var(--text);
 }
+
+/* ══════════════ base ══════════════ */
 
 @layer base {
   html {
-    scroll-behavior: smooth;
-    scroll-padding-top: 84px;
+    scroll-padding-top: 88px;
+    -webkit-text-size-adjust: 100%;
+    background: var(--color-paper);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
   body {
-    @apply bg-obsidian-canvas font-geist text-bone antialiased;
-    font-weight: 400;
+    margin: 0;
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   ::selection {
-    background: #eeeeee;
-    color: #101010;
+    background: var(--color-vermilion-wash);
+    color: var(--color-ink);
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
   }
   :focus-visible {
-    outline: 1px solid var(--color-signal-orange);
+    outline: 2px solid var(--focus);
     outline-offset: 3px;
   }
-  ::-webkit-scrollbar {
-    width: 10px;
+  button,
+  [role="tab"],
+  a {
+    -webkit-tap-highlight-color: transparent;
   }
-  ::-webkit-scrollbar-track {
-    background: #101010;
+  button:not(:disabled),
+  [role="button"] {
+    cursor: pointer;
   }
-  ::-webkit-scrollbar-thumb {
-    background: #1d1a18;
-    border: 2px solid #101010;
-    border-radius: 5px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #3d3a39;
+  em {
+    font-style: italic;
   }
 }
 
-/* Film-grain overlay for bone cards — the only permitted texture */
-.grain {
-  position: relative;
+/* ══════════════ components (layered so utilities can override) ══════════════ */
+
+@layer components {
+
+.skip-link {
+  position: fixed;
+  left: 16px;
+  top: 12px;
+  z-index: 200;
+  transform: translateY(-160%);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font: 500 14px/1.3 var(--font-sans);
+  transition: transform var(--dur-3) var(--ease-out);
 }
-.grain::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  opacity: 0.05;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+.skip-link:focus-visible,
+.skip-link:focus {
+  transform: none;
+  outline: 2px solid var(--color-vermilion);
+  outline-offset: 3px;
 }
 
-/* Instrument textures — dot grid for the hero void, edge fade for the marquee */
-.dotgrid {
-  background-image: radial-gradient(rgba(238, 238, 238, 0.06) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-.mask-fade-x {
-  mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
-  -webkit-mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
-}
 .tabular {
   font-variant-numeric: tabular-nums;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
+.page {
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.grid-paper {
+  background-image: radial-gradient(var(--color-rule) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+}
+
+.kicker {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  line-height: 1.4;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* One vermilion word per headline */
+.ital {
+  font-style: italic;
+  color: var(--accent-text);
+}
+
+/* Crop marks around figures */
+.crop {
+  position: relative;
+}
+.crop::before,
+.crop::after,
+.crop > .crop-b::before,
+.crop > .crop-b::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--border-strong);
+  border-style: solid;
+  pointer-events: none;
+}
+.crop::before {
+  left: 0;
+  top: 0;
+  border-width: 1px 0 0 1px;
+}
+.crop::after {
+  right: 0;
+  top: 0;
+  border-width: 1px 1px 0 0;
+}
+.crop > .crop-b::before {
+  left: 0;
+  bottom: 0;
+  border-width: 0 0 1px 1px;
+}
+.crop > .crop-b::after {
+  right: 0;
+  bottom: 0;
+  border-width: 0 1px 1px 0;
+}
+
+/* Range input on paper */
+.range {
+  appearance: none;
+  height: 24px;
+  background: transparent;
+  cursor: pointer;
+}
+.range::-webkit-slider-runnable-track {
+  height: 2px;
+  background: var(--border-strong);
+}
+.range::-moz-range-track {
+  height: 2px;
+  background: var(--border-strong);
+}
+.range::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -6px;
+  border-radius: 999px;
+  background: var(--color-ink);
+  border: 2px solid var(--color-paper);
+  box-shadow: 0 0 0 1px var(--color-ink);
+}
+.range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--color-ink);
+  border: 2px solid var(--color-paper);
+}
+
+}
+
+/* ══════════════ motion system ══════════════ */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--rise-y, 18px), 0);
   }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes fall {
+  from {
+    opacity: 0;
+    transform: translate3d(0, calc(var(--rise-y, 18px) * -1), 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: scale(var(--settle-from, 0.97));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1px;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes marquee {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+@keyframes caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -6px, 0);
+  }
+}
+@keyframes grow-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes spark {
+  0% {
+    box-shadow: 0 0 0 0 #ff4a1c73;
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+@keyframes step-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+@keyframes focus-in {
+  from {
+    opacity: 0;
+    filter: blur(var(--blur-in));
+    transform: translate3d(0, var(--rise-y, 22px), 0);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+
+/* backwards fill: hidden during the delay, then no filter is held once it lands */
+.m-focus {
+  animation: focus-in var(--m-dur, var(--dur-reveal)) var(--ease-out) backwards;
+  animation-delay: calc(var(--m-delay, 0s) + var(--i, 0) * var(--stagger));
+}
+
+.m-rise {
+  animation: rise var(--m-dur, var(--dur-enter)) var(--ease-out) both;
+  animation-delay: calc(var(--m-delay, 0s) + var(--i, 0) * var(--stagger));
+}
+.m-fall {
+  animation: fall var(--m-dur, var(--dur-enter)) var(--ease-out) both;
+  animation-delay: var(--m-delay, 0s);
+}
+.m-stagger > * {
+  animation: rise var(--dur-enter) var(--ease-out) both;
+}
+.m-stagger > :nth-child(1) { animation-delay: calc(var(--m-delay, 0s) + 0 * var(--stagger)); }
+.m-stagger > :nth-child(2) { animation-delay: calc(var(--m-delay, 0s) + 1 * var(--stagger)); }
+.m-stagger > :nth-child(3) { animation-delay: calc(var(--m-delay, 0s) + 2 * var(--stagger)); }
+.m-stagger > :nth-child(4) { animation-delay: calc(var(--m-delay, 0s) + 3 * var(--stagger)); }
+.m-stagger > :nth-child(5) { animation-delay: calc(var(--m-delay, 0s) + 4 * var(--stagger)); }
+.m-stagger > :nth-child(6) { animation-delay: calc(var(--m-delay, 0s) + 5 * var(--stagger)); }
+.m-stagger > :nth-child(7) { animation-delay: calc(var(--m-delay, 0s) + 6 * var(--stagger)); }
+.m-stagger > :nth-child(8) { animation-delay: calc(var(--m-delay, 0s) + 7 * var(--stagger)); }
+
+.m-settle {
+  animation: settle var(--dur-hero) var(--ease-out) both;
+  animation-delay: var(--m-delay, 0s);
+}
+.m-draw {
+  stroke-dasharray: 1px 1px;
+  stroke-dashoffset: 0;
+  animation: draw var(--m-dur, 1.6s) var(--ease-out) both;
+  animation-delay: var(--m-delay, 0s);
+}
+.m-float {
+  animation: float 6s ease-in-out infinite;
+}
+.m-spark {
+  animation: spark 2.2s var(--ease-out) infinite;
+}
+.m-caret {
+  animation: caret-blink 1.1s steps(1) infinite;
+}
+.m-swap {
+  --rise-y: 14px;
+  animation: rise var(--dur-swap) var(--ease-out) both;
+}
+.m-grow-x {
+  transform-origin: left center;
+  animation: grow-x var(--dur-enter) var(--ease-out) both;
+}
+.m-step-slide {
+  animation: step-slide 1.6s var(--ease-in) infinite;
+}
+
+.m-marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.m-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 38s linear infinite;
+}
+.m-marquee:hover .m-marquee-track,
+.m-marquee:focus-within .m-marquee-track,
+.m-marquee[data-paused="true"] .m-marquee-track {
+  animation-play-state: paused;
+}
+
+/* Timeline spine grows once in view */
+.spine {
+  transform-origin: top center;
+  transform: scaleY(1);
+}
+html.js .spine[data-armed] {
+  transform: scaleY(0);
+}
+html.js .spine[data-armed][data-inview] {
+  animation: grow-y 1.2s var(--ease-out) both;
+  transform: scaleY(1);
+}
+
+/* ══════════════ alive layer ══════════════ */
+
+/* Frosted drafting film: only the 64px sticky header uses this */
+.frost {
+  background: color-mix(in srgb, var(--color-paper) 72%, transparent);
+  -webkit-backdrop-filter: blur(var(--blur-header)) saturate(1.4);
+  backdrop-filter: blur(var(--blur-header)) saturate(1.4);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .frost {
+    background: color-mix(in srgb, var(--color-paper) 95%, transparent);
+  }
+}
+
+/* FIG. 1: depth parallax wrapper, flash wrapper, selectable slab */
+.fig-parallax {
+  transform: translate(
+    calc(var(--px, 0) * var(--depth, 1) * var(--parallax)),
+    calc(var(--py, 0) * var(--depth, 1) * 4px)
+  );
+  transition: transform 0.6s var(--ease-out);
+}
+.fig-flash,
+.fig-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.slab {
+  transition:
+    transform var(--dur-3) var(--ease-out),
+    opacity var(--dur-3) var(--ease-out);
+}
+.slab-face {
+  fill: transparent;
+  transition: fill var(--dur-3) var(--ease-out);
+}
+[data-active] .slab {
+  opacity: 0.45;
+}
+[data-active] .slab[data-on] {
+  opacity: 1;
+  transform: translateY(calc(-1 * var(--lift-slab)));
+}
+.slab[data-on] .slab-face {
+  fill: var(--color-vermilion-wash);
+}
+
+/* Hero dot-grid lens: a small composited window, moved with transforms only */
+.lens {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 320px;
+  height: 320px;
+  overflow: hidden;
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease-out);
+  -webkit-mask-image: radial-gradient(circle at center, #000 0, transparent 70%);
+  mask-image: radial-gradient(circle at center, #000 0, transparent 70%);
+  will-change: transform;
+}
+.lens[data-on] {
+  opacity: 1;
+}
+.lens > i {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 364px;
+  height: 364px;
+  --color-rule: rgba(58, 55, 47, 0.6);
+}
+@media (pointer: coarse) {
+  .lens {
+    display: none;
+  }
+}
+
+/* Footer signature letters */
+.sig {
+  color: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  transition: color var(--dur-3) var(--ease-out);
+}
+.sig span {
+  display: inline-block;
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .sig:hover {
+    color: color-mix(in srgb, var(--color-ink) 14%, transparent);
+  }
+  .sig span:hover {
+    transform: translateY(-0.06em);
+    color: var(--color-vermilion-ink);
+  }
+}
+
+/* Build window pause */
+[data-paused="true"] .m-step-slide,
+[data-paused="true"] .m-spark {
+  animation-play-state: paused;
+}
+
+/* Scroll reveal — content stays visible without JS */
+html.js [data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, var(--reveal-y, 18px), 0);
+  transition:
+    opacity var(--dur-reveal) var(--ease-out),
+    transform var(--dur-reveal) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0s);
+}
+html.js [data-reveal="focus"] {
+  filter: blur(var(--blur-in));
+  transition:
+    opacity var(--dur-reveal) var(--ease-out),
+    transform var(--dur-reveal) var(--ease-out),
+    filter var(--dur-reveal) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0s);
+}
+html.js [data-reveal][data-inview],
+html.js [data-reveal]:focus-within {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* Mobile sheet */
+.sheet {
+  transform: translate3d(100%, 0, 0);
+  visibility: hidden;
+  transition:
+    transform var(--dur-swap) var(--ease-out),
+    visibility 0s linear var(--dur-swap);
+}
+.sheet[data-open="true"] {
+  transform: none;
+  visibility: visible;
+  transition:
+    transform var(--dur-swap) var(--ease-out),
+    visibility 0s;
+}
+.scrim {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-3) var(--ease-out);
+}
+.scrim[data-open="true"] {
+  opacity: 1;
+  pointer-events: auto;
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+/* ══════════════ reduced motion ══════════════ */
+
+@media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+  html.js [data-reveal],
+  .m-focus {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .fig-parallax {
+    transform: none !important;
+  }
+  .lens {
+    display: none !important;
+  }
+  .sig span:hover {
+    transform: none !important;
+  }
+  .m-draw {
+    stroke-dashoffset: 0 !important;
+  }
+  .m-marquee-track,
+  .m-float,
+  .m-spark,
+  .m-caret,
+  .m-step-slide {
+    animation: none !important;
+  }
+  html.js .spine[data-armed] {
+    transform: none !important;
   }
 }
