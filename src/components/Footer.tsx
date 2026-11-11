@@ -29,7 +29,7 @@ function ArtBand() {
   const ref = useRef<HTMLElement>(null);
   useScrollVar(ref);
   return (
-    <figure ref={ref} className="art-band relative m-0 overflow-hidden border-b border-ink bg-paper-deep">
+    <figure ref={ref} className="art-band relative m-0 overflow-clip border-b border-ink bg-paper-deep">
       <picture>
         <source type="image/webp" srcSet={`${BAND.src1280} 1280w, ${BAND.src1920} 1920w`} sizes="100vw" />
         <img
@@ -72,7 +72,7 @@ function ArtBand() {
 export function Footer() {
   const clock = useIstClock();
   return (
-    <footer className="relative overflow-hidden border-t border-ink bg-paper">
+    <footer className="relative overflow-clip border-t border-ink bg-paper">
       <ArtBand />
       <div className="page relative pt-16">
         <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr]">

@@ -185,7 +185,6 @@ export const SOCIALS: Social[] = [
   { name: "Email", handle: "say hello", url: "#ask" },
 ];
 
-export const LIVE_SITE = "https://therealreze.vercel.app";
 
 /* ---------- AMA backend (ported from the previous build, keys preserved) ---------- */
 
@@ -221,7 +220,6 @@ export const TRACKS: Track[] = [
   { id: "orthodox", title: "Orthodox", artist: "tokiwa", file: "Orthodox.mp3", artwork: "https://i1.sndcdn.com/artworks-000651636742-791u96-t500x500.jpg" },
 ];
 
-export const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
 export type Playlist = { id: string; label: string; title: string; thumbnail: string; itemCount: number | null };
 
