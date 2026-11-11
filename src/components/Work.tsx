@@ -1,179 +1,247 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowUpRight, Download, GitFork, LifeBuoy, Lightbulb, Star, TriangleAlert } from "lucide-react";
 import { cn } from "../utils/cn";
-import { PROJECTS, REPOS, type Repo } from "../lib/data";
-import { ArrowUpRight, SearchIcon } from "./icons";
-import { MonoTag, SectionHead, StatusDot } from "./ui";
+import { APP, ROM_POST } from "../lib/data";
+import { ago, useGithubRepo } from "../hooks/useGithubRepo";
 import { Reveal } from "./Reveal";
+import { SpinBadge } from "./AnimeFx";
+import { Button, Kicker, SectionHead } from "./ui";
 
-/** Live repo table — pulls from the GitHub API, falls back to the shipped snapshot. */
-function RepoTable() {
-  const [repos, setRepos] = useState<Repo[]>(REPOS);
-  const [live, setLive] = useState(false);
-  const [query, setQuery] = useState("");
-  const [lang, setLang] = useState("ALL");
+/* ---------------- ROM post ---------------- */
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch("https://api.github.com/users/4nx3b/repos?per_page=100&sort=pushed")
-      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-      .then((data: any[]) => {
-        if (cancelled || !Array.isArray(data)) return;
-        setRepos(
-          data.map((d) => ({
-            name: d.name,
-            desc: d.description ?? "—",
-            lang: d.language ?? "—",
-            stars: d.stargazers_count,
-            forks: d.forks_count,
-            fork: d.fork,
-            updated: String(d.pushed_at ?? "").slice(0, 10),
-            url: d.html_url,
-          }))
-        );
-        setLive(true);
-      })
-      .catch(() => setLive(false));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const langs = useMemo(() => ["ALL", ...Array.from(new Set(repos.map((r) => r.lang)))], [repos]);
-  const filtered = repos.filter(
-    (r) =>
-      (lang === "ALL" || r.lang === lang) &&
-      (query.trim() === "" || `${r.name} ${r.desc}`.toLowerCase().includes(query.trim().toLowerCase()))
-  );
+function RomPost() {
+  const p = ROM_POST;
+  const links = p.links.filter((l) => l.url.trim() !== "");
+  const [primary, ...rest] = [...links.filter((l) => l.primary), ...links.filter((l) => !l.primary)];
 
   return (
-    <div className="mt-14">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-carbon-lift pt-6">
-        <div className="flex items-center gap-2.5">
-          <StatusDot tone={live ? "green" : "orange"} pulse={!live} />
-          <MonoTag className="text-pale-stone">
-            Repositories — {String(repos.length).padStart(2, "0")} public · {live ? "live — api.github.com" : "cached snapshot"}
-          </MonoTag>
-        </div>
-        <label className="flex items-center gap-2 border border-carbon-lift bg-carbon-lift/20 px-3 py-2 backdrop-blur-sm transition-colors duration-150 focus-within:border-ash-stroke">
-          <SearchIcon className="h-3.5 w-3.5 text-graphite-mid" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="grep repos…"
-            aria-label="Search repositories"
-            className="w-40 bg-transparent font-geist-mono text-caption uppercase tracking-[-0.02em] text-bone placeholder:text-graphite-mid focus:outline-none"
-          />
-        </label>
-      </div>
+    <Reveal
+      as="article"
+      aria-labelledby="rom-title"
+      className="mt-14 overflow-hidden rounded-[var(--radius-xl)] border border-panel-rule bg-panel-2"
+    >
+      <img
+        src={p.thumbnail}
+        width={p.thumbnailWidth}
+        height={p.thumbnailHeight}
+        alt={p.thumbnailAlt}
+        loading="lazy"
+        decoding="async"
+        className="block aspect-video h-auto w-full bg-panel-3 object-cover"
+      />
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {langs.map((l) => (
-          <button
-            key={l}
-            onClick={() => setLang(l)}
-            className={cn(
-              "rounded-sm px-2.5 py-1.5 font-geist-mono text-caption uppercase tracking-[-0.02em] transition-colors duration-150",
-              lang === l ? "bg-chalk text-obsidian-canvas" : "border border-carbon-lift text-warm-granite hover:border-ash-stroke hover:text-bone"
+      <div className="grid gap-10 p-5 sm:p-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-14 lg:p-10">
+        {/* Meta + links */}
+        <div>
+          <h3 id="rom-title" className="font-display text-page font-normal text-panel-text">
+            {p.title}
+          </h3>
+          <p className="mt-2 font-mono text-sm text-panel-text-2">
+            {p.codename} · {p.variant}
+          </p>
+
+          <dl className="mt-6 grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 border-y border-panel-rule py-4 font-mono text-sm">
+            <dt className="text-panel-muted">Released</dt>
+            <dd className="text-panel-text">
+              <time dateTime={p.date}>{p.dateLabel}</time>
+            </dd>
+            <dt className="text-panel-muted">Maintainer</dt>
+            <dd>
+              <a
+                href={p.maintainerUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="-my-3 inline-flex min-h-11 items-center text-panel-text underline decoration-panel-rule underline-offset-4 transition-colors duration-[var(--dur-2)] hover:decoration-panel-text"
+              >
+                {p.maintainer}
+              </a>
+            </dd>
+          </dl>
+
+          <div className="mt-6 flex flex-col gap-3">
+            {primary && (
+              <Button href={primary.url} target="_blank" rel="noreferrer" variant="accent" className="w-full">
+                <Download aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+                {primary.label}
+              </Button>
             )}
-          >
-            {l}
-          </button>
-        ))}
-      </div>
+            {rest.map((l) => (
+              <Button
+                key={l.label}
+                href={l.url}
+                target="_blank"
+                rel="noreferrer"
+                variant="outline"
+                className="w-full hover:bg-[#f3efe614]"
+              >
+                {l.label === "Support" ? (
+                  <LifeBuoy aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+                ) : (
+                  <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+                )}
+                {l.label}
+              </Button>
+            ))}
+          </div>
+        </div>
 
-      <ul className="mt-5 border-t border-carbon-lift">
-        {filtered.map((r) => (
-          <li key={r.name}>
+        {/* Changelog, tip, notes, warning */}
+        <div className="flex flex-col gap-8">
+          <section aria-labelledby="rom-changelog">
+            <Kicker>
+              <span id="rom-changelog">Changelog</span>
+            </Kicker>
+            <ol className="mt-3 border-t border-panel-rule">
+              {p.changelog.map((c, i) => (
+                <li key={c} className="flex gap-4 border-b border-panel-rule py-3 text-[16px] leading-[1.6] text-panel-text">
+                  <span aria-hidden className="w-6 shrink-0 pt-0.5 font-mono text-xs text-panel-muted tabular">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span>{c}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <div className="flex gap-3 rounded-[var(--radius-md)] border border-panel-rule bg-panel-3 p-4">
+            <Lightbulb aria-hidden className="mt-0.5 h-5 w-5 shrink-0 text-panel-ok" strokeWidth={1.75} />
+            <p className="text-[16px] leading-[1.6] text-panel-text-2">
+              <strong className="font-semibold text-panel-text">Tip:</strong> {p.tip}
+            </p>
+          </div>
+
+          <section aria-labelledby="rom-notes">
+            <Kicker>
+              <span id="rom-notes">Notes</span>
+            </Kicker>
+            <p className="mt-3 text-[16px] font-semibold leading-[1.6] text-panel-text">{p.notesLead}</p>
+            <ul className="mt-3 flex flex-col gap-3">
+              {p.notes.map((n) => (
+                <li key={n} className="flex gap-3 text-[16px] leading-[1.6] text-panel-text-2">
+                  <span aria-hidden className="mt-[0.7em] h-1.5 w-1.5 shrink-0 rounded-full bg-panel-muted" />
+                  <span>{n}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <div role="note" className="flex gap-3 rounded-[var(--radius-md)] bg-[var(--warn-bg)] p-4 text-[var(--warn-fg)]">
+            <TriangleAlert aria-hidden className="mt-0.5 h-5 w-5 shrink-0" strokeWidth={1.75} />
+            <p className="text-[16px] leading-[1.6]">
+              <strong className="font-semibold">Warning:</strong> {p.warning}
+            </p>
+          </div>
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
+/* ---------------- ArchiveTune with live stars ---------------- */
+
+/** A number that rises 6px when it changes. */
+function LiveNumber({ value }: { value: number | null }) {
+  return (
+    <span key={value ?? "none"} className="m-rise inline-block tabular" style={{ ["--rise-y" as string]: "6px", ["--m-dur" as string]: "var(--dur-3)" }}>
+      {value === null ? "—" : value.toLocaleString("en-US")}
+    </span>
+  );
+}
+
+function AppCard() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { stats, checkedAt } = useGithubRepo(APP.repo, ref);
+  // "updated Xs ago" ticks with the 1s clock-free approach: re-render every 10s only while mounted
+  const [, force] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => force((n) => n + 1), 10_000);
+    return () => window.clearInterval(id);
+  }, []);
+  const lastCheck = checkedAt ?? stats?.ts ?? null;
+
+  return (
+    <Reveal className="mt-10">
+      <div ref={ref} className="grid gap-8 rounded-[var(--radius-xl)] border border-panel-rule p-5 sm:p-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:p-10">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-[0.14em] text-panel-err">
+            {APP.name} <span className="text-panel-muted">· {APP.sector}</span>
+          </p>
+          <h3 className="mt-3 font-display text-page font-normal text-panel-text">{APP.title}</h3>
+          <p className="mt-4 text-lg text-panel-text-2">{APP.desc}</p>
+          <ul className="mt-5 flex flex-wrap gap-1.5">
+            {APP.tags.map((t) => (
+              <li key={t} className="rounded-full border border-panel-rule px-2.5 py-1 font-mono text-xs text-panel-text-2">
+                {t}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="flex flex-col justify-between gap-6">
+          <dl aria-live="polite" className="grid grid-cols-2 divide-x divide-panel-rule border-y border-panel-rule">
+            <div className="flex flex-col-reverse py-4 pr-4">
+              <dt className="mt-1 flex items-center gap-1.5 font-mono text-xs text-panel-muted">
+                <Star aria-hidden className="h-3.5 w-3.5" strokeWidth={1.75} /> stars on GitHub
+              </dt>
+              <dd className="font-mono text-[clamp(36px,2.4vw+20px,52px)] leading-none text-panel-text">
+                <LiveNumber value={stats?.stars ?? null} />
+              </dd>
+            </div>
+            <div className="flex flex-col-reverse py-4 pl-4">
+              <dt className="mt-1 flex items-center gap-1.5 font-mono text-xs text-panel-muted">
+                <GitFork aria-hidden className="h-3.5 w-3.5" strokeWidth={1.75} /> forks
+              </dt>
+              <dd className="font-mono text-[clamp(36px,2.4vw+20px,52px)] leading-none text-panel-text">
+                <LiveNumber value={stats?.forks ?? null} />
+              </dd>
+            </div>
+          </dl>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <p className="font-mono text-xs text-panel-muted">
+              {lastCheck ? (
+                <>
+                  <span aria-hidden className={cn("mr-1.5 inline-block h-1.5 w-1.5 rounded-full", checkedAt ? "bg-panel-ok" : "bg-panel-muted")} />
+                  live · checked {ago(Date.now() - lastCheck)}
+                </>
+              ) : (
+                "loading from api.github.com…"
+              )}
+            </p>
             <a
-              href={r.url}
+              href={APP.link}
               target="_blank"
               rel="noreferrer"
-              className="group grid grid-cols-1 items-baseline gap-x-6 gap-y-1.5 border-b border-carbon-lift py-3.5 transition-colors duration-150 hover:bg-carbon-lift/30 sm:grid-cols-[180px_1fr_auto] sm:px-4"
+              className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-panel-text underline decoration-panel-rule underline-offset-4 transition-colors duration-[var(--dur-2)] hover:decoration-panel-text"
             >
-              <span className="flex items-center gap-2 font-geist-mono text-body-sm text-bone transition-colors duration-150 group-hover:text-chalk">
-                {r.name}
-                {r.fork && <span className="border border-carbon-lift px-1 py-0.5 text-[10px] uppercase tracking-[0.08em] text-graphite-mid">fork</span>}
-              </span>
-              <span className="truncate text-body-sm text-warm-granite">{r.desc}</span>
-              <span className="flex items-center gap-4 font-geist-mono text-caption uppercase tracking-[-0.02em] text-graphite-mid tabular">
-                <span className={r.lang === "Kotlin" ? "text-metric-green" : r.lang === "—" ? "" : "text-pale-stone"}>{r.lang}</span>
-                <span>★ {r.stars}</span>
-                <span className="hidden md:inline">{r.updated}</span>
-                <ArrowUpRight className="h-3 w-3 transition-transform duration-150 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-pale-stone" />
-              </span>
+              {APP.linkLabel}
+              <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
             </a>
-          </li>
-        ))}
-        {filtered.length === 0 && (
-          <li className="border-b border-carbon-lift py-6 text-center">
-            <MonoTag className="text-graphite-mid">0 results — nothing matches that grep</MonoTag>
-          </li>
-        )}
-      </ul>
-    </div>
+          </div>
+        </div>
+      </div>
+    </Reveal>
   );
 }
 
 export function Work() {
   return (
-    <section id="work" className="mx-auto max-w-[1200px] px-6 pb-24 lg:pb-28">
-      <SectionHead index="03" title="Work" note="03 builds · 09 repos" />
-
-      <Reveal>
-        <div className="mt-10 flex flex-wrap items-end justify-between gap-6">
-          <h2 className="max-w-xl font-geist text-heading tracking-[-0.031em] text-bone">
-            Shipped, starred, versioned in public.
-          </h2>
-          <p className="max-w-sm text-body-sm text-warm-granite">
-            Every build below lives on GitHub — named, dated, and reproducible from source.
-          </p>
-        </div>
-      </Reveal>
-
-      <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {PROJECTS.map((proj, i) => (
-          <Reveal key={proj.index} delay={i * 70} className="h-full">
-            <a
-              href={proj.link}
-              target="_blank"
-              rel="noreferrer"
-              className="lift group flex h-full flex-col rounded-lg border border-carbon-lift bg-carbon-lift/15 p-5 backdrop-blur-sm hover:border-ash-stroke"
-            >
-              <div className="flex items-center justify-between">
-                <MonoTag className="text-graphite-mid">{proj.index}</MonoTag>
-                <MonoTag className="text-pale-stone">{proj.version}</MonoTag>
-              </div>
-              <MonoTag className="mt-5 block text-signal-orange">{proj.client}</MonoTag>
-              <h3 className="mt-2 font-geist text-[19px] leading-[1.25] tracking-[-0.02em] text-bone">{proj.title}</h3>
-              <p className="mt-2 flex-1 text-body-sm text-warm-granite">{proj.desc}</p>
-
-              <dl className="mt-4 grid grid-cols-3 divide-x divide-carbon-lift border-y border-carbon-lift">
-                {proj.metrics.map((m) => (
-                  <div key={m.label} className="px-2.5 py-2.5 first:pl-0">
-                    <dd className="font-geist text-[18px] tracking-[-0.02em] text-bone tabular">{m.value}</dd>
-                    <dt className="mt-1 font-geist-mono text-[10px] uppercase tracking-[0.06em] text-graphite-mid">{m.label}</dt>
-                  </div>
-                ))}
-              </dl>
-
-              <div className="mt-3.5 flex flex-wrap gap-1.5">
-                {proj.tags.map((t) => (
-                  <span key={t} className="border border-carbon-lift px-2 py-1 font-geist-mono text-[10px] uppercase tracking-[0.06em] text-graphite-mid">
-                    {t}
-                  </span>
-                ))}
-              </div>
-
-              <div className="mt-4 flex items-center gap-2 border-t border-carbon-lift pt-3.5">
-                <MonoTag className="text-pale-stone transition-colors duration-150 group-hover:text-chalk">{proj.linkLabel}</MonoTag>
-                <ArrowUpRight className="h-3 w-3 text-pale-stone transition-transform duration-150 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-chalk" />
-              </div>
-            </a>
-          </Reveal>
-        ))}
+    <section id="work" aria-labelledby="work-title" className="panel-scope">
+      <div className="page relative py-24 lg:py-32">
+        <SpinBadge className="top-20 right-[var(--gutter)] hidden md:block lg:top-24" />
+        <SectionHead
+          num="01"
+          label="Work"
+          title={
+            <span id="work-title">
+              One ROM, one app,
+              <br />
+              both <em className="ital">shipped</em>.
+            </span>
+          }
+        />
+        <RomPost />
+        <AppCard />
       </div>
-
-      <RepoTable />
     </section>
   );
 }

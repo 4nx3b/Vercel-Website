@@ -1,53 +1,75 @@
-# therealreze.vercel.app — SIGNAL design system
+# therealreze.vercel.app — editorial field-notes system
 
-A single-page personal portfolio for an Android root specialist & custom ROM
-developer. Complete UI rebuild (SIGNAL system): dark-first, technical-editorial
-layout, acid-lime accent, mono data labels, numbered sections, mobile bottom
-dock navigation.
+A single-page portfolio for an Android root specialist and custom ROM
+developer, laid out like a ROM developer's field notebook: warm drafting
+paper, ink, one vermilion mark, §-numbered sections, figure captions and
+margin notes.
+
+> The visual system (tokens, type, layout patterns and motion) is modelled on
+> [curialy.tech](https://curialy.tech/). All copy and artwork, including the
+> FIG. 1 exploded-phone drawing, are original and written from this
+> portfolio's own content.
 
 ## Tech stack
 
-Simple static site — no build step, no framework:
-
-- `index.html` — full page structure
-- `style.css` — SIGNAL design system (tokens, components, responsive rules)
-- `script.js` — modular UI + data layer (17 isolated init steps)
-- `assets/img/` — optimized photos + ROM poster (lazy-loaded)
+- React 19 + TypeScript, Vite 7, Tailwind CSS v4 (`@tailwindcss/vite`)
+- `vite-plugin-singlefile`: the build inlines everything into one `index.html`
+- `lucide-react` icons
 - Vercel for hosting, `/api/*` serverless functions
-- Firebase/Firestore for AMA questions
-- Optional Telegram/Formspree notifications
+- Firebase/Firestore for AMA questions, Telegram + Formspree notifications
+
+```txt
+src/
+├─ index.css            # tokens (@theme), motion keyframes, reveal + reduced motion
+├─ App.tsx              # skip link · Nav · main sections · Footer
+├─ components/          # Hero, FigPhone, ToolStrip, Skills, Process, Work,
+│                       # Now (+ Play games), Principles, Ask, Links, Footer, ui
+├─ hooks/useInView.ts   # IntersectionObserver reveal, IST clock, count-up
+└─ lib/data.ts          # all content + AMA/Firebase/radio config
+```
+
+`npm run dev` · `npm run build` · `npm run preview`
 
 ## Design system
 
 | Token group | Values |
 |---|---|
-| Fonts | Space Grotesk (display) · Inter (body) · JetBrains Mono (data) |
-| Dark colors | bg `#0a0b0d` · surface `#141519` · text `#f2f3f0` · accent `#c9f73a` |
-| Light colors | bg `#f2f2ee` · surface `#ffffff` · accent-text `#5a7200` |
-| Radius | 8 / 12 / 18 px, pill |
-| Motion | 150 / 240 / 420 ms · `cubic-bezier(.22,1,.36,1)` |
-| Layout | 1100px max width, numbered sections 00–09 |
+| Fonts | Instrument Serif (display, one italic vermilion word per headline) · Geist 300–700 (text/UI) · Geist Mono 400/500 (labels, chips, code) |
+| Paper + ink | paper `#f3efe6` · paper-deep `#e9e3d5` · card `#f8f5ee` · ink `#14130f` · ink-soft `#3a372f` · graphite `#6f6a5d` · rule `#d8d0bf` / `#8a8475` |
+| Accent | vermilion `#ff4a1c` (fills, always with ink text) · vermilion-ink `#b8300c` (text on paper) · wash `#fbe3d9` · moss `#4f7a3a` |
+| Dark panel (§ 03) | panel `#1b1a15` / `#211f19` / `#141310` · text `#f3efe6` · ok `#9bd17b` · err `#ff8a6b` |
+| Type scale | micro 10.5 · 12 · 13 · 14 · 16 body · lede 18–20 · title 24 · page clamp 30–40 · display clamp 36–60 · hero clamp 44–96 px |
+| Radius / elevation | 4 / 8 / 10 / 14 / 18 px, pill · hard ink offset shadow `6px 6px 0 #14130f` on the init card and AMA composer only |
+| Motion | `--dur-enter .56s` · `--dur-reveal .75s` · `--dur-hero .9s` · `--dur-figure 1.2s` · `--dur-swap .4s` · ease-out `cubic-bezier(.22,1,.36,1)` · 70 ms stagger |
+| Layout | 1240px max width, 32px gutter (20px on phones) |
 
-Accessibility: semantic landmarks, `:focus-visible` rings, aria labels,
-`prefers-reduced-motion` support, WCAG-passing contrast in both themes.
+Motion: keyframes `rise`, `settle`, `draw`, `marquee`, `grow-y`, `grow-x`,
+`spark`, `step-slide`, `caret-blink`. The one orchestrated moment is the
+hero on load (headline lines rise 70 ms apart, FIG. 1 strokes draw, the init
+card settles, all done by about 1.6 s). Elsewhere: `[data-reveal]` scroll
+reveals (gated on `html.js`, so content shows without JS), the timeline
+spine, and the tab swap. The marquee pauses on hover and focus. Under
+`prefers-reduced-motion: reduce` everything is shown, strokes are drawn,
+count-ups land on their final values and nothing moves.
 
-## Features
+Accessibility: skip link, one h1, header/main/footer landmarks, 2px
+`:focus-visible` rings on paper and on the dark panel, labelled fields,
+44px touch targets, no sideways scroll at 320px, and text contrast of
+4.5:1 or better.
 
-1. **Boot overlay** — fast terminal-style intro, tap to skip
-2. **Hero** — live IST clock, status line, CTAs
-3. **About** — photo strip (manual nav + dots + 7s auto-advance), live stats
-4. **Skills** — 12 skills, 5 category tabs
-5. **Work** — Lunaris OS featured card + live GitHub repos (filter + search)
-6. **Music** — Last.fm dashboard (stats, top tracks/artists, recent with
-   now-playing) + site music player (audio engine, seek, volume)
-7. **Anime** — AniList integration (stats, status tabs, pagination)
-8. **Now** — quote card, time-link card, interest cards
-9. **Play** — 7 canvas games (Snake, Pong, Roast Quiz, Flappy, Minesweeper,
-   Reaction, Dodge) in modal shells
-10. **Ask** — AMA with Firestore persistence, upvotes, sorting, pagination,
-    owner dashboard (answer/dismiss/delete), Telegram + Formspree notify
-11. **Links** — 12 social links, credits, changelog modal
-12. **Theming** — dark/light toggle, persisted
+## Sections
+
+| § | Section | Contents |
+|---|---|---|
+| 00 | Hero | headline, FIG. 1 exploded phone + partition stack, init card with Magisk/KernelSU toggle and copy command, margin note |
+| — | Tool strip | tool marquee |
+| 01 | Skills | sticky intro, five hairline rows (Core, Root, ROM, Tools, Dev) |
+| 02 | Process | five-stage timeline with build logs |
+| 03 | Work | dark panel: Lunaris OS build window, projects, live GitHub repo table (cached fallback) |
+| 04 | Now & Play | tabs: Anime (AniList stats), Music (signal radio, no autoplay), Gaming, Play (Snake, Pong, Roast Quiz, Reaction Test) |
+| 05 | Principles | count-up stats, pull quote, about, two principles |
+| 06 | Ask | AMA composer + answered questions (Firestore, votes, owner console) |
+| — | Links, Footer | 12 channels, site map, IST clock |
 
 ## API routes (serverless, unchanged)
 
@@ -65,16 +87,16 @@ Environment variables required by the API routes: `TELEGRAM_BOT_TOKEN`,
 ## Deployment on Vercel
 
 1. Push to GitHub.
-2. Import the repository on Vercel (framework preset: Other/static).
+2. Import the repository on Vercel (framework preset: Vite; build `npm run build`, output `dist`).
 3. Set the environment variables above.
 4. Deploy. `/api/*` files become serverless functions automatically.
 
 ## Maintenance tips
 
-- All JS lives in isolated modules (`Theme`, `Boot`, … `AMA`); init is
-  fault-isolated — one failing module never breaks the page.
-- Keep game implementations inside the `Games` module; each returns a cleanup
-  function that the modal close handler invokes.
+- Components use the tokens in `src/index.css`; avoid literal colours and
+  `transition: all`.
+- Game implementations live in `src/components/Play.tsx`; each cleans up its
+  loop when its modal closes.
 - AMA keys in localStorage: `ama_owner_auth_v4`, `ama_pending_questions_v4`,
   `ama_voted_question_ids_v6`, `ama_public_sort_v6`.
 - Test mobile Chrome after every change; check 320px for overflow.

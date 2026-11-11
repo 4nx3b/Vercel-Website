@@ -1,29 +1,39 @@
-import type { ReactNode } from "react";
-import { cn } from "../utils/cn";
+import type { CSSProperties, ElementType, ReactNode } from "react";
 import { useInView } from "../hooks/useInView";
 
-/** Scroll reveal — short, mechanical: 200ms cubic-bezier(0.4,0,0.2,1), a 10px rise. */
+/**
+ * Scroll reveal — [data-reveal] rises 18px over --dur-reveal once in view.
+ * variant="focus" also resolves from blur (headings only).
+ * Gated on html.js in CSS, so content is visible without JavaScript.
+ */
 export function Reveal({
   children,
   delay = 0,
   className,
+  as: Tag = "div",
+  style,
+  id,
+  variant = "rise",
 }: {
   children: ReactNode;
   delay?: number;
   className?: string;
+  as?: ElementType;
+  style?: CSSProperties;
+  id?: string;
+  variant?: "rise" | "focus";
 }) {
-  const { ref, inView } = useInView<HTMLDivElement>(0.15);
+  const { ref, inView } = useInView<HTMLElement>(0.12);
   return (
-    <div
+    <Tag
       ref={ref}
-      style={{ transitionDelay: `${delay}ms` }}
-      className={cn(
-        "transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]",
-        inView ? "translate-y-0 opacity-100" : "translate-y-[10px] opacity-0",
-        className
-      )}
+      id={id}
+      data-reveal={variant === "focus" ? "focus" : ""}
+      data-inview={inView ? "" : undefined}
+      style={{ ...style, ["--reveal-delay" as string]: `${delay}ms` }}
+      className={className}
     >
       {children}
-    </div>
+    </Tag>
   );
 }
