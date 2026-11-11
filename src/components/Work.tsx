@@ -229,9 +229,10 @@ export function Work() {
       <GiantType className="top-10 lg:top-20" />
       <BurstLines className="top-0" />
       <div className="page relative py-24 lg:py-32">
-        <SpinBadge className="top-20 right-[var(--gutter)] hidden md:block lg:top-24" />
-        <MotionVectors className="top-28 right-[var(--gutter)] hidden lg:block" count={5} />
+        <SpinBadge className="fx-badge top-20 right-[var(--gutter)] lg:top-24" />
+        <MotionVectors className="fx-mv top-28 right-[var(--gutter)]" count={5} />
         <SectionHead
+          className="max-md:pr-24"
           num="01"
           label="Work"
           title={

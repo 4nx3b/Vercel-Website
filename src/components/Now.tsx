@@ -252,8 +252,8 @@ export function Now() {
   return (
     <section id="about" aria-labelledby="now-title" className="page relative overflow-clip py-24 lg:py-32">
       <Halftone className="top-16 right-0 left-0 h-44" />
-      <OrbitRing className="-top-24 -right-40 hidden md:block" />
-      <MotionVectors className="top-24 left-[var(--gutter)] hidden lg:block" flip count={4} />
+      <OrbitRing className="fx-orbit -top-24 -right-40" />
+      <MotionVectors className="fx-mv top-24 left-[var(--gutter)]" flip count={4} />
       <span id="play" aria-hidden className="absolute top-0" />
       <SectionHead
         num="02"

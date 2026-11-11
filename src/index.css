@@ -767,6 +767,14 @@ html.js .spine[data-armed][data-inview] {
 .disc[data-playing] {
   animation-play-state: running;
 }
+/* Nothing spins or drifts while the tab is in the background */
+html[data-hidden] .disc,
+html[data-hidden] .sp-bars,
+html[data-hidden] .kana-track,
+html[data-hidden] .petal,
+html[data-hidden] .m-marquee-track {
+  animation-play-state: paused !important;
+}
 
 /* Song panel: one element, two placements. Open = list under the header;
    mini = small visible card bottom-right while a song plays. */
@@ -823,6 +831,34 @@ html.js .spine[data-armed][data-inview] {
 @keyframes fade-only {
   from {
     opacity: 0;
+  }
+}
+
+/* Owner console: a bottom sheet on phones, a centred dialog from sm up.
+   dvh so the mobile URL bar never pushes it off-screen. */
+.owner-overlay {
+  background: color-mix(in srgb, var(--color-paper) 55%, transparent);
+  padding: env(safe-area-inset-top) 0 0;
+}
+.owner-sheet {
+  max-height: calc(100vh - 5rem);
+  max-height: calc(100dvh - 1rem);
+  padding-bottom: env(safe-area-inset-bottom);
+  animation: sheet-up var(--dur-3) var(--ease-out) both;
+}
+@keyframes sheet-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .owner-sheet {
+    animation: fade-only var(--dur-2) linear both;
   }
 }
 
@@ -910,6 +946,13 @@ html.js .spine[data-armed][data-inview] {
   transform: translate3d(0, calc(var(--p, 0) * -40px), 0);
   will-change: transform;
 }
+/* The rotated frame is drawn as separate composited layers so every edge is
+   anti-aliased: a rotated box with a CSS border + overflow:hidden is
+   rasterised without AA and shows stair-stepped edges.
+   - the vermilion offset is its own layer (::before), not a box-shadow
+   - the ink line is an inset ring (::after) on top of the image
+   - the image clips itself with border-radius instead of a parent overflow
+   - a 1px transparent outline + translateZ(0) makes the GPU smooth the edge */
 @keyframes portrait-settle {
   from {
     opacity: 0;
@@ -917,20 +960,49 @@ html.js .spine[data-armed][data-inview] {
   }
   to {
     opacity: 1;
-    transform: rotate(-1.5deg);
+    transform: translate3d(0, 0, 0) rotate(-1.5deg);
   }
 }
 .hero-portrait {
   position: relative;
-  overflow: hidden;
-  border: 1px solid var(--color-ink);
   border-radius: 4px;
-  box-shadow: 14px 14px 0 var(--color-vermilion);
-  transform: rotate(-1.5deg);
+  padding: 1px;
+  background-clip: padding-box;
+  outline: 1px solid transparent;
+  transform: translate3d(0, 0, 0) rotate(-1.5deg);
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
   animation: portrait-settle var(--dur-hero) var(--ease-out) 0.15s both;
+}
+.hero-portrait::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: 4px;
+  background: var(--color-vermilion);
+  transform: translate3d(14px, 14px, 0);
+  outline: 1px solid transparent;
+  backface-visibility: hidden;
+}
+.hero-portrait::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--color-ink);
+  pointer-events: none;
+}
+.hero-portrait picture {
+  display: block;
+  border-radius: 4px;
 }
 .hero-portrait img {
   max-height: 78vh;
+  border-radius: 4px;
+  image-rendering: auto;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 @keyframes sticker-pop {
   from {
@@ -1207,8 +1279,14 @@ html.js .spine[data-armed][data-inview] {
   .hero-portrait-wrap {
     animation-name: sd-drift-up;
   }
+  .hero {
+    view-timeline-name: --hero;
+    timeline-scope: --hero;
+  }
   .petal-rush {
     animation-name: sd-petal;
+    animation-timeline: --hero;
+    animation-range: exit 0% exit 100%;
   }
   .kana-scroll {
     animation-name: sd-kana;
@@ -1388,6 +1466,58 @@ html.js .spine[data-armed][data-inview] {
   }
 }
 
+/* ══════════════ phone variants: every effect, scaled down, kept in the gutter ══════════════ */
+@media (max-width: 767px) {
+  /* speed lines: half the strokes, contained to the portrait area */
+  .speed-lines {
+    inset: -8% -10%;
+    width: 120%;
+    height: 116%;
+    opacity: calc(var(--sv, 0) * 0.35);
+  }
+  .speed-lines .sl-extra {
+    display: none;
+  }
+  /* spin badge: 88px, top-right inside the gutter, clear of the h2 */
+  .fx-badge {
+    width: 88px;
+    height: 88px;
+    top: 5.5rem;
+    right: var(--gutter);
+  }
+  /* motion vectors: three arrows at 60%, behind the heading */
+  .fx-mv {
+    width: 84px;
+    height: 66px;
+    top: 6rem;
+    z-index: 0;
+    opacity: 0.45;
+  }
+  .fx-mv .mv-line:nth-child(n + 4) {
+    display: none;
+  }
+  /* orbit ring: fits the viewport, centred behind the heading */
+  .fx-orbit {
+    width: min(312px, 86vw);
+    height: min(312px, 86vw);
+    top: 0.5rem;
+    right: auto;
+    left: 50%;
+    margin-left: calc(min(312px, 86vw) / -2);
+  }
+  .giant-type-row {
+    font-size: max(40vw, 120px);
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (max-width: 767px) {
+    /* short phone sections: run the slide across the whole visible pass */
+    .giant-type-row {
+      animation-range: entry 0% exit 100%;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-name,
   .hero-portrait-wrap,
@@ -1412,7 +1542,7 @@ html.js .spine[data-armed][data-inview] {
     animation: none !important;
   }
   .hero-portrait {
-    transform: rotate(-1.5deg) !important;
+    transform: translate3d(0, 0, 0) rotate(-1.5deg) !important;
   }
   .hero-sticker {
     transform: rotate(var(--r, 0deg)) !important;
@@ -1431,12 +1561,12 @@ html.js .spine[data-armed][data-inview] {
 
 /* Below-the-fold sections: let the browser skip their layout/paint until near.
    Skipped for #about, whose Skills-style sticky column must keep measuring. */
-#ask,
-#links,
-.art-band {
+#links {
   content-visibility: auto;
   contain-intrinsic-size: auto 900px;
 }
+/* Not on #ask (its dialogs/FX must stay live) or .art-band (a skipped subtree
+   freezes its scroll timeline, which stalled the Ken Burns on phones). */
 
 /* Scroll reveal — content stays visible without JS */
 html.js [data-reveal] {

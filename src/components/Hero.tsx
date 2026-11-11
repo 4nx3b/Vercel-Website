@@ -103,7 +103,7 @@ export function Hero() {
                 <source
                   type="image/webp"
                   srcSet={`${PORTRAIT.src900} 900w, ${PORTRAIT.src1400} 1400w`}
-                  sizes="(min-width: 1024px) 34vw, 80vw"
+                  sizes="(min-width: 1024px) 34vw, 84vw"
                 />
                 <img
                   src={PORTRAIT.src900}

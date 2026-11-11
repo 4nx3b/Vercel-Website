@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "../utils/cn";
 import {
   ADMIN_EMAIL, AMA_COLLECTION, AMA_KEYS, FIREBASE, FORMSPREE_ENDPOINT, SEED_QUESTIONS,
@@ -300,18 +301,30 @@ function OwnerConsole({ onClose, onChanged }: { onClose: () => void; onChanged: 
   }
 
   useEffect(() => { if (isOwner) void load(); }, [isOwner, load]);
+  const sheetRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+    const root = document.documentElement;
+    const opener = document.activeElement as HTMLElement | null;
+    const gap = window.innerWidth - root.clientWidth;
+    const prev = { o: root.style.overflow, p: root.style.paddingRight };
+    root.style.overflow = "hidden";
+    if (gap > 0) root.style.paddingRight = `${gap}px`;
+    requestAnimationFrame(() => sheetRef.current?.querySelector<HTMLElement>("input, button")?.focus());
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      root.style.overflow = prev.o;
+      root.style.paddingRight = prev.p;
+      opener?.focus?.();
+    };
   }, [onClose]);
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-[#14130f8c] p-0 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label="AMA owner console">
-      <div className="m-settle flex max-h-[92vh] w-full max-w-2xl flex-col rounded-t-[var(--radius-lg)] border border-ink bg-composer shadow-[var(--shadow-ink)] sm:rounded-[var(--radius-lg)]">
-        <div className="flex items-center justify-between border-b border-rule px-5 py-2 sm:px-7">
-          <div className="flex items-center gap-2.5">
+  return createPortal(
+    <div className="owner-overlay fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label="AMA owner console">
+      <div ref={sheetRef} className="owner-sheet flex w-full min-w-0 max-w-2xl flex-col rounded-t-[var(--radius-lg)] border border-ink bg-composer shadow-[var(--shadow-ink-sm)] sm:rounded-[var(--radius-lg)]">
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-rule px-4 py-2 sm:px-7">
+          <div className="flex min-w-0 items-center gap-2.5">
             <StatusDot tone="vermilion" label={<><span className="text-vermilion-ink">$</span> ama, owner console</>} />
           </div>
           <div className="flex items-center gap-1">
@@ -326,7 +339,7 @@ function OwnerConsole({ onClose, onChanged }: { onClose: () => void; onChanged: 
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-7">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-7">
           {!isOwner ? (
             <form onSubmit={login} className="mx-auto flex max-w-sm flex-col gap-4 py-6">
               <div>
@@ -348,18 +361,20 @@ function OwnerConsole({ onClose, onChanged }: { onClose: () => void; onChanged: 
             </form>
           ) : (
             <>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
                 {(["unanswered", "dismissed", "answered"] as const).map((k) => (
                   <button key={k} type="button" onClick={() => setFilter(k)} aria-pressed={filter === k}
                     className={cn(
-                      "min-h-11 rounded-full border px-3.5 font-mono text-xs capitalize transition-colors duration-[var(--dur-2)]",
+                      "min-h-11 shrink-0 whitespace-nowrap rounded-full border px-3.5 font-mono text-xs capitalize transition-colors duration-[var(--dur-2)]",
                       filter === k ? "border-ink bg-ink text-paper" : "border-rule-strong text-ink-soft hover:border-ink hover:text-ink"
                     )}>
                     {k} <span className="tabular opacity-70">{counts[k]}</span>
                   </button>
                 ))}
+                </div>
                 <button type="button" onClick={() => void load()} aria-label="Refresh"
-                  className="ml-auto flex h-11 w-11 items-center justify-center rounded-full border border-rule-strong text-ink-soft transition-colors duration-[var(--dur-2)] hover:border-ink hover:text-ink">
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-rule-strong text-ink-soft transition-colors duration-[var(--dur-2)] hover:border-ink hover:text-ink">
                   <RefreshCw aria-hidden className="h-4 w-4" strokeWidth={1.75} />
                 </button>
               </div>
@@ -372,7 +387,7 @@ function OwnerConsole({ onClose, onChanged }: { onClose: () => void; onChanged: 
                   <li className="py-8 text-center"><MonoTag className="text-graphite">Nothing in “{filter}”</MonoTag></li>
                 )}
                 {visible.map((q) => (
-                  <li key={q.id} className="rounded-[var(--radius-md)] border border-rule bg-card p-4">
+                  <li key={q.id} className="min-w-0 rounded-[var(--radius-md)] border border-rule bg-card p-4 [overflow-wrap:anywhere]">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                       <MonoTag className="text-ink-soft">from: {q.name}</MonoTag>
                       <MonoTag className="ml-auto text-graphite tabular">{q.votes} votes · {timeAgo(q.createdAt)}</MonoTag>
@@ -427,7 +442,7 @@ function OwnerConsole({ onClose, onChanged }: { onClose: () => void; onChanged: 
                           value={drafts[q.id] ?? ""}
                           onChange={(e) => setDrafts((d) => ({ ...d, [q.id]: e.target.value }))}
                           rows={3} maxLength={1000} placeholder="Write the reply…"
-                          className="w-full resize-none rounded-[var(--radius-sm)] border border-rule-strong bg-paper px-3 py-2.5 text-[16px] text-ink placeholder:text-graphite focus:border-ink"
+                          className="w-full max-w-full resize-none rounded-[var(--radius-sm)] border border-rule-strong bg-paper px-3 py-2.5 text-[16px] text-ink placeholder:text-graphite focus:border-ink"
                         />
                         <div className="mt-2 flex gap-2">
                           <button onClick={() => saveAnswer(q, drafts[q.id] ?? "")} disabled={busy}
@@ -447,7 +462,8 @@ function OwnerConsole({ onClose, onChanged }: { onClose: () => void; onChanged: 
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

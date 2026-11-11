@@ -58,7 +58,7 @@ export function SakuraField() {
   useOffscreenPause(ref);
 
   return (
-    <div ref={ref} aria-hidden className="sakura pointer-events-none absolute inset-0 overflow-hidden">
+    <div ref={ref} aria-hidden className="sakura pointer-events-none absolute inset-0 overflow-clip">
       {PETALS.map(([x, y, size, dur, delay, sway, depth], i) => (
         <span
           key={i}
@@ -103,9 +103,9 @@ export function SpeedLines() {
     };
   });
   return (
-    <svg ref={ref} aria-hidden viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" className="speed-lines pointer-events-none absolute hidden md:block">
+    <svg ref={ref} aria-hidden viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" className="speed-lines pointer-events-none absolute">
       {lines.map((l, i) => (
-        <line key={i} x1={l.x1.toFixed(1)} y1={l.y1.toFixed(1)} x2={l.x2.toFixed(1)} y2={l.y2.toFixed(1)} stroke="var(--color-ink)" strokeWidth={l.w} />
+        <line key={i} className={i % 2 ? "sl-extra" : undefined} x1={l.x1.toFixed(1)} y1={l.y1.toFixed(1)} x2={l.x2.toFixed(1)} y2={l.y2.toFixed(1)} stroke="var(--color-ink)" strokeWidth={l.w} />
       ))}
     </svg>
   );
@@ -132,7 +132,7 @@ export function KanaMarquee() {
     </span>
   ));
   return (
-    <section ref={ref} aria-label={`Banner: ${text}`} className="kana-band relative overflow-hidden border-y border-ink bg-ink text-paper">
+    <section ref={ref} aria-label={`Banner: ${text}`} className="kana-band relative overflow-clip border-y border-ink bg-ink text-paper">
       <div aria-hidden className="kana-scroll">
         <div className="kana-track">
           {row}
