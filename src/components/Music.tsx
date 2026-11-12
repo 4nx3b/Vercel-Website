@@ -67,7 +67,11 @@ export function PlaylistShelf() {
     setOrder((o) => (dir === 1 ? [...o.slice(1), o[0]] : [o[o.length - 1], ...o.slice(0, -1)]));
   }, []);
 
-  /* Drag the top card 1:1, fly it out past the threshold, else spring back. */
+  /* Drag the top card 1:1, fly it out past the threshold, else spring back.
+     Animations run through WAAPI and every inline style is cleared when they
+     finish. The old version left `transition: none` inline on each card it
+     flew out, so once every card had gone round once the stack stopped
+     animating. */
   useEffect(() => {
     const deck = deckRef.current;
     if (!deck) return;
@@ -77,15 +81,19 @@ export function PlaylistShelf() {
     let t0 = 0;
     let dx = 0;
     let dragging = false;
+    let busy = false;
+    const EASE_OUT = "cubic-bezier(.22,1,.36,1)";
 
     const topCard = () => deck.querySelector<HTMLElement>('[data-top="true"]');
-    const setT = (el: HTMLElement, v: string, trans = "none") => {
-      el.style.transition = trans;
-      el.style.transform = v;
+    const clear = (el: HTMLElement) => {
+      el.style.removeProperty("transform");
+      el.style.removeProperty("transition");
+      el.style.removeProperty("opacity");
     };
+    const dragT = (d: number) => `translate3d(${d}px,0,0) rotate(${(d * 0.06).toFixed(2)}deg) rotateY(${(d * -0.08).toFixed(2)}deg)`;
 
     const down = (e: PointerEvent) => {
-      if (e.button !== 0) return;
+      if (e.button !== 0 || busy) return;
       card = topCard();
       if (!card) return;
       id = e.pointerId;
@@ -104,9 +112,10 @@ export function PlaylistShelf() {
       }
       if (!dragging) return;
       e.preventDefault();
-      setT(card, `translate3d(${dx}px,0,0) rotate(${(dx * 0.06).toFixed(2)}deg) rotateY(${(dx * -0.08).toFixed(2)}deg)`);
+      card.style.transition = "none";
+      card.style.transform = dragT(dx);
     };
-    const up = (e: PointerEvent) => {
+    const up = async (e: PointerEvent) => {
       if (!card || e.pointerId !== id) return;
       const el = card;
       const moved = Math.abs(dx);
@@ -114,27 +123,40 @@ export function PlaylistShelf() {
       delete deck.dataset.dragging;
       card = null;
       if (!dragging) return; // a tap: the <a> handles it
-      if (moved > 90 || v > 0.5) {
-        const dir = dx < 0 ? -1 : 1;
-        if (reduced) {
-          el.style.transition = "none";
-          el.style.transform = "";
+      busy = true;
+      try {
+        if (moved > 90 || v > 0.5) {
+          const dir = dx < 0 ? -1 : 1;
+          if (!reduced) {
+            const fly = el.animate(
+              [
+                { transform: dragT(dx), opacity: 1 },
+                { transform: `translate3d(${dir * 120}%,0,0) rotate(${dir * 12}deg)`, opacity: 0 },
+              ],
+              { duration: 350, easing: EASE_OUT, fill: "forwards" }
+            );
+            await fly.finished;
+            fly.cancel();
+          }
+          clear(el);
           cycle(1);
-          return;
+          // the card that went to the back fades up into its new slot
+          requestAnimationFrame(() => {
+            el.animate([{ opacity: 0, transform: "translate3d(0,0,-200px) scale(.8)" }, { opacity: 1 }], {
+              duration: reduced ? 160 : 300,
+              easing: "ease-out",
+              composite: "add",
+            });
+          });
+        } else {
+          const back = el.animate([{ transform: dragT(dx) }, { transform: "none" }], { duration: 300, easing: EASE_OUT });
+          clear(el);
+          await back.finished;
         }
-        setT(el, `translate3d(${dir * 120}%,0,0) rotate(${dir * 12}deg)`, "transform .35s var(--ease-out), opacity .35s var(--ease-out)");
-        el.style.opacity = "0";
-        window.setTimeout(() => {
-          el.style.transition = "none";
-          el.style.transform = "";
-          el.style.opacity = "";
-          cycle(1);
-        }, 330);
-      } else {
-        setT(el, "", "transform .3s var(--ease-out)");
-        window.setTimeout(() => {
-          el.style.transition = "";
-        }, 320);
+      } catch {
+        clear(el);
+      } finally {
+        busy = false;
       }
     };
 

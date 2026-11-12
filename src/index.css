@@ -21,6 +21,7 @@
   --color-vermilion-ink: #b8300c;
   --color-vermilion-deep: #d93a10;
   --color-vermilion-wash: #fbe3d9;
+  --color-on-accent: #14130f;
   --color-moss: #4f7a3a;
   --color-moss-ink: #3f6630;
   --color-panel: #1b1a15;
@@ -157,6 +158,67 @@
   --focus: var(--color-paper);
   background: var(--surface);
   color: var(--text);
+}
+
+/* ══════════════ night edition ══════════════
+   A designed dark theme, not an inversion: the primitive tokens are
+   re-pointed, so every Tailwind utility and component follows. The dark
+   panel (§ 01) lifts slightly above the page instead of sinking. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-paper: #12110e;
+  --color-paper-deep: #1b1a15;
+  --color-card: #1f1d18;
+  --color-composer: #23211b;
+  --color-ink: #f3efe6;
+  --color-ink-soft: #d6d0c2;
+  --color-graphite: #a39d8e;
+  --color-rule: #3a372f;
+  --color-rule-strong: #6f6a5d;
+  --color-vermilion-ink: #ff8a6b;
+  --color-vermilion-wash: #3a1d14;
+  --color-moss: #7fb35f;
+  --color-moss-ink: #9bd17b;
+  --color-panel: #1f1d18;
+  --color-panel-2: #26241e;
+  --color-panel-3: #181712;
+  --shadow-ink: 6px 6px 0 #000;
+  --shadow-ink-sm: 3px 3px 0 #000;
+  --shadow-card: 0 0 0 1px #3a372f;
+}
+:root[data-theme="dark"] .grid-paper {
+  opacity: 0.6;
+}
+/* the black ink tag sticker reads as paper-on-ink in the dark */
+:root[data-theme="dark"] .hero-sticker-b {
+  background: var(--color-composer);
+  color: var(--color-ink);
+  border-color: var(--color-rule-strong);
+}
+
+/* Theme switch: a circular reveal from the button (View Transitions) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-new(root) {
+  animation: theme-reveal 0.5s var(--ease-out);
+}
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at var(--tx, 50%) var(--ty, 0%));
+  }
+  to {
+    clip-path: circle(150vmax at var(--tx, 50%) var(--ty, 0%));
+  }
+}
+html.theme-fade,
+html.theme-fade * {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease !important;
 }
 
 /* ══════════════ base ══════════════ */
@@ -1567,6 +1629,85 @@ html[data-hidden] .m-marquee-track {
 }
 /* Not on #ask (its dialogs/FX must stay live) or .art-band (a skipped subtree
    freezes its scroll timeline, which stalled the Ken Burns on phones). */
+
+/* Footer flow field: endless drifting contour lines */
+.flow {
+  overflow: clip;
+  contain: layout paint;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+}
+.flow-svg {
+  display: block;
+  width: 200%;
+  height: 100%;
+}
+@keyframes flow-drift {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+@keyframes flow-breathe {
+  from {
+    transform: scaleY(0.9);
+  }
+  to {
+    transform: scaleY(1.1);
+  }
+}
+.flow-line {
+  animation: flow-drift var(--dur, 24s) linear infinite;
+  animation-direction: var(--dir, normal);
+  will-change: transform;
+}
+.flow-breathe {
+  transform-origin: 50% 50%;
+  transform-box: fill-box;
+  animation: flow-breathe 12s ease-in-out infinite alternate;
+}
+.flow[data-off] .flow-line,
+.flow[data-off] .flow-breathe,
+html[data-hidden] .flow-line,
+html[data-hidden] .flow-breathe {
+  animation-play-state: paused;
+}
+@media (max-width: 639px) {
+  .flow-line:nth-child(n + 9) {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow-line,
+  .flow-breathe {
+    animation: none !important;
+  }
+}
+
+/* No visible scrollbar, scrolling still works by touch, wheel and keys */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Edge fades only where there is more to scroll */
+.q-scroll {
+  --ft: 0px;
+  --fb: 0px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--ft), #000 calc(100% - var(--fb)), transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 var(--ft), #000 calc(100% - var(--fb)), transparent);
+  scroll-behavior: smooth;
+}
+.q-scroll[data-fade-top] {
+  --ft: 28px;
+}
+.q-scroll[data-fade-bottom] {
+  --fb: 28px;
+}
+.q-scroll:focus-visible {
+  outline-offset: 4px;
+}
 
 /* Scroll reveal — content stays visible without JS */
 html.js [data-reveal] {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, Menu, X } from "lucide-react";
+import { ArrowUpRight, Menu, Moon, Sun, X } from "lucide-react";
 import { cn } from "../utils/cn";
 import { NAV_LINKS } from "../lib/data";
 import { useIstClock } from "../hooks/useInView";
@@ -7,6 +7,57 @@ import { supportsViewTimeline } from "../hooks/useScrollVar";
 import { Wordmark } from "./Wordmark";
 import { buttonClass } from "./ui";
 import { HeaderPlayer } from "./MusicPlayer";
+import { useTheme, type Theme } from "../hooks/useTheme";
+
+/** Two-option Sun / Moon switch for the sidebar. */
+function ThemeSwitch() {
+  const { theme, setTheme } = useTheme();
+  const opts: { v: Theme; label: string; Icon: typeof Sun }[] = [
+    { v: "light", label: "Light", Icon: Sun },
+    { v: "dark", label: "Dark", Icon: Moon },
+  ];
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="kicker text-ink-soft">Theme</span>
+      <div role="group" aria-label="Colour theme" className="flex rounded-full border border-rule-strong p-1">
+        {opts.map(({ v, label, Icon }) => (
+          <button
+            key={v}
+            type="button"
+            data-ripple
+            aria-pressed={theme === v}
+            onClick={(e) => setTheme(v, e.currentTarget)}
+            className={cn(
+              "inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm transition-colors duration-[var(--dur-2)]",
+              theme === v ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"
+            )}
+          >
+            <Icon aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Compact icon toggle for the desktop header. */
+function ThemeIconButton() {
+  const { theme, setTheme } = useTheme();
+  const dark = theme === "dark";
+  return (
+    <button
+      type="button"
+      data-ripple
+      onClick={(e) => setTheme(dark ? "light" : "dark", e.currentTarget)}
+      aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
+      aria-pressed={dark}
+      className="nav-menu-btn flex h-10 w-10 items-center justify-center rounded-full border border-rule-strong text-[var(--text)] transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)]"
+    >
+      {dark ? <Sun aria-hidden className="h-4 w-4" strokeWidth={1.75} /> : <Moon aria-hidden className="h-4 w-4" strokeWidth={1.75} />}
+    </button>
+  );
+}
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
@@ -158,6 +209,7 @@ export function Nav() {
         <div className="hidden items-center gap-5 lg:flex">
           <HeaderPlayer />
           <span className="hidden font-mono text-xs text-[var(--text-3)] tabular 2xl:inline">IST {clock}</span>
+          <ThemeIconButton />
           <a href="#ask" className={buttonClass("ink", "nav-cta min-h-10 px-5 text-[15px]")}>
             Ask me
             <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
@@ -179,7 +231,7 @@ export function Nav() {
           aria-expanded={open}
           aria-controls="mobile-sheet"
           aria-label={open ? "Close menu" : "Open menu"}
-          className="nav-menu-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-rule-strong text-[var(--text)] transition-colors duration-[var(--dur-2)] hover:bg-[#14130f0d] lg:hidden"
+          className="nav-menu-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-rule-strong text-[var(--text)] transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)] lg:hidden"
         >
           <Menu aria-hidden className="h-5 w-5" strokeWidth={1.75} />
         </button>
@@ -192,7 +244,7 @@ export function Nav() {
         aria-hidden
         data-open={open}
         onClick={close}
-        className="scrim fixed inset-0 z-[60] bg-[#14130f59] lg:hidden"
+        className="scrim fixed inset-0 z-[60] bg-[color-mix(in_srgb,var(--color-ink)_35%,transparent)] lg:hidden"
       />
       <div
         id="mobile-sheet"
@@ -212,7 +264,7 @@ export function Nav() {
               menuBtn.current?.focus();
             }}
             aria-label="Close menu"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-rule-strong text-ink transition-colors duration-[var(--dur-2)] hover:bg-[#14130f0d]"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-rule-strong text-ink transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)]"
           >
             <X aria-hidden className="h-5 w-5" strokeWidth={1.75} />
           </button>
@@ -232,6 +284,7 @@ export function Nav() {
           ))}
         </ul>
         <div className="mt-auto flex flex-col gap-4 border-t border-rule p-5">
+          <ThemeSwitch />
           <span className="font-mono text-xs text-graphite tabular">IST {clock}</span>
           <a href="#ask" onClick={close} className={buttonClass("ink", "w-full")}>
             Ask me

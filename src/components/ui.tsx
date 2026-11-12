@@ -65,8 +65,8 @@ const BTN_BASE =
 
 const BTN_VARIANT: Record<Variant, string> = {
   ink: "bg-ink text-paper hover:bg-ink-soft",
-  outline: "border border-[var(--border-strong)] text-[var(--text)] hover:bg-[#14130f0d] hover:border-[var(--text)]",
-  accent: "bg-vermilion text-ink hover:bg-vermilion-deep",
+  outline: "border border-[var(--border-strong)] text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)] hover:border-[var(--text)]",
+  accent: "bg-vermilion text-on-accent hover:bg-vermilion-deep",
 };
 
 export function buttonClass(variant: Variant = "ink", className?: string) {
@@ -122,13 +122,13 @@ export function Pill({ children, badge, className }: { children: ReactNode; badg
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center gap-2 rounded-full border border-[#ff4a1c4d] bg-vermilion-wash py-1 pl-1 pr-3 font-mono text-xs text-ink",
+        "inline-flex max-w-full items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--color-vermilion)_30%,transparent)] bg-vermilion-wash py-1 pl-1 pr-3 font-mono text-xs text-ink",
         !badge && "pl-3",
         className
       )}
     >
       {badge && (
-        <span className="rounded-full bg-vermilion px-2 py-0.5 text-xs font-medium uppercase tracking-[0.06em] text-ink">
+        <span className="rounded-full bg-vermilion px-2 py-0.5 text-xs font-medium uppercase tracking-[0.06em] text-on-accent">
           {badge}
         </span>
       )}

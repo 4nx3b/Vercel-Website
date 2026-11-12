@@ -38,7 +38,7 @@ export function PartitionBench({
           type="button"
           onClick={onFlash}
           disabled={flashing}
-          className="col-span-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-ink px-4 text-sm font-medium text-ink transition-colors duration-[var(--dur-2)] hover:bg-vermilion disabled:cursor-wait disabled:opacity-60 sm:ml-auto"
+          className="col-span-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-ink px-4 text-sm font-medium text-ink transition-colors duration-[var(--dur-2)] hover:bg-vermilion hover:text-on-accent disabled:cursor-wait disabled:opacity-60 sm:ml-auto"
         >
           <Zap aria-hidden className="h-4 w-4" strokeWidth={1.75} />
           {flashing ? "Flashing…" : "Flash"}

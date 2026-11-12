@@ -100,3 +100,21 @@ Environment variables required by the API routes: `TELEGRAM_BOT_TOKEN`,
 - AMA keys in localStorage: `ama_owner_auth_v4`, `ama_pending_questions_v4`,
   `ama_voted_question_ids_v6`, `ama_public_sort_v6`.
 - Test mobile Chrome after every change; check 320px for overflow.
+
+## Cloudflare Pages
+
+The site also deploys to Cloudflare Pages (`v3rsi0n.miuka.moe`). Cloudflare must serve the
+**built** output, not the repo root — serving the root makes the browser load the source
+`/src/main.tsx` as `application/octet-stream`, which leaves a blank page.
+
+In the Cloudflare dashboard (Pages → project → Settings → Build):
+
+| Setting | Value |
+| --- | --- |
+| Build command | `npm run build` |
+| Build output directory | `dist` (also set in `wrangler.toml`) |
+| Environment variable | `NODE_VERSION = 20` |
+
+`public/_headers` is copied into `dist` and only read by Cloudflare. The `/api/*` routes are
+Vercel functions, so on Cloudflare the playlist refresh and AMA notifications quietly fall back
+to cached or local data. Vercel deploys are unaffected by these files.
