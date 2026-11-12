@@ -3,6 +3,7 @@ import { ArrowUpRight, Check } from "lucide-react";
 import { cn } from "../utils/cn";
 import { ABOUT, ANIME, MUSIC } from "../lib/data";
 import { PlaylistShelf } from "./Music";
+import { agoShort, useAniList, type AnimeStats as AnimeStatsT } from "../hooks/useAniList";
 import { Play } from "./Play";
 import { Reveal } from "./Reveal";
 import { Halftone, MotionVectors, OrbitRing } from "./AnimeFx";
@@ -67,22 +68,89 @@ function UseCase({
   );
 }
 
-function AnimeStats() {
-  const rows = [
-    { v: ANIME.count.toLocaleString("en-US"), l: "titles completed" },
-    { v: ANIME.episodes.toLocaleString("en-US"), l: "episodes logged" },
-    { v: ANIME.minutes.toLocaleString("en-US"), l: "minutes watched" },
-    { v: ANIME.mean.toFixed(1), l: "mean score" },
-  ];
+/** A number that counts from its previous value to the new one (600ms) and rises 6px. */
+function LiveCount({ value, decimals = 0 }: { value: number; decimals?: number }) {
+  const [shown, setShown] = useState(value);
+  const [bump, setBump] = useState(0);
+  const from = useRef(value);
+  useEffect(() => {
+    const start = from.current;
+    if (start === value) return;
+    from.current = value;
+    setBump((n) => n + 1);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setShown(value);
+      return;
+    }
+    let raf = 0;
+    const t0 = performance.now();
+    const step = (t: number) => {
+      const k = Math.min(1, (t - t0) / 600);
+      const e = 1 - Math.pow(1 - k, 3);
+      setShown(start + (value - start) * e);
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  const text = decimals ? shown.toFixed(decimals) : Math.round(shown).toLocaleString("en-US");
   return (
-    <dl className="grid grid-cols-2 border-t border-ink">
-      {rows.map((r, i) => (
-        <div key={r.l} className={cn("flex flex-col-reverse border-b border-rule py-5", i % 2 === 1 && "border-l pl-5")}>
-          <dt className="mt-1 font-mono text-xs text-graphite">{r.l}</dt>
-          <dd className="font-display text-page text-ink tabular">{r.v}</dd>
-        </div>
-      ))}
-    </dl>
+    <span key={bump} className={cn("inline-block tabular", bump > 0 && "m-rise")} style={{ ["--rise-y" as string]: "6px", ["--m-dur" as string]: "var(--dur-swap)" }}>
+      {text}
+    </span>
+  );
+}
+
+function AnimeStats({ stats, gridRef }: { stats: AnimeStatsT; gridRef: React.RefObject<HTMLDListElement | null> }) {
+  const rows = [
+    { v: stats.count, d: 0, l: "titles completed" },
+    { v: stats.episodes, d: 0, l: "episodes logged" },
+    { v: stats.minutes, d: 0, l: "minutes watched" },
+    { v: stats.mean, d: 1, l: "mean score" },
+  ];
+  // "updated Xs ago" ticks every 15s
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => tick((n) => n + 1), 15_000);
+    return () => window.clearInterval(id);
+  }, []);
+  return (
+    <div>
+      <dl ref={gridRef} className="grid grid-cols-2 border-t border-ink">
+        {rows.map((r, i) => (
+          <div key={r.l} className={cn("flex flex-col-reverse border-b border-rule py-5", i % 2 === 1 && "border-l pl-5")}>
+            <dt className="mt-1 font-mono text-xs text-graphite">{r.l}</dt>
+            <dd className="font-display text-page text-ink">
+              <LiveCount value={r.v} decimals={r.d} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <p aria-live="polite" className="mt-3 flex items-center gap-2 font-mono text-xs text-graphite">
+        <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", stats.live ? "bg-moss" : "bg-rule-strong")} />
+        {stats.updatedAt ? `live · updated ${agoShort(Date.now() - stats.updatedAt)}` : "loading from AniList…"}
+      </p>
+    </div>
+  );
+}
+
+/** Anime tab: one AniList hook feeds both the checklist and the stat grid. */
+function AnimeTab() {
+  const gridRef = useRef<HTMLDListElement>(null);
+  const stats = useAniList(gridRef);
+  return (
+    <UseCase
+      title="Logged on AniList."
+      prompt={`anilist stats --user ${ANIME.handle}`}
+      checks={[
+        `${stats.count.toLocaleString("en-US")} titles completed.`,
+        `${stats.episodes.toLocaleString("en-US")} episodes logged.`,
+        `Mean score ${stats.mean.toFixed(1)}.`,
+      ]}
+      get="The full watch list, scored."
+      link={{ href: ANIME.url, label: `${ANIME.handle} on AniList` }}
+      aside={<AnimeStats stats={stats} gridRef={gridRef} />}
+    />
   );
 }
 
@@ -161,16 +229,7 @@ const TABS = [
   {
     id: "anime",
     label: "Anime",
-    render: () => (
-      <UseCase
-        title="Logged on AniList."
-        prompt={`anilist stats --user ${ANIME.handle}`}
-        checks={[`${ANIME.count} titles completed.`, `${ANIME.episodes.toLocaleString("en-US")} episodes logged.`, `Mean score ${ANIME.mean.toFixed(1)}.`]}
-        get="The full watch list, scored."
-        link={{ href: ANIME.url, label: `${ANIME.handle} on AniList` }}
-        aside={<AnimeStats />}
-      />
-    ),
+    render: () => <AnimeTab />,
   },
   {
     id: "music",

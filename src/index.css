@@ -866,7 +866,6 @@ html[data-hidden] .m-marquee-track {
   right: var(--gutter);
   width: min(300px, calc(100vw - 2 * var(--gutter)));
   transform-origin: top right;
-  animation: pop-in var(--dur-3) var(--ease-out) both;
 }
 @keyframes bars {
   0%,
@@ -906,7 +905,6 @@ html[data-hidden] .m-marquee-track {
   max-height: calc(100vh - 5rem);
   max-height: calc(100dvh - 1rem);
   padding-bottom: env(safe-area-inset-bottom);
-  animation: sheet-up var(--dur-3) var(--ease-out) both;
 }
 @keyframes sheet-up {
   from {
@@ -977,6 +975,24 @@ html[data-hidden] .m-marquee-track {
 .pl-cover {
   box-shadow: 0 18px 40px -22px #14130f80;
   -webkit-user-drag: none;
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease-out);
+}
+.pl-cover[data-ready] {
+  opacity: 1;
+}
+/* the last-resort 4:3 frame has letterbox bars baked in: crop past them */
+.pl-cover[data-crop] {
+  transform: scale(1.34);
+}
+.pl-stack-card a {
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-cover {
+    transition: none;
+  }
 }
 .pl-meta {
   width: 100%;
@@ -1707,6 +1723,154 @@ html[data-hidden] .flow-breathe {
 }
 .q-scroll:focus-visible {
   outline-offset: 4px;
+}
+
+/* ══════════════ popup open / close ══════════════
+   Every dialog opens in 240ms (ease-out, scale .96 + 10px rise) and closes in
+   160ms (ease-in) — usePresence keeps it mounted while the exit plays. Sheets
+   slide 320ms in / 220ms out on phones. Children stagger 30ms. */
+@keyframes pop-open {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes pop-close {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(0.97);
+  }
+}
+@keyframes tint-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes tint-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes sheet-down {
+  to {
+    opacity: 0.6;
+    transform: translate3d(0, 100%, 0);
+  }
+}
+@keyframes sheet-in {
+  from {
+    transform: translate3d(0, 100%, 0);
+  }
+}
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+}
+
+/* music popover: grows from the header pill (top-right) */
+.song-panel[data-state="open"] {
+  animation: pop-open 0.24s var(--ease-out) both;
+}
+.song-panel[data-state="closing"] {
+  animation: pop-close 0.16s var(--ease-in) both;
+  pointer-events: none;
+}
+.song-panel[data-state="open"] li {
+  animation: row-in 0.24s var(--ease-out) both;
+}
+.song-panel[data-state="open"] li:nth-child(1) { animation-delay: 60ms; }
+.song-panel[data-state="open"] li:nth-child(2) { animation-delay: 90ms; }
+.song-panel[data-state="open"] li:nth-child(3) { animation-delay: 120ms; }
+
+/* game dialog */
+.game-scrim[data-state="open"] {
+  animation: tint-in 0.2s ease-out both;
+}
+.game-scrim[data-state="open"] > * {
+  animation: pop-open 0.24s var(--ease-out) both;
+}
+.game-scrim[data-state="closing"] {
+  animation: tint-out 0.18s ease-in both;
+  pointer-events: none;
+}
+.game-scrim[data-state="closing"] > * {
+  animation: pop-close 0.16s var(--ease-in) both;
+}
+
+/* owner console / login: bottom sheet on phones, dialog from sm up */
+.owner-overlay[data-state="open"] {
+  animation: tint-in 0.2s ease-out both;
+}
+.owner-overlay[data-state="closing"] {
+  animation: tint-out 0.22s ease-in both;
+  pointer-events: none;
+}
+.owner-overlay[data-state="open"] .owner-sheet {
+  animation: sheet-in 0.32s var(--ease-out) both;
+}
+.owner-overlay[data-state="closing"] .owner-sheet {
+  animation: sheet-down 0.22s var(--ease-in) both;
+}
+@media (min-width: 640px) {
+  .owner-overlay[data-state="open"] .owner-sheet {
+    animation: pop-open 0.24s var(--ease-out) both;
+  }
+  .owner-overlay[data-state="closing"] .owner-sheet {
+    animation: pop-close 0.16s var(--ease-in) both;
+  }
+}
+.owner-sheet form > * {
+  animation: row-in 0.24s var(--ease-out) both;
+}
+.owner-sheet form > :nth-child(2) { animation-delay: 30ms; }
+.owner-sheet form > :nth-child(3) { animation-delay: 60ms; }
+.owner-sheet form > :nth-child(4) { animation-delay: 90ms; }
+
+/* touch feedback: one currentColor ripple, drawn in a fixed overlay so it
+   never affects the layout of the control it sits on */
+.tap-ripple {
+  position: fixed;
+  z-index: 300;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+.tap-ripple > i {
+  position: absolute;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.18;
+  transform: scale(0);
+  animation: ripple 0.45s var(--ease-out) forwards;
+}
+@keyframes ripple {
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .song-panel[data-state],
+  .song-panel li,
+  .game-scrim[data-state] > *,
+  .owner-overlay[data-state] .owner-sheet,
+  .owner-sheet form > * {
+    animation: fade-only var(--dur-2) linear both !important;
+  }
+  .tap-ripple {
+    display: none;
+  }
 }
 
 /* Scroll reveal — content stays visible without JS */

@@ -3,17 +3,79 @@ import { PLAYLISTS, type Playlist } from "../lib/data";
 
 /* ---------------- Playlist shelf ---------------- */
 
-const CACHE_KEY = "yt_playlists_v1";
+/* v2: only titles + counts are cached. Covers are signed URLs that expire, so a
+   cached one eventually 404s and leaves a blank card (that was the bug). */
+const CACHE_KEY = "yt_playlists_v2";
 
 function readCache(): Playlist[] {
   try {
+    localStorage.removeItem("yt_playlists_v1");
     const v = localStorage.getItem(CACHE_KEY);
     if (!v) return PLAYLISTS;
-    const cached = JSON.parse(v) as Partial<Playlist>[];
-    return PLAYLISTS.map((p) => ({ ...p, ...(cached.find((c) => c.id === p.id) ?? {}), label: p.label }));
+    const cached = JSON.parse(v) as { id: string; title?: string; itemCount?: number | null }[];
+    return PLAYLISTS.map((p) => {
+      const c = cached.find((x) => x.id === p.id);
+      return c ? { ...p, title: c.title || p.title, itemCount: typeof c.itemCount === "number" ? c.itemCount : p.itemCount } : p;
+    });
   } catch {
     return PLAYLISTS;
   }
+}
+
+/**
+ * Cover with a fallback chain that always ends in a real image:
+ * live API cover → /api/yt-cover redirect (fresh signed custom cover) →
+ * first video's maxres frame → its mq frame → hq frame cropped past the bars.
+ * YouTube answers a missing size with a 120×90 grey placeholder (not an error),
+ * so tiny images count as failures too.
+ */
+function coverCandidates(p: Playlist, live: string | null) {
+  const v = p.fallbackVideo;
+  const list = [
+    live,
+    `/api/yt-cover?id=${encodeURIComponent(p.id)}`,
+    `https://i.ytimg.com/vi/${v}/maxresdefault.jpg`,
+    `https://i.ytimg.com/vi/${v}/mqdefault.jpg`,
+    `https://i.ytimg.com/vi/${v}/hqdefault.jpg`,
+  ].filter((u): u is string => !!u);
+  return Array.from(new Set(list));
+}
+
+function Cover({ p, live, eager }: { p: Playlist; live: string | null; eager: boolean }) {
+  const candidates = coverCandidates(p, live);
+  const [i, setI] = useState(0);
+  const [ready, setReady] = useState(false);
+  // a new live URL restarts the chain
+  useEffect(() => {
+    setI(0);
+    setReady(false);
+  }, [live]);
+  const src = candidates[Math.min(i, candidates.length - 1)];
+  const last = i >= candidates.length - 1;
+  const next = () => {
+    if (!last) {
+      setReady(false);
+      setI((n) => n + 1);
+    } else setReady(true);
+  };
+  return (
+    <img
+      key={src}
+      src={src}
+      alt=""
+      width={480}
+      height={480}
+      loading={eager ? "eager" : "lazy"}
+      decoding="async"
+      draggable={false}
+      referrerPolicy="no-referrer"
+      data-ready={ready || undefined}
+      data-crop={src.includes("/hqdefault.") || undefined}
+      onLoad={(e) => (e.currentTarget.naturalWidth <= 120 ? next() : setReady(true))}
+      onError={next}
+      className="pl-cover block h-full w-full rounded-[var(--radius-lg)] bg-paper-deep object-cover"
+    />
+  );
 }
 
 /** Five YouTube Music playlists as a swipeable stack of real covers. */
@@ -21,6 +83,7 @@ export function PlaylistShelf() {
   const [lists, setLists] = useState<Playlist[]>(readCache);
   const [order, setOrder] = useState<number[]>(() => PLAYLISTS.map((_, i) => i));
   const [live, setLive] = useState(false);
+  const [liveCovers, setLiveCovers] = useState<Record<string, string>>({});
   const deckRef = useRef<HTMLDivElement>(null);
   const reduced = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
@@ -40,18 +103,20 @@ export function PlaylistShelf() {
               ? {
                   ...p,
                   title: l.title || p.title,
-                  thumbnail: l.thumbnail || p.thumbnail,
                   itemCount: typeof l.itemCount === "number" ? l.itemCount : p.itemCount,
                 }
               : p;
           });
           try {
-            localStorage.setItem(CACHE_KEY, JSON.stringify(next));
+            localStorage.setItem(CACHE_KEY, JSON.stringify(next.map(({ id, title, itemCount }) => ({ id, title, itemCount }))));
           } catch {
             /* private mode */
           }
           return next;
         });
+        const covers: Record<string, string> = {};
+        for (const l of data.playlists) if (l?.id && typeof l.thumbnail === "string") covers[l.id] = l.thumbnail;
+        setLiveCovers(covers);
         setLive(true);
       } catch {
         /* keep the cache */
@@ -215,16 +280,7 @@ export function PlaylistShelf() {
                 className="block h-full w-full rounded-[var(--radius-lg)]"
                 aria-label={`${p.label}: ${p.title}${typeof p.itemCount === "number" ? `, ${p.itemCount} tracks` : ""} — open in YouTube Music`}
               >
-                <img
-                  src={p.thumbnail}
-                  alt=""
-                  width={480}
-                  height={480}
-                  loading={depth > 1 ? "lazy" : "eager"}
-                  decoding="async"
-                  draggable={false}
-                  className="pl-cover block h-full w-full rounded-[var(--radius-lg)] bg-paper-deep object-cover"
-                />
+                <Cover p={p} live={liveCovers[p.id] ?? null} eager={depth <= 1} />
               </a>
             </div>
           );
