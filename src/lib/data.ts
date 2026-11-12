@@ -112,10 +112,10 @@ export const MUSIC = {
 export const ANIME = {
   handle: "zensxin",
   url: "https://anilist.co/user/zensxin/",
-  count: 586,
-  episodes: 5805,
-  minutes: 144204,
-  mean: 87.8,
+  count: 595,
+  episodes: 5903,
+  minutes: 146538,
+  mean: 87.7,
 };
 
 /* ---------- Play ---------- */
@@ -221,14 +221,17 @@ export const TRACKS: Track[] = [
 ];
 
 
-export type Playlist = { id: string; label: string; title: string; thumbnail: string; itemCount: number | null };
+export type Playlist = { id: string; label: string; title: string; thumbnail: string; itemCount: number | null; fallbackVideo: string };
 
-/** Fallbacks (from YouTube oEmbed); /api/yt-playlists refreshes title, cover and count live. */
+/** Static fallbacks only. Custom covers are signed URLs that expire, so they are never
+    stored here: /api/yt-cover resolves a fresh one, and these video frames (16:9, no bars)
+    cover the case where no API is reachable. */
+const frame = (v: string, size = "maxresdefault") => `https://i.ytimg.com/vi/${v}/${size}.jpg`;
 export const PLAYLISTS: Playlist[] = [
-  { id: "PL-fWIzgBd5AweOlOuudT-f9fqY1x-bR_O", label: "Japanese", title: "peak jpop", thumbnail: "https://i.ytimg.com/pl_c/PL-fWIzgBd5AweOlOuudT-f9fqY1x-bR_O/studio_square_thumbnail.jpg?sqp=CKTU0NcG-oaymwEICNAFENAFSFqi85f_AwYIgu_k0gY=&rs=AOn4CLCzdzCZ3H0i8ubn8Xb2MyTsflUwbQ", itemCount: 525 },
-  { id: "PL-fWIzgBd5Az5euaBV1M5HElAKC8kzdYC", label: "English", title: "high nights \u2604\ufe0f\ud83d\udc7e", thumbnail: "https://i.ytimg.com/pl_c/PL-fWIzgBd5Az5euaBV1M5HElAKC8kzdYC/studio_square_thumbnail.jpg?sqp=CMD80NcG-oaymwEICNAFENAFSFqi85f_AwYIlO_k0gY=&rs=AOn4CLAp2EHb5erNuJUu1--gAQK9oUnXew", itemCount: 688 },
-  { id: "PL-fWIzgBd5AyeDYfArAo6ZEKl3xxeG7mc", label: "Hindi", title: "Lesss Vibee \ud83d\udcab", thumbnail: "https://i.ytimg.com/vi/HcOBSj_uSvM/maxresdefault.jpg", itemCount: 93 },
-  { id: "PL-fWIzgBd5AxneK5vQfmaQskYmuwbXZ_k", label: "Phonk", title: "phonk time \ud83d\udca5", thumbnail: "https://i.ytimg.com/vi/NT4eF9YsYnM/maxresdefault.jpg", itemCount: 73 },
-  { id: "PL-fWIzgBd5Aw0-x8aDOYMOZcoD6jmzPWs", label: "Mix", title: "mix", thumbnail: "https://i.ytimg.com/vi/QygzZXrHcdo/maxresdefault.jpg", itemCount: 27 },
+  { id: "PL-fWIzgBd5AweOlOuudT-f9fqY1x-bR_O", label: "Japanese", title: "peak jpop", fallbackVideo: "tuZty35Fk7M", thumbnail: frame("tuZty35Fk7M", "mqdefault"), itemCount: 525 },
+  { id: "PL-fWIzgBd5Az5euaBV1M5HElAKC8kzdYC", label: "English", title: "high nights \u2604\ufe0f\ud83d\udc7e", fallbackVideo: "8BiLurrzFRw", thumbnail: frame("8BiLurrzFRw"), itemCount: 688 },
+  { id: "PL-fWIzgBd5AyeDYfArAo6ZEKl3xxeG7mc", label: "Hindi", title: "Lesss Vibee \ud83d\udcab", fallbackVideo: "HcOBSj_uSvM", thumbnail: frame("HcOBSj_uSvM"), itemCount: 93 },
+  { id: "PL-fWIzgBd5AxneK5vQfmaQskYmuwbXZ_k", label: "Phonk", title: "phonk time \ud83d\udca5", fallbackVideo: "NT4eF9YsYnM", thumbnail: frame("NT4eF9YsYnM"), itemCount: 73 },
+  { id: "PL-fWIzgBd5Aw0-x8aDOYMOZcoD6jmzPWs", label: "Mix", title: "mix", fallbackVideo: "QygzZXrHcdo", thumbnail: frame("QygzZXrHcdo"), itemCount: 27 },
 ];
 

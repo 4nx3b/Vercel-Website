@@ -115,6 +115,8 @@ In the Cloudflare dashboard (Pages → project → Settings → Build):
 | Build output directory | `dist` (also set in `wrangler.toml`) |
 | Environment variable | `NODE_VERSION = 20` |
 
+`functions/` holds Cloudflare Pages Functions that mirror `/api/yt-playlists` and `/api/yt-cover`, so live playlist covers and counts work on Cloudflare too (Vercel ignores this folder and keeps using `/api`).
+
 `public/_headers` is copied into `dist` and only read by Cloudflare. The `/api/*` routes are
 Vercel functions, so on Cloudflare the playlist refresh and AMA notifications quietly fall back
 to cached or local data. Vercel deploys are unaffected by these files.

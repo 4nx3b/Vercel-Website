@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { usePresence, type PresenceState } from "../hooks/usePresence";
 import { cn } from "../utils/cn";
 import { GAMES, QUIZ, type Game } from "../lib/data";
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Gauge, Gamepad2, HelpCircle, Play as PlayIcon, Timer, X, type LucideIcon } from "lucide-react";
@@ -452,7 +453,7 @@ function QuizGame() {
 
 /* ================= Modal shell + grid ================= */
 
-function GameShell({ game, onClose }: { game: Game; onClose: () => void }) {
+function GameShell({ game, onClose, state = "open" }: { game: Game; onClose: () => void; state?: PresenceState }) {
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -477,6 +478,7 @@ function GameShell({ game, onClose }: { game: Game; onClose: () => void }) {
   // position: fixed relative to it, so the dialog landed off-centre.
   return createPortal(
     <div
+      data-state={state}
       className="game-scrim fixed inset-0 z-[90] grid place-items-center p-4 sm:p-6"
       onClick={onClose}
       role="dialog"
@@ -486,7 +488,7 @@ function GameShell({ game, onClose }: { game: Game; onClose: () => void }) {
       <div
         ref={cardRef}
         tabIndex={-1}
-        className="m-settle max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-[var(--radius-lg)] border border-ink bg-composer shadow-[var(--shadow-ink-sm)] outline-none"
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-[var(--radius-lg)] border border-ink bg-composer shadow-[var(--shadow-ink-sm)] outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-rule px-5 py-2">
@@ -523,6 +525,10 @@ const GAME_ICONS: Record<Game["icon"], LucideIcon> = {
 /** The playground — game rows inside the § 04 "Play" tab. Game logic is unchanged. */
 export function Play() {
   const [active, setActive] = useState<Game | null>(null);
+  // keep the last game mounted while the dialog animates closed
+  const presence = usePresence(!!active, 180);
+  const shownGame = useRef<Game | null>(null);
+  if (active) shownGame.current = active;
   const opener = useRef<HTMLButtonElement | null>(null);
 
   const close = useCallback(() => {
@@ -568,7 +574,7 @@ export function Play() {
         })}
       </ul>
 
-      {active && <GameShell game={active} onClose={close} />}
+      {presence.mounted && shownGame.current && <GameShell game={shownGame.current} onClose={close} state={presence.state} />}
     </div>
   );
 }

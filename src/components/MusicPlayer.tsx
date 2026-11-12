@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { createPortal } from "react-dom";
 import { AudioLines, ListMusic, Pause, Play as PlayIcon, X } from "lucide-react";
 import { cn } from "../utils/cn";
+import { usePresence, type PresenceState } from "../hooks/usePresence";
 import { TRACKS, audioSrc, audioSrcFallback, type Track } from "../lib/data";
 
 /* ------------------------------------------------------------------ *
@@ -150,14 +151,19 @@ export function MusicProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={value}>
       {children}
-      {open && createPortal(<SongPanel />, document.body)}
+      <SongPanelPresence open={open} />
     </Ctx.Provider>
   );
 }
 
 /* ---------------- Compact song list ---------------- */
 
-function SongPanel() {
+function SongPanelPresence({ open }: { open: boolean }) {
+  const { mounted, state } = usePresence(open, 160);
+  return mounted ? createPortal(<SongPanel state={state} />, document.body) : null;
+}
+
+function SongPanel({ state }: { state: PresenceState }) {
   const m = useMusic();
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -198,7 +204,7 @@ function SongPanel() {
   }, []);
 
   return (
-    <div ref={panelRef} id="song-list" role="dialog" aria-modal="true" aria-label="Song list" className="song-panel bg-panel text-panel-text">
+    <div ref={panelRef} id="song-list" role="dialog" aria-modal="true" aria-label="Song list" className="song-panel bg-panel text-panel-text" data-state={state}>
       {/* Pause / resume + what is playing */}
       <div className="flex items-center gap-3 border-b border-panel-rule p-3">
         <button

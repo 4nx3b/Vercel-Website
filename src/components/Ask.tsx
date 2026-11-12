@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
+import { usePresence, type PresenceState } from "../hooks/usePresence";
 import { cn } from "../utils/cn";
 import {
   ADMIN_EMAIL, AMA_COLLECTION, AMA_KEYS, FIREBASE, FORMSPREE_ENDPOINT, SEED_QUESTIONS,
@@ -202,7 +203,7 @@ const getUsed = () => { try { return Number(localStorage.getItem(todayKey()) || 
 
 /* ================= Owner console ================= */
 
-function OwnerConsole({ onClose, onChanged }: { onClose: () => void; onChanged: () => void }) {
+function OwnerConsole({ onClose, onChanged, phase = "open" }: { onClose: () => void; onChanged: () => void; phase?: PresenceState }) {
   const [auth, setAuth] = useState<Owner | null>(() => ownerAuth());
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
@@ -321,7 +322,7 @@ function OwnerConsole({ onClose, onChanged }: { onClose: () => void; onChanged: 
   }, [onClose]);
 
   return createPortal(
-    <div className="owner-overlay fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label="AMA owner console">
+    <div data-state={phase} className="owner-overlay fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label="AMA owner console">
       <div ref={sheetRef} className="owner-sheet flex w-full min-w-0 max-w-2xl flex-col rounded-t-[var(--radius-lg)] border border-ink bg-composer shadow-[var(--shadow-ink-sm)] sm:rounded-[var(--radius-lg)]">
         <div className="flex shrink-0 items-center justify-between gap-2 border-b border-rule px-4 py-2 sm:px-7">
           <div className="flex min-w-0 items-center gap-2.5">
@@ -502,6 +503,12 @@ function QuestionScroller({ count, children }: { count: number; children: React.
       {children}
     </ul>
   );
+}
+
+/* Keeps the console mounted while it animates closed. View-only. */
+function OwnerConsolePresence({ open, onClose, onChanged }: { open: boolean; onClose: () => void; onChanged: () => void }) {
+  const { mounted, state } = usePresence(open, 220);
+  return mounted ? <OwnerConsole onClose={onClose} onChanged={onChanged} phase={state} /> : null;
 }
 
 /* ================= Public section ================= */
@@ -712,7 +719,7 @@ export function Ask() {
         </div>
       </div>
 
-      {ownerOpen && <OwnerConsole onClose={() => setOwnerOpen(false)} onChanged={reload} />}
+      <OwnerConsolePresence open={ownerOpen} onClose={() => setOwnerOpen(false)} onChanged={reload} />
     </section>
   );
 }
