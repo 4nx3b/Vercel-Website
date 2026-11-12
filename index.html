@@ -8,7 +8,16 @@
       name="description"
       content="v3rsi0n — custom ROMs, apps and, sometimes, root modules. LunarisOS 3.12 for the Realme GT Neo 3, and ArchiveTune."
     />
-    <script>document.documentElement.classList.add('js')</script>
+    <script>
+      (function () {
+        var d = document.documentElement, t;
+        d.classList.add("js");
+        try { t = localStorage.getItem("theme"); } catch (e) {}
+        if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        d.dataset.theme = t;
+        if (t === "dark") document.querySelector('meta[name="theme-color"]').setAttribute("content", "#12110e");
+      })();
+    </script>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="preconnect" href="https://i.ytimg.com" />
     <link

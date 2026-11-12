@@ -205,7 +205,7 @@ function SongPanel() {
           type="button"
           onClick={m.toggle}
           aria-label={m.playing ? `Pause ${m.track.title}` : `Play ${m.track.title}`}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-vermilion text-ink transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-vermilion text-on-accent transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep"
         >
           {m.playing ? (
             <Pause aria-hidden className="h-4 w-4 fill-current" strokeWidth={1.5} />
@@ -284,7 +284,7 @@ export function HeaderPlayer({ compact = false }: { compact?: boolean }) {
         type="button"
         onClick={m.toggle}
         aria-label={m.playing ? `Pause ${m.track.title}` : `Play ${m.track.title} by ${m.track.artist}`}
-        className="hp-play flex w-12 shrink-0 items-center justify-center bg-vermilion text-ink transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep"
+        className="hp-play flex w-12 shrink-0 items-center justify-center bg-vermilion text-on-accent transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep"
       >
         {m.playing ? (
           <Pause aria-hidden className="h-4 w-4 fill-current" strokeWidth={1.5} />

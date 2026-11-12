@@ -333,7 +333,7 @@ function OwnerConsole({ onClose, onChanged }: { onClose: () => void; onChanged: 
                 Log out
               </button>
             )}
-            <button type="button" onClick={onClose} aria-label="Close owner console" className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition-colors duration-[var(--dur-2)] hover:bg-[#14130f0d] hover:text-ink">
+            <button type="button" onClick={onClose} aria-label="Close owner console" className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)] hover:text-ink">
               <X aria-hidden className="h-5 w-5" strokeWidth={1.75} />
             </button>
           </div>
@@ -411,7 +411,7 @@ function OwnerConsole({ onClose, onChanged }: { onClose: () => void; onChanged: 
                         <>
                           <MonoTag className="text-vermilion-ink">{confirm.kind === "delete" ? "Delete for real?" : "Dismiss?"}</MonoTag>
                           <button onClick={() => (confirm.kind === "delete" ? remove(q) : dismiss(q))} disabled={busy}
-                            className="min-h-11 rounded-full bg-vermilion px-3.5 font-mono text-xs text-ink transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep">
+                            className="min-h-11 rounded-full bg-vermilion px-3.5 font-mono text-xs text-on-accent transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep">
                             Yes
                           </button>
                           <button onClick={() => setConfirm(null)} className="min-h-11 rounded-full border border-rule-strong px-3.5 font-mono text-xs text-ink-soft hover:border-ink hover:text-ink">
@@ -464,6 +464,43 @@ function OwnerConsole({ onClose, onChanged }: { onClose: () => void; onChanged: 
       </div>
     </div>,
     document.body
+  );
+}
+
+/* Fixed-height question list: scrolls inside itself with no visible scrollbar,
+   fades at the edges that have more, and glides to the first new item after
+   "Load more" so the page never grows. View-only; no data logic here. */
+function QuestionScroller({ count, children }: { count: number; children: React.ReactNode }) {
+  const box = useRef<HTMLUListElement>(null);
+  const prev = useRef(count);
+  const [edges, setEdges] = useState({ top: false, bottom: false });
+  const sync = useCallback(() => {
+    const el = box.current;
+    if (!el) return;
+    setEdges({ top: el.scrollTop > 4, bottom: el.scrollTop + el.clientHeight < el.scrollHeight - 4 });
+  }, []);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    if (count > prev.current) {
+      const first = el.children[prev.current] as HTMLElement | undefined;
+      if (first) el.scrollTo({ top: first.offsetTop - 8, behavior: "smooth" });
+    }
+    prev.current = count;
+    sync();
+  }, [count, sync]);
+  return (
+    <ul
+      ref={box}
+      onScroll={sync}
+      tabIndex={0}
+      aria-label="Questions"
+      data-fade-top={edges.top || undefined}
+      data-fade-bottom={edges.bottom || undefined}
+      className="q-scroll no-scrollbar relative max-h-[min(560px,65dvh)] overflow-y-auto overscroll-contain"
+    >
+      {children}
+    </ul>
   );
 }
 
@@ -587,7 +624,7 @@ export function Ask() {
                 <div className="flex flex-wrap items-center justify-between gap-4 border-t border-rule px-5 py-3">
                   <MonoTag className="text-graphite tabular">{280 - text.length} characters left</MonoTag>
                   <button type="submit"
-                    className="inline-flex min-h-11 items-center gap-2 rounded-full bg-vermilion px-6 text-[15px] font-medium text-ink transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep">
+                    className="inline-flex min-h-11 items-center gap-2 rounded-full bg-vermilion px-6 text-[15px] font-medium text-on-accent transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep">
                     {status?.kind === "ok" ? (<><Check aria-hidden className="h-4 w-4" strokeWidth={2} />Sent</>) : (<>Send question<ArrowRight aria-hidden className="h-4 w-4" strokeWidth={1.75} /></>)}
                   </button>
                 </div>
@@ -617,7 +654,7 @@ export function Ask() {
               </div>
             </div>
 
-            <ul>
+            <QuestionScroller count={shown.length + pending.length}>
               {loading && <li className="py-8 text-center"><MonoTag className="text-graphite">Loading questions…</MonoTag></li>}
 
               {pending.map((q) => (
@@ -662,15 +699,15 @@ export function Ask() {
                 );
               })}
 
-              {sorted.length > shown.length && (
-                <li className="pt-6">
-                  <button onClick={() => setPage((p) => p + 1)}
-                    className="min-h-11 rounded-full border border-rule-strong px-5 text-sm text-ink-soft transition-colors duration-[var(--dur-2)] hover:border-ink hover:text-ink">
-                    Load more ({sorted.length - shown.length} older)
-                  </button>
-                </li>
-              )}
-            </ul>
+            </QuestionScroller>
+            {sorted.length > shown.length && (
+              <div className="pt-5">
+                <button onClick={() => setPage((p) => p + 1)}
+                  className="min-h-11 rounded-full border border-rule-strong px-5 text-sm text-ink-soft transition-colors duration-[var(--dur-2)] hover:border-ink hover:text-ink">
+                  Load more ({sorted.length - shown.length} older)
+                </button>
+              </div>
+            )}
           </Reveal>
         </div>
       </div>

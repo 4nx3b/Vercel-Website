@@ -5,6 +5,12 @@ import { GAMES, QUIZ, type Game } from "../lib/data";
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Gauge, Gamepad2, HelpCircle, Play as PlayIcon, Timer, X, type LucideIcon } from "lucide-react";
 import { MonoTag, StatusDot } from "./ui";
 
+/** Canvas colours come from the theme tokens, so the games follow light/dark. */
+function tok(name: string, fallback: string) {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || fallback;
+}
+
 /* ================= Snake ================= */
 
 const SNAKE_N = 15;
@@ -78,9 +84,9 @@ function SnakeGame() {
 
     const draw = () => {
       const s = state.current;
-      ctx.fillStyle = "#fbf9f4";
+      ctx.fillStyle = tok("--color-composer", "#fbf9f4");
       ctx.fillRect(0, 0, cv.width, cv.height);
-      ctx.strokeStyle = "#e9e3d5";
+      ctx.strokeStyle = tok("--color-paper-deep", "#e9e3d5");
       ctx.lineWidth = 1;
       for (let i = 1; i < SNAKE_N; i++) {
         ctx.beginPath();
@@ -92,10 +98,10 @@ function SnakeGame() {
         ctx.lineTo(cv.width, i * SNAKE_CELL + 0.5);
         ctx.stroke();
       }
-      ctx.fillStyle = "#ff4a1c";
+      ctx.fillStyle = tok("--color-vermilion", "#ff4a1c");
       ctx.fillRect(s.food.x * SNAKE_CELL + 5, s.food.y * SNAKE_CELL + 5, SNAKE_CELL - 10, SNAKE_CELL - 10);
       s.snake.forEach((c, i) => {
-        ctx.fillStyle = i === 0 ? "#14130f" : "#3a372f";
+        ctx.fillStyle = i === 0 ? tok("--color-ink", "#14130f") : tok("--color-ink-soft", "#3a372f");
         ctx.fillRect(c.x * SNAKE_CELL + 2, c.y * SNAKE_CELL + 2, SNAKE_CELL - 4, SNAKE_CELL - 4);
       });
     };
@@ -143,7 +149,7 @@ function SnakeGame() {
               type="button"
               onClick={start}
               aria-label="Start Snake"
-              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-vermilion text-ink transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep"
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-vermilion text-on-accent transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep"
             >
               <PlayIcon aria-hidden className="h-5 w-5 translate-x-px fill-current" strokeWidth={1.5} />
             </button>
@@ -244,19 +250,19 @@ function PongGame() {
         }
       }
 
-      ctx.fillStyle = "#fbf9f4";
+      ctx.fillStyle = tok("--color-composer", "#fbf9f4");
       ctx.fillRect(0, 0, 300, 220);
-      ctx.strokeStyle = "#d8d0bf";
+      ctx.strokeStyle = tok("--color-rule", "#d8d0bf");
       ctx.setLineDash([4, 6]);
       ctx.beginPath();
       ctx.moveTo(150.5, 0);
       ctx.lineTo(150.5, 220);
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = "#14130f";
+      ctx.fillStyle = tok("--color-ink", "#14130f");
       ctx.fillRect(10, st.py, 5, 60);
       ctx.fillRect(285, st.ay, 5, 60);
-      ctx.fillStyle = "#ff4a1c";
+      ctx.fillStyle = tok("--color-vermilion", "#ff4a1c");
       ctx.fillRect(st.bx - 3, st.by - 3, 6, 6);
       raf = requestAnimationFrame(loop);
     };
@@ -283,7 +289,7 @@ function PongGame() {
               type="button"
               onClick={start}
               aria-label="Start Ping Pong"
-              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-vermilion text-ink transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep"
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-vermilion text-on-accent transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep"
             >
               <PlayIcon aria-hidden className="h-5 w-5 translate-x-px fill-current" strokeWidth={1.5} />
             </button>
@@ -488,7 +494,7 @@ function GameShell({ game, onClose }: { game: Game; onClose: () => void }) {
             <StatusDot tone="graphite" label="Ready" className="shrink-0" />
             <MonoTag className="truncate text-graphite">{game.name.toLowerCase().replace(/\s/g, "-")} — play.exe</MonoTag>
           </div>
-          <button onClick={onClose} aria-label="Close game" className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition-colors duration-[var(--dur-2)] hover:bg-[#14130f0d] hover:text-ink">
+          <button onClick={onClose} aria-label="Close game" className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)] hover:text-ink">
             <X aria-hidden className="h-5 w-5" strokeWidth={1.75} />
           </button>
         </div>
@@ -544,7 +550,7 @@ export function Play() {
                   aria-hidden
                   className={cn(
                     "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors duration-[var(--dur-2)]",
-                    game.playable ? "border-ink text-ink group-hover:bg-vermilion" : "border-rule-strong text-graphite"
+                    game.playable ? "border-ink text-ink group-hover:bg-vermilion group-hover:text-on-accent" : "border-rule-strong text-graphite"
                   )}
                 >
                   <Icon className="h-4 w-4" strokeWidth={1.75} />

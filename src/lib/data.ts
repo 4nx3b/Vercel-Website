@@ -10,7 +10,7 @@ export const NAV_LINKS: { label: string; href: string }[] = [
 /* ---------- Hero ---------- */
 
 export const HERO = {
-  kicker: "Custom ROMs · Apps · Root modules",
+  kicker: "v3rsi0n · India",
   pill: "LunarisOS 3.12 · Zephyr",
   lines: ["I build custom ROMs,", "apps and, sometimes,", "root"] as const,
   emphasis: "modules",

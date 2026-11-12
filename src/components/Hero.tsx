@@ -6,7 +6,7 @@ import { useScrollVar } from "../hooks/useScrollVar";
 import { FigPhone, type FigPhoneHandle } from "./FigPhone";
 import { PartitionBench } from "./HeroBench";
 import { SakuraField, SpeedLines } from "./AnimeFx";
-import { Button, Figure, Pill, StatusDot } from "./ui";
+import { Button, Figure, Pill } from "./ui";
 
 /** Portrait art (user-supplied), resized to webp in public/art. */
 const PORTRAIT = {
@@ -16,15 +16,6 @@ const PORTRAIT = {
   height: 1377,
   alt: "Anime illustration: a blue-haired bassist sitting on a laundromat bench beside her bass",
 };
-
-function InfoCard({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="hero-card overflow-hidden rounded-[var(--radius-xs)] border border-ink bg-paper">
-      <p className="bg-ink px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-[0.14em] text-paper">{label}</p>
-      <div className="px-3 py-3 text-md text-ink">{children}</div>
-    </div>
-  );
-}
 
 export function Hero() {
   const [active, setActive] = useState<PartitionKey | null>(null);
@@ -72,7 +63,7 @@ export function Hero() {
 
         <div className="page relative grid grid-cols-1 gap-x-6 pt-10 pb-16 lg:grid-cols-12 lg:pt-12 lg:pb-24">
           {/* Name block: sits behind the portrait */}
-          <div ref={nameRef} className="hero-name relative z-0 lg:col-span-8 lg:col-start-1 lg:row-start-1">
+          <div ref={nameRef} className="hero-name relative z-0 lg:col-span-9 lg:col-start-1 lg:row-start-1">
             <div className="m-rise flex flex-wrap items-center gap-x-5 gap-y-3 lg:max-w-[52%]" style={{ ["--rise-y" as string]: "10px" }}>
               <p className="flex items-center gap-3 font-mono text-micro uppercase tracking-[0.18em]">
                 <span className="shrink-0 whitespace-nowrap text-vermilion-ink">§ 00</span>
@@ -95,7 +86,7 @@ export function Hero() {
           {/* Portrait: overlaps the name (miuka.moe-style key visual) */}
           <div
             ref={portraitRef}
-            className="hero-portrait-wrap relative z-10 mx-auto -mt-3 w-[84%] max-w-[300px] sm:max-w-[340px] lg:col-span-4 lg:col-start-6 lg:row-span-2 lg:row-start-1 lg:mt-6 lg:max-w-none lg:self-start"
+            className="hero-portrait-wrap relative z-10 mx-auto -mt-3 w-[84%] max-w-[300px] sm:max-w-[340px] lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1 lg:mt-2 lg:max-w-[460px] lg:justify-self-end lg:self-start"
           >
             <SpeedLines />
             <div className="hero-portrait">
@@ -126,7 +117,7 @@ export function Hero() {
           </div>
 
           {/* Sentence, facts, CTAs */}
-          <div className="relative z-20 mt-10 lg:col-span-5 lg:col-start-1 lg:row-start-2 lg:mt-6">
+          <div className="relative z-20 mt-10 lg:col-span-6 lg:col-start-1 lg:row-start-2 lg:mt-6">
             <h1 id="hero-title" aria-label={sentence} className="font-display text-page font-normal text-ink">
               <span aria-hidden className="m-focus block" style={{ ["--i" as string]: 3 }}>
                 {HERO.lines[0]} {HERO.lines[1]} {HERO.lines[2]} <em className="ital">{HERO.emphasis}</em>.
@@ -151,14 +142,6 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Info cards */}
-          <div className="m-stagger relative z-20 mt-10 grid gap-4 sm:grid-cols-3 lg:col-span-3 lg:col-start-10 lg:row-span-2 lg:row-start-1 lg:mt-16 lg:grid-cols-1 lg:self-start">
-            <InfoCard label="Builds">Custom ROMs · Apps · Root modules</InfoCard>
-            <InfoCard label="Device">Realme GT Neo 3 · lisaa</InfoCard>
-            <InfoCard label="Status">
-              <StatusDot tone="moss" label="Open for collabs" className="text-ink" />
-            </InfoCard>
-          </div>
         </div>
       </section>
 
@@ -170,7 +153,7 @@ export function Hero() {
           <p className="mt-3 max-w-[48ch] text-lg text-ink-soft">Pick a partition to see what lives there, or flash the whole stack.</p>
         </div>
         <div ref={figRef} className="lg:col-span-6 lg:col-start-7">
-          <Figure caption="Fig. 1 — A stock device, taken apart" bodyClassName="flex flex-col items-center gap-5">
+          <Figure caption="Fig. 1 — Partition stack, exploded" bodyClassName="flex flex-col items-center gap-5">
             <FigPhone ref={phone} active={active} onActive={pick} />
             <PartitionBench active={active} onPick={pick} onFlash={flash} flashing={flashing} flashed={flashed} />
           </Figure>

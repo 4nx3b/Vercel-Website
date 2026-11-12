@@ -248,3 +248,53 @@ export function BurstLines({ className = "" }: { className?: string }) {
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ *
+ * FooterFlow: an endless field of contour lines drifting behind the
+ * footer. Each line is a sine path drawn twice side by side, so sliding
+ * it by -50% loops seamlessly. Transforms only; pauses off-screen.
+ * ------------------------------------------------------------------ */
+
+function wavePath(amp: number, len: number, phase: number, y: number) {
+  // two periods per tile, tile repeated twice => seamless -50% loop
+  const W = 800;
+  const pts: string[] = [];
+  for (let x = 0; x <= W * 2; x += 20) {
+    const v = y + Math.sin((x / len) * Math.PI * 2 + phase) * amp + Math.sin((x / (len * 0.37)) * Math.PI * 2 + phase * 1.7) * amp * 0.28;
+    pts.push(`${x === 0 ? "M" : "L"}${x} ${v.toFixed(1)}`);
+  }
+  return pts.join("");
+}
+
+const FLOW = Array.from({ length: 14 }, (_, i) => ({
+  y: 14 + i * 14,
+  amp: 4 + ((i * 7) % 9),
+  len: 400 / (1 + (i % 3)),
+  phase: i * 0.9,
+  dur: 18 + ((i * 11) % 23),
+  accent: i === 6,
+}));
+
+export function FooterFlow() {
+  const ref = useRef<HTMLDivElement>(null);
+  useOffscreenPause(ref);
+  return (
+    <div ref={ref} aria-hidden className="flow pointer-events-none absolute inset-0">
+      <svg className="flow-svg" viewBox="0 0 800 220" preserveAspectRatio="none" fill="none">
+        <g className="flow-breathe">
+          {FLOW.map((l, i) => (
+            <g key={i} className="flow-line" style={{ ["--dur" as string]: `${l.dur}s`, ["--dir" as string]: i % 2 ? "reverse" : "normal" }}>
+              <path
+                d={wavePath(l.amp, l.len, l.phase, l.y)}
+                stroke={l.accent ? "var(--color-vermilion)" : "var(--color-rule-strong)"}
+                strokeWidth={l.accent ? 1.2 : 1}
+                opacity={l.accent ? 0.7 : 0.4}
+                vectorEffect="non-scaling-stroke"
+              />
+            </g>
+          ))}
+        </g>
+      </svg>
+    </div>
+  );
+}
