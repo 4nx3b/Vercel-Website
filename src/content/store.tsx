@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ABOUT, ADMIN_EMAIL, ANIME, APP, FIREBASE, GAMES, HERO, MUSIC, NAV_LINKS, PARTITIONS, PLAYLISTS, QUIZ, ROM_POST, SOCIALS } from "../lib/data";
 import { OWNER_EVENT, apiErrorMessage, apiMissing, isOwner, jfetch, ownerPost, refreshTokenIfNeeded } from "../lib/owner";
+import { siteContentApiUrl } from "../lib/site-content-api";
 
 /* ------------------------------------------------------------------ *
  * Editable site content.
@@ -255,7 +256,7 @@ function ensureQuizBankDefaults(content: SiteContent): SiteContent {
 const CACHE_KEY = "site_content_v1";
 const DRAFT_KEY = "site_content_draft_v1";
 const OWNER_AVATAR_CACHE_KEY = "site_owner_profile_avatar_v1";
-const OWNER_PROFILE_API_URL = "/api/site-content?profile=1";
+const OWNER_PROFILE_API_URL = siteContentApiUrl("?profile=1");
 const DOC_URL = () =>
   `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents/siteContent/live`;
 const OWNER_PROFILE_URL = () =>
@@ -450,7 +451,7 @@ type PublicDoc = { json: Json; updatedAt: string | null; via: "api" | "firestore
  */
 export async function readPublished(fresh = false): Promise<PublicDoc | null> {
   try {
-    const url = fresh ? `/api/site-content?t=${Date.now()}` : "/api/site-content";
+    const url = siteContentApiUrl(fresh ? `?t=${Date.now()}` : "");
     const r = await fetch(url, { cache: fresh ? "no-store" : "default", headers: { Accept: "application/json" } });
     if (r.ok && (r.headers.get("content-type") || "").includes("json")) {
       const d = await r.json();
@@ -470,9 +471,9 @@ export async function readPublished(fresh = false): Promise<PublicDoc | null> {
 }
 
 /**
- * Prefer the host's authenticated publishing API, then fall back to Firestore
- * only when that host has no API route (as on Wasmer). A real API error must
- * remain visible instead of being hidden by a second, likely-denied write.
+ * Use the canonical Vercel publishing API from each public host, then fall
+ * back to the same Firestore document only if that API is unavailable. Real
+ * validation/auth errors remain visible rather than being hidden by a retry.
  */
 async function writePublished(payload: unknown): Promise<string> {
   const json = JSON.stringify(payload);
@@ -480,7 +481,7 @@ async function writePublished(payload: unknown): Promise<string> {
     throw new Error("Published content is too large. Remove some large text or images and try again.");
   }
 
-  const { response, data } = await ownerPost("/api/site-content", { json });
+  const { response, data } = await ownerPost(siteContentApiUrl(), { json });
   if (response?.ok && typeof data?.updatedAt === "string") return data.updatedAt;
   if (response?.status === 401) {
     throw new Error(apiErrorMessage(data) || "Your owner session has expired. Sign in again, then publish.");
@@ -496,8 +497,8 @@ async function writePublished(payload: unknown): Promise<string> {
     throw new Error(detail || `Publishing API failed (${response?.status})`);
   }
 
-  // Static hosts such as Wasmer have no API endpoint; the same Firestore
-  // document is written directly under the owner's Firebase ID token.
+  // If the shared API is unavailable, write the same Firestore document under
+  // the owner's Firebase ID token (subject to the deployed Firestore rules).
   const token = await refreshTokenIfNeeded();
   const updatedAt = new Date().toISOString();
   const url = `${DOC_URL()}?key=${encodeURIComponent(FIREBASE.apiKey)}&updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt`;

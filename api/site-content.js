@@ -18,6 +18,11 @@ const MAX_IMAGE_BYTES = 1000 * 1000;
 const MAX_PROFILE_AVATAR_BYTES = 220_000;
 const IMAGE_DATA_URL = /^data:image\/(webp|png|jpeg);base64,([A-Za-z0-9+/]+={0,2})$/;
 const PROFILE_AVATAR_DATA_URL = /^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/;
+const CORS_ORIGINS = new Set([
+  "https://v3rsi0n.vercel.app",
+  "https://v3rsi0n.miuka.moe",
+  "https://v3rsi0n.wasmer.app",
+]);
 
 export const config = { api: { bodyParser: { sizeLimit: "3mb" } } };
 
@@ -157,6 +162,16 @@ function send(res, status, obj, cache = "no-store", headOnly = false) {
   res.end(headOnly ? undefined : JSON.stringify(obj));
 }
 
+function applyCors(req, res) {
+  const origin = String(req.headers?.origin || req.headers?.Origin || "");
+  res.setHeader("Vary", "Origin");
+  if (!CORS_ORIGINS.has(origin)) return;
+  res.setHeader("Access-Control-Allow-Origin", origin);
+  res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+  res.setHeader("Access-Control-Max-Age", "600");
+}
+
 function sendFailure(res, status, message) {
   return send(res, status, { error: { message, code: `http_${status}` } });
 }
@@ -167,6 +182,12 @@ function sendError(res, error) {
 }
 
 export default async function handler(req, res) {
+  applyCors(req, res);
+  if (req.method === "OPTIONS") {
+    res.setHeader("Allow", "GET, HEAD, POST, OPTIONS");
+    return send(res, 204, null, "no-store", true);
+  }
+
   const url = new URL(req.url || "/", "http://localhost");
   const imageId = url.searchParams.get("image");
   const ownerProfile = url.searchParams.get("profile") === "1";

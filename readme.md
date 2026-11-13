@@ -1,4 +1,4 @@
-# therealreze.vercel.app — editorial field-notes system
+# v3rsi0n.vercel.app — editorial field-notes system
 
 A single-page portfolio for an Android root specialist and custom ROM
 developer, laid out like a ROM developer's field notebook: warm drafting
@@ -85,12 +85,12 @@ api/
 
 Environment variables used by the API routes: `TELEGRAM_BOT_TOKEN`,
 `TELEGRAM_CHAT_ID`, `FIREBASE_SERVICE_ACCOUNT_KEY` (+ optional
-`FIREBASE_PROJECT_ID`). Vercel, Cloudflare Pages, and Wasmer all use the same
-Firestore project (`therealreze-2a3bf`) as the source of truth for published
-content and uploaded images. Vercel and Cloudflare use their `/api/site-content`
-functions; static hosts without that function (including Wasmer) fall back to
-owner-authenticated Firestore REST writes and public Firestore reads. Deploy
-`firestore.rules` for those direct paths to work.
+`FIREBASE_PROJECT_ID`). All three public hosts use the same Firestore project
+(`therealreze-2a3bf`) as the source of truth. The canonical Vercel `/api/site-content`
+function handles reads, publishes, profile changes, and image uploads; it is called
+same-origin on Vercel and through allowlisted CORS from miuka and Wasmer. The Cloudflare
+function mirrors this API. If the canonical API is unavailable, clients fall back to
+owner-authenticated Firestore REST; deploy `firestore.rules` for those direct paths.
 
 ## Deployment on Vercel
 
@@ -147,20 +147,21 @@ cached or local behavior. Vercel deploys are unaffected by these files.
 ## Shared published content across the three hosts
 
 The live document is `siteContent/live` in the shared Firebase project `therealreze-2a3bf`.
-Build the same repository for `therealreze.vercel.app`, `v3rsi0n.wasmer.app`, and
+Build the same repository for `v3rsi0n.vercel.app`, `v3rsi0n.wasmer.app`, and
 `v3rsi0n.miuka.moe`; each host reads that same Firestore document rather than keeping its own
 published copy. The content functions reject a `FIREBASE_PROJECT_ID` override that differs from
-the client project, rather than silently creating separate copies. Vercel and Cloudflare use their
-site-content functions. Wasmer is treated as a static host: when `/api/site-content` is absent,
-the editor reads and writes Firestore directly with the signed-in owner token. Uploaded images use `siteImages/{id}` and have the same API /
-direct-Firestore fallback. This direct path is gated by `firestore.rules`.
+the client project, rather than silently creating separate copies. All three hosts use the canonical
+Vercel site-content API; the Cloudflare function mirrors that contract. Wasmer is static, so the
+client calls the Vercel API cross-origin instead of depending on a local `/api` route. Uploaded
+images use `siteImages/{id}` in the same project. Direct Firestore remains the fallback and is
+gated by `firestore.rules`.
 
 There is no Wasmer deployment manifest in this repository. Configure its project to build this
 repository with `npm ci && npm run build` and serve the generated `dist` directory. Deploy the
-Firestore rules below before relying on Wasmer reads, publishing, or image uploads. Keep the
-Firebase project ID / web API key and the Vercel and Cloudflare service-account configuration
-pointed at the same Firebase project. If the Firebase web API key has HTTP-referrer restrictions,
-allow `therealreze.vercel.app`, `v3rsi0n.wasmer.app`, and `v3rsi0n.miuka.moe`.
+Firestore rules below to enable direct Firestore fallback paths. Keep Firebase project ID / web API
+key and the Vercel service-account configuration pointed at the same Firebase project. If the
+Firebase web API key has HTTP-referrer restrictions, allow `v3rsi0n.vercel.app`,
+`v3rsi0n.wasmer.app`, and `v3rsi0n.miuka.moe`.
 
 Published content, uploaded images, and the owner profile are shared. Owner login sessions and
 unpublished drafts remain browser-origin-local, so sign in separately on each domain and publish
@@ -197,18 +198,19 @@ changes.
 **Publish** saves to Firestore (`siteContent/live`), **Discard** drops the local draft, and **Reset**
 clears all published overrides.
 
-On Vercel and Cloudflare, `/api/site-content` reads and writes published content, uploaded images,
+The canonical Vercel `/api/site-content` reads and writes published content, uploaded images,
 and the shared owner profile with the service account (`FIREBASE_SERVICE_ACCOUNT_KEY`, the same
-variable `/api/ama-vote` uses). Writes are authenticated against the fixed owner Firebase account.
-If the function is missing or cannot write, the site falls back to direct Firestore REST; profile
-writes use a narrowly scoped owner-account rule, while site content and media keep the verified-owner
-rule.
+variable `/api/ama-vote` uses). Writes verify the fixed owner Firebase account. The browser uses
+this API same-origin on Vercel and cross-origin from `v3rsi0n.miuka.moe` and `v3rsi0n.wasmer.app`;
+CORS is restricted to those public site origins. The Cloudflare function remains an API mirror.
+If the shared API is unavailable, clients fall back to direct Firestore REST; profile writes use a
+narrow owner-account rule, while site content and media keep the verified-owner rule.
 
-- **Vercel:** use the service-account environment variable configured for the project.
-- **Cloudflare:** add `FIREBASE_SERVICE_ACCOUNT_KEY` under Workers & Pages → project →
-  Settings → Variables and Secrets (same JSON value), then redeploy.
-- **Wasmer:** no service-account function is required; direct Firestore publishing, image access,
-  and the shared owner icon work after the rules below are deployed.
+- **Vercel:** keep the service-account environment variable configured for the project.
+- **Cloudflare:** if using its mirror independently, add `FIREBASE_SERVICE_ACCOUNT_KEY` under
+  Workers & Pages → project → Settings → Variables and Secrets (same JSON value), then redeploy.
+- **Wasmer:** no service-account function is required; it uses the shared Vercel API, with direct
+  Firestore writes as a fallback after the rules below are deployed.
 
 Deploy the rules (required for Wasmer direct reads/writes and any direct-Firestore fallback). They
 also make shared owner profiles and images readable from static hosts and keep the AMA queue private
