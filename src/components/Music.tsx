@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { PLAYLISTS, type Playlist } from "../lib/data";
 
 /* ---------------- Playlist shelf ---------------- */
@@ -41,7 +42,7 @@ function coverCandidates(p: Playlist, live: string | null) {
   return Array.from(new Set(list));
 }
 
-function Cover({ p, live, eager }: { p: Playlist; live: string | null; eager: boolean }) {
+function Cover({ p, live, top }: { p: Playlist; live: string | null; top: boolean }) {
   const candidates = coverCandidates(p, live);
   const [i, setI] = useState(0);
   const [ready, setReady] = useState(false);
@@ -65,7 +66,8 @@ function Cover({ p, live, eager }: { p: Playlist; live: string | null; eager: bo
       alt=""
       width={480}
       height={480}
-      loading={eager ? "eager" : "lazy"}
+      loading="eager"
+      fetchPriority={top ? "high" : "auto"}
       decoding="async"
       draggable={false}
       referrerPolicy="no-referrer"
@@ -192,8 +194,9 @@ export function PlaylistShelf() {
       try {
         if (moved > 90 || v > 0.5) {
           const dir = dx < 0 ? -1 : 1;
+          let fly: Animation | null = null;
           if (!reduced) {
-            const fly = el.animate(
+            fly = el.animate(
               [
                 { transform: dragT(dx), opacity: 1 },
                 { transform: `translate3d(${dir * 120}%,0,0) rotate(${dir * 12}deg)`, opacity: 0 },
@@ -201,18 +204,25 @@ export function PlaylistShelf() {
               { duration: 350, easing: EASE_OUT, fill: "forwards" }
             );
             await fly.finished;
-            fly.cancel();
           }
-          clear(el);
-          cycle(1);
-          // the card that went to the back fades up into its new slot
-          requestAnimationFrame(() => {
-            el.animate([{ opacity: 0, transform: "translate3d(0,0,-200px) scale(.8)" }, { opacity: 1 }], {
-              duration: reduced ? 160 : 300,
-              easing: "ease-out",
-              composite: "add",
-            });
+          // The card stays invisible (fly fill) while the new order commits
+          // synchronously, and the stack's CSS transition is muted on it so it
+          // never slides visibly from the front slot to the back.
+          el.style.transition = "none";
+          flushSync(() => cycle(1));
+          el.style.removeProperty("transform");
+          el.style.removeProperty("opacity");
+          await new Promise<void>((r) => requestAnimationFrame(() => r()));
+          // enter from behind; started before the fly fill is released, so no gap frame
+          const enter = el.animate([{ opacity: 0, transform: "translate3d(0,0,-200px) scale(.8)" }, { opacity: 1 }], {
+            duration: reduced ? 160 : 300,
+            easing: "ease-out",
+            composite: "add",
+            fill: "backwards",
           });
+          fly?.cancel();
+          await enter.finished.catch(() => undefined);
+          el.style.removeProperty("transition");
         } else {
           const back = el.animate([{ transform: dragT(dx) }, { transform: "none" }], { duration: 300, easing: EASE_OUT });
           clear(el);
@@ -280,7 +290,7 @@ export function PlaylistShelf() {
                 className="block h-full w-full rounded-[var(--radius-lg)]"
                 aria-label={`${p.label}: ${p.title}${typeof p.itemCount === "number" ? `, ${p.itemCount} tracks` : ""} — open in YouTube Music`}
               >
-                <Cover p={p} live={liveCovers[p.id] ?? null} eager={depth <= 1} />
+                <Cover p={p} live={liveCovers[p.id] ?? null} top={depth === 0} />
               </a>
             </div>
           );

@@ -142,5 +142,20 @@ Sign in with the owner account (footer **Owner** link, or open `/#admin`). A too
 bottom: **Edit** turns on inline editing, **Publish** saves to Firestore (`siteContent/live`),
 **Discard** drops the local draft, **Reset** clears all published overrides.
 
-Before Publish works, deploy the rules in `firestore.rules`: Firebase console → Firestore →
-Rules → paste → Publish (or `firebase deploy --only firestore:rules`).
+Published content is served to visitors by `/api/site-content`, which reads and writes with the
+service account (`FIREBASE_SERVICE_ACCOUNT_KEY`, the same variable `/api/ama-vote` uses). Writes
+are accepted only when the owner's sign-in token checks out at Google as the admin email.
+
+- **Vercel:** the variable is already set for the AMA, so publishing is live for everyone.
+- **Cloudflare:** add `FIREBASE_SERVICE_ACCOUNT_KEY` under Workers & Pages → project →
+  Settings → Variables and Secrets (same JSON value), then redeploy.
+
+Also deploy the rules (recommended; it lets the site read Firestore directly as a fallback):
+
+1. Firebase console → **Firestore Database**
+2. **Rules** tab
+3. Paste the contents of `firestore.rules`
+4. **Publish** (or run `firebase deploy --only firestore:rules`)
+
+After Publish the sidebar says **"live for everyone"** only once an anonymous read returns the new
+version; otherwise it tells you what is missing.

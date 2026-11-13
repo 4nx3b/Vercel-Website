@@ -8,6 +8,8 @@ import { Wordmark } from "./Wordmark";
 import { buttonClass } from "./ui";
 import { HeaderPlayer } from "./MusicPlayer";
 import { useTheme, type Theme } from "../hooks/useTheme";
+import { useContent } from "../content/store";
+import { EditingBanner, OwnerPanel } from "../content/OwnerPanel";
 
 /** Two-option Sun / Moon switch for the sidebar. */
 function ThemeSwitch() {
@@ -60,6 +62,9 @@ function ThemeIconButton() {
 }
 
 export function Nav() {
+  const { owner, dirty } = useContent();
+  const ownerRef = useRef(owner);
+  ownerRef.current = owner;
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const clock = useIstClock();
@@ -103,7 +108,7 @@ export function Nav() {
   // Close on desktop resize
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
-    const onChange = () => mq.matches && setOpen(false);
+    const onChange = () => mq.matches && !ownerRef.current && setOpen(false);
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, []);
@@ -116,6 +121,7 @@ export function Nav() {
     first?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        e.stopPropagation();
         setOpen(false);
         menuBtn.current?.focus();
       }
@@ -231,20 +237,25 @@ export function Nav() {
           aria-expanded={open}
           aria-controls="mobile-sheet"
           aria-label={open ? "Close menu" : "Open menu"}
-          className="nav-menu-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-rule-strong text-[var(--text)] transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)] lg:hidden"
+          className={cn(
+            "nav-menu-btn relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-rule-strong text-[var(--text)] transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)]",
+            !owner && "lg:hidden"
+          )}
         >
           <Menu aria-hidden className="h-5 w-5" strokeWidth={1.75} />
+          {owner && dirty && <span aria-label="Unsaved changes" className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-vermilion" />}
         </button>
       </nav>
 
     </header>
+      <EditingBanner onOpenMenu={() => setOpen(true)} />
 
       {/* Mobile sheet: outside the header, whose backdrop-filter would trap fixed children */}
       <div
         aria-hidden
         data-open={open}
         onClick={close}
-        className="scrim fixed inset-0 z-[60] bg-[color-mix(in_srgb,var(--color-ink)_35%,transparent)] lg:hidden"
+        className={cn("scrim fixed inset-0 z-[60] bg-[color-mix(in_srgb,var(--color-ink)_35%,transparent)]", !owner && "lg:hidden")}
       />
       <div
         id="mobile-sheet"
@@ -253,7 +264,7 @@ export function Nav() {
         role="dialog"
         aria-modal="true"
         aria-label="Site menu"
-        className="sheet fixed inset-y-0 right-0 z-[70] flex w-[min(320px,88vw)] flex-col border-l border-ink bg-paper lg:hidden"
+        className={cn("sheet fixed inset-y-0 right-0 z-[70] flex w-[min(340px,88vw)] flex-col overflow-y-auto border-l border-ink bg-paper", !owner && "lg:hidden")}
       >
         <div className="flex h-16 items-center justify-between border-b border-rule px-5">
           <span className="kicker">Menu</span>
@@ -284,6 +295,7 @@ export function Nav() {
           ))}
         </ul>
         <div className="mt-auto flex flex-col gap-4 border-t border-rule p-5">
+          <OwnerPanel />
           <ThemeSwitch />
           <span className="font-mono text-xs text-graphite tabular">IST {clock}</span>
           <a href="#ask" onClick={close} className={buttonClass("ink", "w-full")}>

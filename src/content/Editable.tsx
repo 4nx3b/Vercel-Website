@@ -123,30 +123,17 @@ function EditableRow({ children, onUp, onDown, onRemove, first, last, label }: {
 
 const MAX_W = 1600;
 const MAX_BYTES = 700 * 1024;
-const imgCache = new Map<string, string>();
 const imgDoc = (id: string) => `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents/siteImages/${encodeURIComponent(id)}`;
 
-/** Resolves `fs:siteImages/<id>` references to data URLs (cached); plain URLs pass through. */
+/** `fs:siteImages/<id>` → /api/site-content?image=<id> (one immutable, browser-cached URL;
+    no per-image Firestore fetch of base64). Plain URLs pass through. */
+export function resolveSrc(src: string | undefined) {
+  if (!src) return src;
+  if (src.startsWith("fs:siteImages/")) return `/api/site-content?image=${encodeURIComponent(src.slice("fs:siteImages/".length))}`;
+  return src;
+}
 export function useResolvedSrc(src: string | undefined) {
-  const [out, setOut] = useState<string | undefined>(() => (src && src.startsWith("fs:") ? imgCache.get(src) : src));
-  useEffect(() => {
-    if (!src || !src.startsWith("fs:")) return setOut(src);
-    if (imgCache.has(src)) return setOut(imgCache.get(src));
-    let alive = true;
-    jfetch(imgDoc(src.slice("fs:siteImages/".length)))
-      .then((d) => {
-        const data = d?.fields?.data?.stringValue;
-        if (alive && typeof data === "string") {
-          imgCache.set(src, data);
-          setOut(data);
-        }
-      })
-      .catch(() => alive && setOut(undefined));
-    return () => {
-      alive = false;
-    };
-  }, [src]);
-  return out;
+  return resolveSrc(src);
 }
 
 async function toWebp(file: File): Promise<string> {
@@ -167,16 +154,29 @@ async function toWebp(file: File): Promise<string> {
 }
 
 async function uploadImage(dataUrl: string): Promise<string> {
-  const id = (crypto.randomUUID ? crypto.randomUUID() : `img_${Date.now()}`).replace(/[^\w-]/g, "");
   const token = await refreshTokenIfNeeded();
+  // preferred: server endpoint (verifies the owner at Google, works without the rules)
+  try {
+    const r = await fetch("/api/site-content?image=1", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+      body: JSON.stringify({ data: dataUrl }),
+    });
+    if ((r.headers.get("content-type") || "").includes("json")) {
+      const d = await r.json();
+      if (r.ok && d?.id) return `fs:siteImages/${d.id}`;
+      if (r.status !== 404 && r.status !== 503) throw new Error(d?.error || `Upload failed (${r.status})`);
+    }
+  } catch (e) {
+    if (!/Failed to fetch|NetworkError|Load failed/i.test((e as Error).message)) throw e;
+  }
+  const id = (crypto.randomUUID ? crypto.randomUUID() : `img_${Date.now()}`).replace(/[^\w-]/g, "");
   await jfetch(imgDoc(id), {
     method: "PATCH",
     headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
     body: JSON.stringify({ fields: { data: { stringValue: dataUrl }, createdAt: { stringValue: new Date().toISOString() } } }),
   });
-  const ref = `fs:siteImages/${id}`;
-  imgCache.set(ref, dataUrl);
-  return ref;
+  return `fs:siteImages/${id}`;
 }
 
 /** Wraps an image; in edit mode adds a "Replace image" button that opens a small dialog. */

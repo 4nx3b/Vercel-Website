@@ -7,19 +7,27 @@ import { Links } from "./components/Links";
 import { Footer } from "./components/Footer";
 import { MusicProvider } from "./components/MusicPlayer";
 import { KanaMarquee } from "./components/AnimeFx";
-import { Suspense, lazy } from "react";
+import { useEffect } from "react";
 import { ContentProvider, useContent } from "./content/store";
 
-// Owner-only: never downloaded by visitors (a separate chunk, only imported when signed in)
-const AdminBar = lazy(() => import("./content/AdminBar"));
-function OwnerTools() {
-  const { owner } = useContent();
-  if (!owner) return null;
-  return (
-    <Suspense fallback={null}>
-      <AdminBar />
-    </Suspense>
-  );
+/** Escape leaves edit mode (the sidebar handles its own Escape first). */
+function EditEscape() {
+  const { editing, setEditing } = useContent();
+  useEffect(() => {
+    if (!editing) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || (e.target as HTMLElement)?.isContentEditable) return;
+      if (document.querySelector('#mobile-sheet[data-open="true"]')) return; // first Escape closes the sheet
+      setEditing(false);
+    };
+    window.addEventListener("keydown", onKey);
+    document.documentElement.setAttribute("data-editing", "");
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.documentElement.removeAttribute("data-editing");
+    };
+  }, [editing, setEditing]);
+  return null;
 }
 
 export default function App() {
@@ -41,7 +49,7 @@ export default function App() {
       </main>
       <Footer />
     </div>
-    <OwnerTools />
+    <EditEscape />
     </MusicProvider>
     </ContentProvider>
   );

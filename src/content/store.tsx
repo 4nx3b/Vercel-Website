@@ -127,9 +127,66 @@ function write(key: string, v: unknown) {
   }
 }
 
+/* ---------------- public read / owner write ---------------- */
+
+type PublicDoc = { json: Json; updatedAt: string | null; via: "api" | "firestore" };
+
+/**
+ * What visitors see. /api/site-content reads with the service account, so it
+ * works even before the siteContent rules are deployed (anonymous direct
+ * reads get 403 until then). Falls back to a direct Firestore read.
+ */
+export async function readPublished(): Promise<PublicDoc | null> {
+  try {
+    const r = await fetch(`/api/site-content?t=${Date.now()}`, { cache: "no-store", headers: { Accept: "application/json" } });
+    if (r.ok && (r.headers.get("content-type") || "").includes("json")) {
+      const d = await r.json();
+      if (typeof d?.json === "string") return { json: JSON.parse(d.json) as Json, updatedAt: d.updatedAt ?? null, via: "api" };
+    }
+  } catch {
+    /* no API here (preview) */
+  }
+  try {
+    const doc = await jfetch(DOC_URL());
+    const raw = doc?.fields?.json?.stringValue;
+    if (typeof raw === "string") return { json: JSON.parse(raw) as Json, updatedAt: doc?.fields?.updatedAt?.stringValue ?? null, via: "firestore" };
+  } catch {
+    /* rules not deployed, or offline */
+  }
+  return null;
+}
+
+/** Owner write: server endpoint (verifies the token at Google), else direct PATCH. Returns updatedAt. */
+async function writePublished(payload: unknown): Promise<string> {
+  const token = await refreshTokenIfNeeded();
+  const text = JSON.stringify(payload);
+  try {
+    const r = await fetch("/api/site-content", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+      body: JSON.stringify({ json: text }),
+    });
+    const ct = r.headers.get("content-type") || "";
+    if (ct.includes("json")) {
+      const d = await r.json();
+      if (r.ok && d?.updatedAt) return d.updatedAt as string;
+      if (r.status !== 404 && r.status !== 503) throw new Error(d?.error || `Publish failed (${r.status})`);
+    }
+  } catch (e) {
+    if (!/Failed to fetch|NetworkError|Load failed/i.test((e as Error).message)) throw e;
+  }
+  const now = new Date().toISOString();
+  await jfetch(`${DOC_URL()}?updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+    body: JSON.stringify({ fields: { json: { stringValue: text }, updatedAt: { stringValue: now } } }),
+  });
+  return now;
+}
+
 /* ---------------- context ---------------- */
 
-type Status = { kind: "idle" | "saving" | "saved" | "error"; msg?: string };
+export type Status = { kind: "idle" | "saving" | "saved" | "warn" | "error"; msg?: string };
 
 type Ctx = {
   content: SiteContent;
@@ -142,6 +199,7 @@ type Ctx = {
   publish: () => Promise<void>;
   discard: () => void;
   reset: () => Promise<void>;
+  publishedAt: string | null;
 };
 
 const ContentCtx = createContext<Ctx | null>(null);
@@ -164,6 +222,7 @@ export function ContentProvider({ children }: { children: ReactNode }) {
   const [owner, setOwner] = useState(() => isOwner());
   const [editing, setEditingState] = useState(false);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const [publishedAt, setPublishedAt] = useState<string | null>(null);
   const draftRef = useRef(draft);
   draftRef.current = draft;
 
@@ -171,16 +230,11 @@ export function ContentProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let alive = true;
     (async () => {
-      try {
-        const doc = await jfetch(DOC_URL());
-        const raw = doc?.fields?.json?.stringValue;
-        if (!alive || typeof raw !== "string") return;
-        const parsed = JSON.parse(raw) as Json;
-        setPublished(parsed);
-        write(CACHE_KEY, parsed);
-      } catch {
-        /* no doc yet, rules not deployed, or offline: defaults + cache */
-      }
+      const doc = await readPublished();
+      if (!alive || !doc) return;
+      setPublished(doc.json);
+      setPublishedAt(doc.updatedAt);
+      write(CACHE_KEY, doc.json);
     })();
     return () => {
       alive = false;
@@ -220,15 +274,13 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     [base]
   );
 
-  const save = useCallback(async (payload: unknown) => {
-    const token = await refreshTokenIfNeeded();
-    await jfetch(`${DOC_URL()}?updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-      body: JSON.stringify({
-        fields: { json: { stringValue: JSON.stringify(payload) }, updatedAt: { stringValue: new Date().toISOString() } },
-      }),
-    });
+  /** Write, then confirm what an anonymous visitor would read. */
+  const save = useCallback(async (payload: unknown): Promise<Status> => {
+    const at = await writePublished(payload);
+    setPublishedAt(at);
+    const check = await readPublished();
+    if (check && check.updatedAt === at) return { kind: "saved", msg: "Published, live for everyone" };
+    return { kind: "warn", msg: "Published, but visitors can't read it yet: deploy firestore.rules" };
   }, []);
 
   const publish = useCallback(async () => {
@@ -236,12 +288,12 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     if (!d) return;
     setStatus({ kind: "saving" });
     try {
-      await save(d);
+      const result = await save(d);
       setPublished(d as unknown as Json);
       write(CACHE_KEY, d);
       write(DRAFT_KEY, null);
       setDraft(null);
-      setStatus({ kind: "saved", msg: "Published" });
+      setStatus(result);
     } catch (e) {
       const m = (e as Error).message || "";
       setStatus({
@@ -260,12 +312,12 @@ export function ContentProvider({ children }: { children: ReactNode }) {
   const reset = useCallback(async () => {
     setStatus({ kind: "saving" });
     try {
-      await save({});
+      const result = await save({});
       setPublished({});
       write(CACHE_KEY, {});
       write(DRAFT_KEY, null);
       setDraft(null);
-      setStatus({ kind: "saved", msg: "Reset to defaults" });
+      setStatus(result.kind === "saved" ? { kind: "saved", msg: "Reset to defaults" } : result);
     } catch (e) {
       setStatus({ kind: "error", msg: (e as Error).message || "Couldn't reset" });
     }
@@ -274,8 +326,8 @@ export function ContentProvider({ children }: { children: ReactNode }) {
   const setEditing = useCallback((v: boolean) => setEditingState(v && isOwner()), []);
 
   const value = useMemo<Ctx>(
-    () => ({ content, owner, editing: editing && owner, dirty: !!draft, status, setEditing, set, publish, discard, reset }),
-    [content, owner, editing, draft, status, setEditing, set, publish, discard, reset]
+    () => ({ content, owner, editing: editing && owner, dirty: !!draft, status, setEditing, set, publish, discard, reset, publishedAt }),
+    [content, owner, editing, draft, status, setEditing, set, publish, discard, reset, publishedAt]
   );
 
   return <ContentCtx.Provider value={value}>{children}</ContentCtx.Provider>;
