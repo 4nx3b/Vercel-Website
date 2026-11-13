@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Menu, Moon, Sun, X } from "lucide-react";
 import { cn } from "../utils/cn";
-import { NAV_LINKS } from "../lib/data";
 import { useIstClock } from "../hooks/useInView";
 import { supportsViewTimeline } from "../hooks/useScrollVar";
 import { Wordmark } from "./Wordmark";
@@ -10,6 +9,7 @@ import { HeaderPlayer } from "./MusicPlayer";
 import { useTheme, type Theme } from "../hooks/useTheme";
 import { useContent } from "../content/store";
 import { EditingBanner, OwnerPanel } from "../content/OwnerPanel";
+import { EText } from "../content/Editable";
 
 /** Two-option Sun / Moon switch for the sidebar. */
 function ThemeSwitch() {
@@ -62,7 +62,23 @@ function ThemeIconButton() {
 }
 
 export function Nav() {
-  const { owner, dirty } = useContent();
+  const { owner, dirty, editing, content } = useContent();
+  const pageSections = Array.isArray(content.layout?.sections) ? content.layout.sections : [];
+  const visibleBuiltins = new Set(pageSections.flatMap((section) => section.kind === "builtin" && section.visible !== false ? [section.component] : []));
+  const builtinTargets: Record<string, string> = { work: "work", about: "about", play: "about", ask: "ask" };
+  const customNavLinks = pageSections.flatMap((section, index) => section.kind === "custom" && section.visible !== false && section.showInNav
+    ? [{ key: `custom-${section.id}`, href: `#site-${section.id.replace(/[^a-z0-9_-]/gi, "-")}`, path: `layout.sections.${index}.${section.navLabel.trim() ? "navLabel" : "title"}`, fallback: section.navLabel || section.title }]
+    : []);
+  const navLinks = [
+    ...content.nav.links.flatMap((link, index) => {
+      const target = link.href.startsWith("#") ? builtinTargets[link.href.slice(1)] : undefined;
+      if (target && !visibleBuiltins.has(target as "work" | "about" | "ask")) return [];
+      return [{ key: `site-${link.href}-${index}`, href: link.href, path: `nav.links.${index}.label`, fallback: link.label }];
+    }),
+    ...customNavLinks,
+  ];
+  const brandHref = visibleBuiltins.has("hero") ? "#top" : "#main";
+  const ctaHref = visibleBuiltins.has("ask") ? "#ask" : customNavLinks[0]?.href || "#main";
   const ownerRef = useRef(owner);
   ownerRef.current = owner;
   const [scrolled, setScrolled] = useState(false);
@@ -120,6 +136,7 @@ export function Nav() {
     const first = sheetRef.current?.querySelector<HTMLElement>("a, button");
     first?.focus();
     const onKey = (e: KeyboardEvent) => {
+      if (document.querySelector('[role="dialog"][aria-label="Page builder"]')) return;
       if (e.key === "Escape") {
         e.stopPropagation();
         setOpen(false);
@@ -195,18 +212,19 @@ export function Nav() {
       <div aria-hidden className="nav-frost" />
       <div aria-hidden className="nav-progress" />
       <nav aria-label="Primary" className="page flex h-16 items-center justify-between gap-6">
-        <a href="#top" aria-label="v3rsi0n, back to top" className="flex min-h-11 items-center rounded-[var(--radius-sm)]">
+        <a href={brandHref} onClick={(event) => editing && event.preventDefault()} aria-label={`${content.brand.name}, back to top`} className="flex min-h-11 items-center rounded-[var(--radius-sm)]">
           <Wordmark />
         </a>
 
         <ul className="hidden items-center gap-8 lg:flex">
-          {NAV_LINKS.map((l) => (
-            <li key={l.href}>
+          {navLinks.map((link, index) => (
+            <li key={link.key}>
               <a
-                href={l.href}
+                href={link.href}
+                onClick={(event) => editing && event.preventDefault()}
                 className="text-[15px] text-[var(--text-2)] transition-colors duration-[var(--dur-2)] hover:text-[var(--text)]"
               >
-                {l.label}
+                <EText path={link.path} fallback={link.fallback} label={`Navigation link ${index + 1}`} />
               </a>
             </li>
           ))}
@@ -216,8 +234,8 @@ export function Nav() {
           <HeaderPlayer />
           <span className="hidden font-mono text-xs text-[var(--text-3)] tabular 2xl:inline">IST {clock}</span>
           <ThemeIconButton />
-          <a href="#ask" className={buttonClass("ink", "nav-cta min-h-10 px-5 text-[15px]")}>
-            Ask me
+          <a href={ctaHref} onClick={(event) => editing && event.preventDefault()} className={buttonClass("ink", "nav-cta min-h-10 px-5 text-[15px]")}>
+            <EText path="nav.cta" label="Header call to action" />
             <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
           </a>
         </div>
@@ -237,10 +255,7 @@ export function Nav() {
           aria-expanded={open}
           aria-controls="mobile-sheet"
           aria-label={open ? "Close menu" : "Open menu"}
-          className={cn(
-            "nav-menu-btn relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-rule-strong text-[var(--text)] transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)]",
-            !owner && "lg:hidden"
-          )}
+          className="nav-menu-btn relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-rule-strong text-[var(--text)] transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)]"
         >
           <Menu aria-hidden className="h-5 w-5" strokeWidth={1.75} />
           {owner && dirty && <span aria-label="Unsaved changes" className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-vermilion" />}
@@ -255,7 +270,7 @@ export function Nav() {
         aria-hidden
         data-open={open}
         onClick={close}
-        className={cn("scrim fixed inset-0 z-[60] bg-[color-mix(in_srgb,var(--color-ink)_35%,transparent)]", !owner && "lg:hidden")}
+        className="scrim fixed inset-0 z-[60] bg-[color-mix(in_srgb,var(--color-ink)_35%,transparent)]"
       />
       <div
         id="mobile-sheet"
@@ -264,7 +279,7 @@ export function Nav() {
         role="dialog"
         aria-modal="true"
         aria-label="Site menu"
-        className={cn("sheet fixed inset-y-0 right-0 z-[70] flex w-[min(340px,88vw)] flex-col overflow-y-auto border-l border-ink bg-paper", !owner && "lg:hidden")}
+        className="sheet fixed inset-y-0 right-0 z-[70] flex w-[min(340px,88vw)] flex-col overflow-y-auto border-l border-ink bg-paper"
       >
         <div className="flex h-16 items-center justify-between border-b border-rule px-5">
           <span className="kicker">Menu</span>
@@ -281,15 +296,18 @@ export function Nav() {
           </button>
         </div>
         <ul className="flex flex-col px-5 py-4">
-          {NAV_LINKS.map((l, i) => (
-            <li key={l.href} className="border-b border-rule">
+          {navLinks.map((link, index) => (
+            <li key={link.key} className="border-b border-rule">
               <a
-                href={l.href}
-                onClick={close}
+                href={link.href}
+                onClick={(event) => {
+                  if (editing) event.preventDefault();
+                  else close();
+                }}
                 className="flex min-h-14 items-baseline gap-4 py-3 font-display text-page text-ink transition-colors duration-[var(--dur-2)] hover:text-vermilion-ink"
               >
-                <span className="font-mono text-xs text-graphite tabular">{String(i + 1).padStart(2, "0")}</span>
-                {l.label}
+                <span className="font-mono text-xs text-graphite tabular">{String(index + 1).padStart(2, "0")}</span>
+                <EText path={link.path} fallback={link.fallback} label={`Navigation link ${index + 1}`} />
               </a>
             </li>
           ))}
@@ -298,8 +316,8 @@ export function Nav() {
           <OwnerPanel />
           <ThemeSwitch />
           <span className="font-mono text-xs text-graphite tabular">IST {clock}</span>
-          <a href="#ask" onClick={close} className={buttonClass("ink", "w-full")}>
-            Ask me
+          <a href={ctaHref} onClick={(event) => (editing ? event.preventDefault() : close())} className={buttonClass("ink", "w-full")}>
+            <EText path="nav.cta" label="Header call to action" />
             <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
           </a>
         </div>

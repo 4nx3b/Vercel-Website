@@ -1,155 +1,292 @@
-/**
- * /api/site-content — the owner editor's published content, readable by everyone.
- *
- * Visitors could not see published edits because the `siteContent` Firestore
- * rules were never deployed: anonymous reads get 403. This endpoint reads and
- * writes with the service account (FIREBASE_SERVICE_ACCOUNT_KEY, the same one
- * /api/ama-vote uses), so it works whether or not the rules are deployed.
- *
- *   GET                      → { json, updatedAt }            (public, edge-cached 15s)
- *   GET  ?image=<id>         → the image bytes                 (public, immutable)
- *   POST { json }            → owner only, writes siteContent/live
- *   POST ?image=1 { data }   → owner only, stores a data-URL image, returns { id }
- *
- * Owner = a Firebase ID token whose account (looked up at Google, never taken
- * from the request body) has the admin email.
- */
-const crypto = require('crypto');
+import { createSign, randomUUID } from "node:crypto";
 
-const DEFAULT_PROJECT_ID = 'therealreze-2a3bf';
-const WEB_API_KEY = 'AIzaSyCUG-oxLlGWKulnV8E0PwSEmr_s0EyCRUk';
-const ADMIN_EMAIL = 'asaxxhiii@gmail.com';
+/**
+ * Vercel API for the live site editor.
+ *
+ * Writes intentionally go through the service-account endpoint rather than
+ * the browser's Firestore REST API. That keeps publishing independent of the
+ * deployed client security rules while still authenticating the owner with a
+ * Firebase ID token. Public reads use the same endpoint so every visitor sees
+ * the published document and uploaded image assets.
+ */
+
+const DEFAULT_PROJECT_ID = "therealreze-2a3bf";
+const WEB_API_KEY = "AIzaSyCUG-oxLlGWKulnV8E0PwSEmr_s0EyCRUk";
+const ADMIN_EMAIL = "asaxxhiii@gmail.com";
 const MAX_JSON_BYTES = 900 * 1024;
 const MAX_IMAGE_BYTES = 1000 * 1000;
+const MAX_PROFILE_AVATAR_BYTES = 220_000;
+const IMAGE_DATA_URL = /^data:image\/(webp|png|jpeg);base64,([A-Za-z0-9+/]+={0,2})$/;
+const PROFILE_AVATAR_DATA_URL = /^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/;
+
+export const config = { api: { bodyParser: { sizeLimit: "3mb" } } };
+
+function httpError(message, status, code) {
+  return Object.assign(new Error(message), { status, code });
+}
+
+/** One error shape for every response: { error: { message, code } }. */
+function errBody(message, code) {
+  return { error: { message, code: code || "error" } };
+}
 
 function serviceAccount() {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-  if (!raw) throw Object.assign(new Error('Missing FIREBASE_SERVICE_ACCOUNT_KEY'), { status: 503 });
-  const sa = JSON.parse(raw);
-  if (!sa.client_email || !sa.private_key) {
-    throw Object.assign(new Error('FIREBASE_SERVICE_ACCOUNT_KEY must contain client_email and private_key'), { status: 503 });
+  if (!raw) throw httpError("Missing FIREBASE_SERVICE_ACCOUNT_KEY on the Vercel project", 503);
+
+  let account;
+  try {
+    account = JSON.parse(raw);
+  } catch {
+    throw httpError("FIREBASE_SERVICE_ACCOUNT_KEY is not valid JSON", 503);
   }
-  return sa;
+  if (!account.client_email || !account.private_key) {
+    throw httpError("FIREBASE_SERVICE_ACCOUNT_KEY must include client_email and private_key", 503);
+  }
+  return account;
 }
 
-const b64url = (s) => Buffer.from(s).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+const b64url = (value) =>
+  Buffer.from(value).toString("base64").replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 
 let cachedToken = null;
 async function googleAccessToken() {
   if (cachedToken && cachedToken.exp > Date.now() + 60_000) return cachedToken.value;
-  const sa = serviceAccount();
+
+  const account = serviceAccount();
   const now = Math.floor(Date.now() / 1000);
-  const unsigned = `${b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))}.${b64url(
-    JSON.stringify({ iss: sa.client_email, scope: 'https://www.googleapis.com/auth/datastore', aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600 })
+  const unsigned = `${b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }))}.${b64url(
+    JSON.stringify({
+      iss: account.client_email,
+      scope: "https://www.googleapis.com/auth/datastore",
+      aud: "https://oauth2.googleapis.com/token",
+      iat: now,
+      exp: now + 3600,
+    })
   )}`;
-  const sig = crypto.createSign('RSA-SHA256').update(unsigned).sign(sa.private_key, 'base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-  const r = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: `${unsigned}.${sig}` }),
+  const signature = createSign("RSA-SHA256")
+    .update(unsigned)
+    .sign(account.private_key, "base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion: `${unsigned}.${signature}`,
+    }),
   });
-  const d = await r.json().catch(() => null);
-  if (!r.ok || !d?.access_token) throw new Error(d?.error_description || `Google token error ${r.status}`);
-  cachedToken = { value: d.access_token, exp: Date.now() + Number(d.expires_in || 3600) * 1000 };
+  const data = await response.json().catch(() => null);
+  if (!response.ok || !data?.access_token) {
+    throw httpError(data?.error_description || `Google service-account token request failed (${response.status})`, 502);
+  }
+
+  cachedToken = {
+    value: data.access_token,
+    exp: Date.now() + Number(data.expires_in || 3600) * 1000,
+  };
   return cachedToken.value;
 }
 
 function docUrl(path) {
-  const sa = serviceAccount();
-  const pid = process.env.FIREBASE_PROJECT_ID || sa.project_id || DEFAULT_PROJECT_ID;
-  return `https://firestore.googleapis.com/v1/projects/${pid}/databases/(default)/documents/${path}`;
+  const projectId = process.env.FIREBASE_PROJECT_ID || DEFAULT_PROJECT_ID;
+  if (projectId !== DEFAULT_PROJECT_ID) {
+    throw httpError(`FIREBASE_PROJECT_ID must be ${DEFAULT_PROJECT_ID} to share content with the client`, 503);
+  }
+  return `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${path}`;
 }
 
 async function firestore(method, url, body) {
   const token = await googleAccessToken();
-  const r = await fetch(url, {
+  const response = await fetch(url, {
     method,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: body ? JSON.stringify(body) : undefined,
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
-  const d = await r.json().catch(() => null);
-  if (r.status === 404) return null;
-  if (!r.ok) throw new Error(d?.error?.message || `Firestore ${method} ${r.status}`);
-  return d;
+  const data = await response.json().catch(() => null);
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    const message = data?.error?.message || `Firestore ${method} failed (${response.status})`;
+    throw httpError(message, response.status === 403 ? 403 : response.status >= 500 ? 502 : response.status);
+  }
+  return data;
 }
 
-/** The token's account, as Google sees it. Throws 401 unless it is the admin. */
+/**
+ * Trust the identity returned by Google, never an email supplied in a body.
+ * Ownership = a valid Google-issued ID token whose account email is the admin's.
+ * Email *verification* is deliberately not required: the owner signs in with
+ * email + password, and those accounts are unverified unless a link was
+ * clicked. That gate is what made "Set profile icon" fail with 403.
+ */
 async function requireOwner(req) {
-  const h = req.headers?.authorization || req.headers?.Authorization || '';
-  const idToken = String(h).replace(/^Bearer\s+/i, '').trim();
-  if (!idToken) throw Object.assign(new Error('Sign in as the owner first'), { status: 401 });
-  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${WEB_API_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const authorization = req.headers?.authorization || req.headers?.Authorization || "";
+  const idToken = String(authorization).replace(/^Bearer\s+/i, "").trim();
+  if (!idToken) throw httpError("Sign in as the site owner first", 401);
+
+  const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${WEB_API_KEY}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ idToken }),
   });
-  const d = await r.json().catch(() => null);
-  const email = d?.users?.[0]?.email;
-  if (!r.ok || email !== ADMIN_EMAIL) throw Object.assign(new Error('Not the owner'), { status: 401 });
+  const data = await response.json().catch(() => null);
+  const user = data?.users?.[0];
+  const email = String(user?.email || "").toLowerCase();
+  if (!response.ok) {
+    throw httpError("The owner sign-in has expired or is invalid. Sign in again.", 401, "token_invalid");
+  }
+  if (email !== ADMIN_EMAIL.toLowerCase()) {
+    throw httpError("This account is not the site owner.", 401, "not_owner");
+  }
 }
 
 async function readBody(req) {
-  if (req.body && typeof req.body === 'object') return req.body;
-  if (typeof req.body === 'string') return JSON.parse(req.body || '{}');
+  if (req.body !== undefined && req.body !== null) {
+    if (typeof req.body === "object") return req.body;
+    try {
+      return JSON.parse(String(req.body || "{}"));
+    } catch {
+      throw httpError("Request body must be valid JSON", 400);
+    }
+  }
+
   const chunks = [];
-  for await (const c of req) chunks.push(c);
-  const raw = Buffer.concat(chunks).toString('utf8');
-  return raw ? JSON.parse(raw) : {};
-}
-
-function send(res, status, obj, cache = 'no-store') {
-  res.statusCode = status;
-  res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Cache-Control', cache);
-  res.end(JSON.stringify(obj));
-}
-
-module.exports = async function handler(req, res) {
-  const url = new URL(req.url || '/', 'http://localhost');
-  const imageId = url.searchParams.get('image');
+  for await (const chunk of req) chunks.push(chunk);
+  const raw = Buffer.concat(chunks).toString("utf8");
+  if (!raw) return {};
   try {
-    if (req.method === 'GET' || req.method === 'HEAD') {
-      if (imageId) {
-        if (!/^[\w-]{4,80}$/.test(imageId)) return send(res, 400, { error: 'bad image id' });
-        const doc = await firestore('GET', docUrl(`siteImages/${imageId}`));
-        const data = doc?.fields?.data?.stringValue || '';
-        const m = data.match(/^data:([\w/+.-]+);base64,(.+)$/);
-        if (!m) return send(res, 404, { error: 'no such image' });
-        res.statusCode = 200;
-        res.setHeader('Content-Type', m[1]);
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-        return res.end(req.method === 'HEAD' ? undefined : Buffer.from(m[2], 'base64'));
+    return JSON.parse(raw);
+  } catch {
+    throw httpError("Request body must be valid JSON", 400);
+  }
+}
+
+function send(res, status, obj, cache = "no-store", headOnly = false) {
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Cache-Control", cache);
+  res.end(headOnly ? undefined : JSON.stringify(obj));
+}
+
+function sendError(res, error) {
+  const status = Number.isInteger(error?.status) ? error.status : 500;
+  return send(res, status, errBody(error?.message || "Site content request failed", error?.code || `http_${status}`));
+}
+
+export default async function handler(req, res) {
+  const url = new URL(req.url || "/", "http://localhost");
+  const imageId = url.searchParams.get("image");
+  const ownerProfile = url.searchParams.get("profile") === "1";
+
+  try {
+    if (req.method === "GET" || req.method === "HEAD") {
+      if (ownerProfile) {
+        const doc = await firestore("GET", docUrl("siteOwner/profile"));
+        return send(
+          res,
+          200,
+          {
+            resource: "siteOwner/profile",
+            avatar: doc?.fields?.avatar?.stringValue || "",
+            updatedAt: doc?.fields?.updatedAt?.stringValue || null,
+          },
+          "no-store",
+          req.method === "HEAD"
+        );
       }
-      const doc = await firestore('GET', docUrl('siteContent/live'));
-      const json = doc?.fields?.json?.stringValue || '{}';
-      const updatedAt = doc?.fields?.updatedAt?.stringValue || null;
-      return send(res, 200, { json, updatedAt }, 's-maxage=15, stale-while-revalidate=60');
+
+      if (imageId) {
+        if (!/^[\w-]{4,80}$/.test(imageId)) return send(res, 400, errBody("Invalid image ID"));
+        const doc = await firestore("GET", docUrl(`siteImages/${imageId}`));
+        const dataUrl = doc?.fields?.data?.stringValue || "";
+        const match = dataUrl.match(IMAGE_DATA_URL);
+        if (!match) return send(res, 404, errBody("Image not found"));
+
+        res.statusCode = 200;
+        res.setHeader("Content-Type", `image/${match[1]}`);
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        return res.end(req.method === "HEAD" ? undefined : Buffer.from(match[2], "base64"));
+      }
+
+      const doc = await firestore("GET", docUrl("siteContent/live"));
+      return send(
+        res,
+        200,
+        {
+          json: doc?.fields?.json?.stringValue || "{}",
+          updatedAt: doc?.fields?.updatedAt?.stringValue || null,
+        },
+        "public, max-age=0, s-maxage=5, stale-while-revalidate=5",
+        req.method === "HEAD"
+      );
     }
 
-    if (req.method === 'POST') {
+    if (req.method === "POST") {
       await requireOwner(req);
       const body = await readBody(req);
       const now = new Date().toISOString();
+
+      if (ownerProfile) {
+        const avatar = typeof body?.avatar === "string" ? body.avatar : "";
+        if (avatar && !PROFILE_AVATAR_DATA_URL.test(avatar)) {
+          return send(res, 400, errBody("Expected a PNG, JPEG, or WebP profile image"));
+        }
+        if (Buffer.byteLength(avatar, "utf8") > MAX_PROFILE_AVATAR_BYTES) {
+          return send(res, 413, errBody("Profile image is too large"));
+        }
+
+        await firestore("PATCH", `${docUrl("siteOwner/profile")}?updateMask.fieldPaths=avatar&updateMask.fieldPaths=updatedAt`, {
+          fields: {
+            avatar: { stringValue: avatar },
+            updatedAt: { stringValue: now },
+          },
+        });
+        return send(res, 200, { resource: "siteOwner/profile", ok: true, updatedAt: now });
+      }
+
       if (imageId) {
-        const data = String(body?.data || '');
-        if (!/^data:image\/(webp|png|jpeg);base64,/.test(data)) return send(res, 400, { error: 'expected an image data URL' });
-        if (data.length > MAX_IMAGE_BYTES) return send(res, 413, { error: 'image too large' });
-        const id = crypto.randomUUID().replace(/-/g, '');
-        await firestore('PATCH', docUrl(`siteImages/${id}`), { fields: { data: { stringValue: data }, createdAt: { stringValue: now } } });
+        const dataUrl = String(body?.data || "");
+        const match = dataUrl.match(IMAGE_DATA_URL);
+        if (!match) return send(res, 400, errBody("Expected a WebP, PNG, or JPEG image data URL"));
+        if (Buffer.byteLength(dataUrl) > MAX_IMAGE_BYTES) return send(res, 413, errBody("Image is too large"));
+
+        const id = randomUUID().replace(/-/g, "");
+        await firestore("PATCH", docUrl(`siteImages/${id}`), {
+          fields: {
+            data: { stringValue: dataUrl },
+            createdAt: { stringValue: now },
+          },
+        });
         return send(res, 200, { ok: true, id });
       }
-      const json = typeof body?.json === 'string' ? body.json : JSON.stringify(body?.json ?? {});
-      if (Buffer.byteLength(json) > MAX_JSON_BYTES) return send(res, 413, { error: 'content too large' });
-      JSON.parse(json); // must be valid JSON
-      await firestore('PATCH', `${docUrl('siteContent/live')}?updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt`, {
-        fields: { json: { stringValue: json }, updatedAt: { stringValue: now } },
+
+      const json = typeof body?.json === "string" ? body.json : JSON.stringify(body?.json ?? {});
+      if (Buffer.byteLength(json, "utf8") > MAX_JSON_BYTES) return send(res, 413, errBody("Site content is too large"));
+      let parsed;
+      try {
+        parsed = JSON.parse(json);
+      } catch {
+        return send(res, 400, errBody("Published content must be valid JSON"));
+      }
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        return send(res, 400, errBody("Published content must be a JSON object"));
+      }
+
+      await firestore("PATCH", `${docUrl("siteContent/live")}?updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt`, {
+        fields: {
+          json: { stringValue: json },
+          updatedAt: { stringValue: now },
+        },
       });
       return send(res, 200, { ok: true, updatedAt: now });
     }
 
-    res.setHeader('Allow', 'GET, HEAD, POST');
-    return send(res, 405, { error: 'method not allowed' });
-  } catch (e) {
-    return send(res, e.status || 500, { error: e.message || 'error' });
+    res.setHeader("Allow", "GET, HEAD, POST");
+    return send(res, 405, errBody("Method not allowed"));
+  } catch (error) {
+    return sendError(res, error);
   }
-};
+}

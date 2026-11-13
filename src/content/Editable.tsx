@@ -2,8 +2,8 @@ import { useEffect, useRef, useState, type ElementType, type ReactNode } from "r
 import { ArrowDown, ArrowUp, ImagePlus, Plus, Trash2, Type } from "lucide-react";
 import { cn } from "../utils/cn";
 import { FIREBASE } from "../lib/data";
-import { jfetch, refreshTokenIfNeeded } from "../lib/owner";
-import { getPath, useContent, useField, type Block, type SectionId } from "./store";
+import { refreshTokenIfNeeded } from "../lib/owner";
+import { getPath, loadSiteImageData, useContent, useField, type Block, type SectionId } from "./store";
 
 /* ------------------------------------------------------------------ *
  * Inline editing primitives. For visitors they render exactly what the
@@ -13,18 +13,19 @@ import { getPath, useContent, useField, type Block, type SectionId } from "./sto
  * ------------------------------------------------------------------ */
 
 /** Editable text. */
-export function EText({ path, as: Tag = "span", className, label, multiline = false }: { path: string; as?: ElementType; className?: string; label?: string; multiline?: boolean }) {
+export function EText({ path, as: Tag = "span", className, label, multiline = false, fallback }: { path: string; as?: ElementType; className?: string; label?: string; multiline?: boolean; fallback?: string }) {
   const { editing } = useContent();
-  const [value, setValue] = useField<string>(path);
+  const [value, setValue] = useField<string | null>(path);
+  const shown = value ?? fallback ?? "";
   const ref = useRef<HTMLElement>(null);
 
-  // keep the DOM text in sync when not focused (e.g. after Discard)
+  // Keep the DOM text in sync when not focused (e.g. after Discard).
   useEffect(() => {
     const el = ref.current;
-    if (el && document.activeElement !== el && el.textContent !== value) el.textContent = value ?? "";
-  }, [value, editing]);
+    if (el && document.activeElement !== el && el.textContent !== shown) el.textContent = shown;
+  }, [shown, editing]);
 
-  if (!editing) return <Tag className={className}>{value}</Tag>;
+  if (!editing) return <Tag className={className}>{shown}</Tag>;
   return (
     <Tag
       ref={ref}
@@ -40,15 +41,134 @@ export function EText({ path, as: Tag = "span", className, label, multiline = fa
           e.preventDefault();
           (e.currentTarget as HTMLElement).blur();
         }
-        if (e.key === "Escape") (e.currentTarget as HTMLElement).blur();
+        if (e.key === "Escape") {
+          e.preventDefault();
+          (e.currentTarget as HTMLElement).textContent = shown;
+          (e.currentTarget as HTMLElement).blur();
+        }
       }}
       onBlur={(e: React.FocusEvent<HTMLElement>) => {
-        const t = (e.currentTarget.textContent ?? "").replace(/\u00a0/g, " ").trim();
-        if (t !== value) setValue(t);
+        const text = (e.currentTarget.textContent ?? "").replace(/\u00a0/g, " ").trim();
+        if (text !== shown) setValue(text);
       }}
     >
-      {value}
+      {shown}
     </Tag>
+  );
+}
+
+/** A compact owner-only editor for URLs, placeholders, and other attributes. */
+export function EField({ path, label, type = "text" }: { path: string; label: string; type?: "text" | "url" }) {
+  const { editing } = useContent();
+  const [value, setValue] = useField<string>(path);
+  const [draft, setDraft] = useState(value ?? "");
+  const input = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (document.activeElement !== input.current) setDraft(value ?? "");
+  }, [value]);
+
+  if (!editing) return null;
+  const commit = (raw = draft) => {
+    const next = raw.trim();
+    if (next !== value) setValue(next);
+  };
+  return (
+    <label className="edit-field">
+      <span>{label}</span>
+      <input
+        ref={input}
+        type={type}
+        inputMode={type === "url" ? "url" : undefined}
+        value={draft}
+        onChange={(event) => setDraft(event.currentTarget.value)}
+        onBlur={(event) => commit(event.currentTarget.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            event.currentTarget.blur();
+          }
+          if (event.key === "Escape") {
+            event.preventDefault();
+            const original = value ?? "";
+            setDraft(original);
+            event.currentTarget.value = original;
+            event.currentTarget.blur();
+          }
+        }}
+        className="edit-input"
+        aria-label={label}
+      />
+    </label>
+  );
+}
+
+/** Editable string arrays with semantic list markup and owner-only controls. */
+export function EStringList({
+  path,
+  as: Tag = "ul",
+  className,
+  itemClassName,
+  textClassName,
+  itemLabel = "item",
+  numbered = false,
+  bullet = false,
+}: {
+  path: string;
+  as?: ElementType;
+  className?: string;
+  itemClassName?: string;
+  textClassName?: string;
+  itemLabel?: string;
+  numbered?: boolean;
+  bullet?: boolean;
+}) {
+  const { editing } = useContent();
+  const [items, setItems] = useField<string[]>(path);
+  const list = Array.isArray(items) ? items : [];
+  const move = (index: number, direction: -1 | 1) => {
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= list.length) return;
+    const next = [...list];
+    [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+    setItems(next);
+  };
+
+  return (
+    <>
+      <Tag className={className}>
+        {list.map((_, index) => (
+          <li key={`${path}-${index}`} className={cn("edit-list-item", itemClassName)}>
+            {numbered && <span aria-hidden className="edit-list-number">{String(index + 1).padStart(2, "0")}</span>}
+            {bullet && <span aria-hidden className="edit-list-bullet" />}
+            <EText
+              path={`${path}.${index}`}
+              className={cn("edit-list-text", textClassName)}
+              label={`Edit ${itemLabel} ${index + 1}`}
+              multiline
+            />
+            {editing && (
+              <div className="edit-list-tools" role="group" aria-label={`${itemLabel} ${index + 1} controls`}>
+                <button type="button" onClick={() => move(index, -1)} disabled={index === 0} aria-label={`Move ${itemLabel} ${index + 1} up`}>
+                  <ArrowUp aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+                </button>
+                <button type="button" onClick={() => move(index, 1)} disabled={index === list.length - 1} aria-label={`Move ${itemLabel} ${index + 1} down`}>
+                  <ArrowDown aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+                </button>
+                <button type="button" onClick={() => setItems(list.filter((_, itemIndex) => itemIndex !== index))} aria-label={`Remove ${itemLabel} ${index + 1}`}>
+                  <Trash2 aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+                </button>
+              </div>
+            )}
+          </li>
+        ))}
+      </Tag>
+      {editing && (
+        <button type="button" onClick={() => setItems([...list, `New ${itemLabel}`])} className="edit-add">
+          <Plus aria-hidden className="h-4 w-4" strokeWidth={1.75} /> Add {itemLabel}
+        </button>
+      )}
+    </>
   );
 }
 
@@ -123,71 +243,151 @@ function EditableRow({ children, onUp, onDown, onRemove, first, last, label }: {
 
 const MAX_W = 1600;
 const MAX_BYTES = 700 * 1024;
-const imgDoc = (id: string) => `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents/siteImages/${encodeURIComponent(id)}`;
 
-/** `fs:siteImages/<id>` → /api/site-content?image=<id> (one immutable, browser-cached URL;
-    no per-image Firestore fetch of base64). Plain URLs pass through. */
+/** `fs:siteImages/<id>` resolves through the host API, then shared Firestore on static hosts. */
 export function resolveSrc(src: string | undefined) {
   if (!src) return src;
   if (src.startsWith("fs:siteImages/")) return `/api/site-content?image=${encodeURIComponent(src.slice("fs:siteImages/".length))}`;
   return src;
 }
 export function useResolvedSrc(src: string | undefined) {
-  return resolveSrc(src);
+  const [resolved, setResolved] = useState<string | undefined>(() => src?.startsWith("fs:siteImages/") ? undefined : src);
+  useEffect(() => {
+    if (!src?.startsWith("fs:siteImages/")) {
+      setResolved(src);
+      return;
+    }
+    let active = true;
+    setResolved(undefined);
+    const id = src.slice("fs:siteImages/".length);
+    const apiUrl = resolveSrc(src)!;
+    const useFirestore = () => loadSiteImageData(id).then((data) => {
+      if (active) setResolved(data);
+    });
+    void fetch(apiUrl, { method: "HEAD", cache: "force-cache", headers: { Accept: "image/*" } })
+      .then((response) => {
+        if (response.ok && (response.headers.get("content-type") || "").startsWith("image/")) {
+          if (active) setResolved(apiUrl);
+          return;
+        }
+        return useFirestore();
+      })
+      .catch(useFirestore)
+      .catch(() => { if (active) setResolved(undefined); });
+    return () => { active = false; };
+  }, [src]);
+  return resolved;
+}
+
+function canvasBlob(canvas: HTMLCanvasElement, quality: number) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("This browser could not process the image."))), "image/webp", quality);
+  });
+}
+
+function blobDataUrl(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => (typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("Could not read the compressed image.")));
+    reader.onerror = () => reject(new Error("Could not read the compressed image."));
+    reader.readAsDataURL(blob);
+  });
 }
 
 async function toWebp(file: File): Promise<string> {
-  const bmp = await createImageBitmap(file);
-  const scale = Math.min(1, MAX_W / bmp.width);
-  const c = document.createElement("canvas");
-  c.width = Math.round(bmp.width * scale);
-  c.height = Math.round(bmp.height * scale);
-  c.getContext("2d")!.drawImage(bmp, 0, 0, c.width, c.height);
-  let q = 0.82;
-  let url = c.toDataURL("image/webp", q);
-  while (url.length * 0.75 > MAX_BYTES && q > 0.4) {
-    q -= 0.12;
-    url = c.toDataURL("image/webp", q);
+  if (typeof createImageBitmap !== "function") throw new Error("Image uploads need a browser with image compression support. Try using an https image URL instead.");
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, MAX_W / bitmap.width);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  const context = canvas.getContext("2d");
+  if (!context) {
+    bitmap.close();
+    throw new Error("Could not prepare this image for upload.");
   }
-  if (url.length * 0.75 > MAX_BYTES) throw new Error("Image is too large even after compression (max 700 KB).");
-  return url;
+
+  try {
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    let quality = 0.82;
+    let blob = await canvasBlob(canvas, quality);
+    while (blob.size > MAX_BYTES && quality > 0.4) {
+      quality = Math.max(0.4, quality - 0.12);
+      blob = await canvasBlob(canvas, quality);
+    }
+    if (blob.size > MAX_BYTES) throw new Error("Image is too large after compression (maximum 700 KB).");
+    return await blobDataUrl(blob);
+  } finally {
+    bitmap.close();
+    canvas.width = 1;
+    canvas.height = 1;
+  }
+}
+
+const IMAGE_DATA_URL = /^data:image\/(?:webp|png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/;
+
+async function uploadImageDirect(dataUrl: string, token: string): Promise<string> {
+  if (!IMAGE_DATA_URL.test(dataUrl) || new TextEncoder().encode(dataUrl).length > 1_000_000) {
+    throw new Error("Image must be a PNG, JPEG, or WebP smaller than 700 KB after compression.");
+  }
+  const id = typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID().replace(/-/g, "")
+    : `img${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
+  const createdAt = new Date().toISOString();
+  const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents/siteImages/${id}?key=${encodeURIComponent(FIREBASE.apiKey)}&updateMask.fieldPaths=data&updateMask.fieldPaths=createdAt`;
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ fields: { data: { stringValue: dataUrl }, createdAt: { stringValue: createdAt } } }),
+  });
+  const result = await response.json().catch(() => null);
+  if (!response.ok) {
+    if (response.status === 401) throw new Error("Your owner session has expired. Sign in again before uploading.");
+    if (response.status === 403) throw new Error("Firestore denied direct image publishing. Deploy firestore.rules and confirm the verified owner account.");
+    throw new Error(result?.error?.message || `Firestore image upload failed (${response.status})`);
+  }
+  return `fs:siteImages/${id}`;
 }
 
 async function uploadImage(dataUrl: string): Promise<string> {
   const token = await refreshTokenIfNeeded();
-  // preferred: server endpoint (verifies the owner at Google, works without the rules)
+  let response: Response | null = null;
+  let data: any = null;
   try {
-    const r = await fetch("/api/site-content?image=1", {
+    response = await fetch("/api/site-content?image=1", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ data: dataUrl }),
     });
-    if ((r.headers.get("content-type") || "").includes("json")) {
-      const d = await r.json();
-      if (r.ok && d?.id) return `fs:siteImages/${d.id}`;
-      if (r.status !== 404 && r.status !== 503) throw new Error(d?.error || `Upload failed (${r.status})`);
-    }
-  } catch (e) {
-    if (!/Failed to fetch|NetworkError|Load failed/i.test((e as Error).message)) throw e;
+    data = await response.json().catch(() => null);
+  } catch {
+    // Static hosts without an API can write the owner-only Firestore media document directly.
   }
-  const id = (crypto.randomUUID ? crypto.randomUUID() : `img_${Date.now()}`).replace(/[^\w-]/g, "");
-  await jfetch(imgDoc(id), {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-    body: JSON.stringify({ fields: { data: { stringValue: dataUrl }, createdAt: { stringValue: new Date().toISOString() } } }),
-  });
-  return `fs:siteImages/${id}`;
+
+  if (response?.ok && typeof data?.id === "string") return `fs:siteImages/${data.id}`;
+  if (response?.status === 401) throw new Error("Your owner session has expired. Sign in again before uploading.");
+  const apiMissing = !response || response.status === 404 || response.status === 405 || response.status === 503 || response.status >= 500 ||
+    !(response.headers.get("content-type") || "").includes("json") || (response.ok && typeof data?.id !== "string");
+  if (apiMissing || response?.status === 403) return uploadImageDirect(dataUrl, token);
+  const detail = String(data?.error || "");
+  if (response?.status === 400 || response?.status === 413) throw new Error(detail || "Image upload failed because the image is invalid or too large.");
+  throw new Error(detail || `Image upload failed (${response?.status ?? "unknown"})`);
+}
+
+/** Compress and upload a builder image using the same immutable WebP media store. */
+export async function uploadSiteImage(file: File): Promise<string> {
+  return uploadImage(await toWebp(file));
 }
 
 /** Wraps an image; in edit mode adds a "Replace image" button that opens a small dialog. */
-export function EImage({ srcPath, altPath, children }: { srcPath: string; altPath: string; children: (src: string, alt: string) => ReactNode }) {
+export function EImage({ srcPath, altPath, className, children }: { srcPath: string; altPath: string; className?: string; children: (src: string, alt: string) => ReactNode }) {
   const { editing, content, set } = useContent();
   const rawSrc = getPath(content, srcPath) as string;
   const alt = getPath(content, altPath) as string;
   const src = useResolvedSrc(rawSrc) ?? rawSrc;
   const [open, setOpen] = useState(false);
   return (
-    <div className="relative">
+    <div className={cn("relative", className)}>
       {children(src, alt)}
       {editing && (
         <>
@@ -233,8 +433,7 @@ function ImageDialog({ initialAlt, onClose, onSave }: { initialAlt: string; onCl
       const src = file ? await uploadImage(await toWebp(file)) : url.trim();
       onSave(src, alt.trim());
     } catch (e) {
-      const m = (e as Error).message || "Upload failed";
-      setErr(/permission|403/i.test(m) ? "Permission denied: deploy firestore.rules first." : m);
+      setErr((e as Error).message || "Upload failed. Please try again.");
     } finally {
       setBusy(false);
     }

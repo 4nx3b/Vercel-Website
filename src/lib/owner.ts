@@ -24,10 +24,10 @@ export function lsDel(key: string) { try { localStorage.removeItem(key); } catch
 export const ownerAuth = (): Owner | null => lsGet<Owner | null>(AMA_KEYS.ownerAuth, null);
 export const setOwnerAuth = (a: Owner | null) => (a ? lsSet(AMA_KEYS.ownerAuth, a) : lsDel(AMA_KEYS.ownerAuth));
 
-export async function refreshTokenIfNeeded(): Promise<string> {
+export async function refreshTokenIfNeeded(force = false): Promise<string> {
   const a = ownerAuth();
   if (!a?.refreshToken) throw new Error("Login again.");
-  if (a.expiresAt && Date.now() < a.expiresAt - 60000) return a.idToken;
+  if (!force && a.expiresAt && Date.now() < a.expiresAt - 60000) return a.idToken;
   const data = await jfetch(`https://securetoken.googleapis.com/v1/token?key=${FIREBASE.apiKey}`, {
     method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ grant_type: "refresh_token", refresh_token: a.refreshToken }).toString(),
@@ -58,4 +58,42 @@ export function isOwner(): boolean {
 export const OWNER_EVENT = "v3:owner";
 export function announceOwner() {
   window.dispatchEvent(new Event(OWNER_EVENT));
+}
+
+/** The server's message, whichever error shape it sent ({error:"…"} or {error:{message}}). */
+export function apiErrorMessage(data: unknown): string {
+  const e = (data as { error?: unknown } | null)?.error;
+  if (typeof e === "string") return e;
+  if (e && typeof e === "object" && typeof (e as { message?: unknown }).message === "string") return (e as { message: string }).message;
+  return "";
+}
+
+/** True when this host has no /api (static preview / old deploy): 404, 405 or a non-JSON reply. */
+export function apiMissing(response: Response | null): boolean {
+  if (!response) return true;
+  if (response.status === 404 || response.status === 405) return true;
+  return !(response.headers.get("content-type") || "").includes("json");
+}
+
+/**
+ * POST to an owner endpoint. On 401 the ID token is force-refreshed and the
+ * request retried once before the owner is told to sign in again.
+ */
+export async function ownerPost(url: string, body: unknown): Promise<{ response: Response | null; data: any }> {
+  const send = async (token: string) => {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+        body: JSON.stringify(body),
+      });
+      const data = (response.headers.get("content-type") || "").includes("json") ? await response.json().catch(() => null) : null;
+      return { response, data };
+    } catch {
+      return { response: null as Response | null, data: null };
+    }
+  };
+  let out = await send(await refreshTokenIfNeeded());
+  if (out.response?.status === 401) out = await send(await refreshTokenIfNeeded(true));
+  return out;
 }

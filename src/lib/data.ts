@@ -125,14 +125,96 @@ export type Game = { id: string; icon: "snake" | "pong" | "quiz" | "reaction"; n
 export const GAMES: Game[] = [
   { id: "snake", icon: "snake", name: "Snake", desc: "Classic game. High chance of self-sabotage.", playable: true },
   { id: "pong", icon: "pong", name: "Ping Pong", desc: "You vs an AI paddle. First to 5 wins.", playable: true },
-  { id: "quiz", icon: "quiz", name: "Roast Quiz", desc: "A personality test but every answer is a personal attack.", playable: true },
+  { id: "quiz", icon: "quiz", name: "Roast Quiz", desc: "A 10-question personality remix drawn from a 17-question bank. Every answer gets roasted.", playable: true },
   { id: "reaction", icon: "reaction", name: "Reaction Test", desc: "Click when it turns green.", playable: true },
 ];
 
 export const QUIZ = [
-  { q: "Pick a debugging style.", opts: ["Logs everywhere", "Read docs", "Blame vendor"], roasts: ["Chaotic but effective.", "Rare discipline.", "Valid, sadly."] },
-  { q: "Your debugging style?", opts: ["Scientific", "Panic console logs", "Blame vendor blobs"], roasts: ["Responsible. Suspicious.", "A classic gremlin.", "Correct, honestly."] },
-  { q: "Pick a superpower.", opts: ["Fastboot never fails", "Infinite battery", "No merge conflicts"], roasts: ["Impossible dream.", "Rooted monk energy.", "Too powerful."] },
+  {
+    q: "A ROM build fails at 2 a.m. What’s your first move?",
+    opts: ["Read the first real error", "Clean the whole tree and rerun", "Blame the vendor blobs", "Open a snack before opening logs"],
+    roasts: ["An engineer. Who let you in?", "You solved it by deleting the evidence.", "The blobs have retained counsel.", "Debugging on a full stomach—suspiciously wise."],
+  },
+  {
+    q: "Choose your daily-driver setup.",
+    opts: ["Stable stock with a few tweaks", "Custom ROM, nightly builds", "Two phones: one for experiments", "Whatever booted this morning"],
+    roasts: ["So you enjoy uneventful battery life.", "You call bugs ‘community features’.", "One device is the patient; the other is the surgeon.", "Your uptime is a cliff-hanger."],
+  },
+  {
+    q: "An OTA appears five minutes before you leave. You…",
+    opts: ["Read the changelog first", "Install now—what could happen?", "Postpone until it becomes ancient history", "Take screenshots, then forget"],
+    roasts: ["You have read a changelog before. Rare form.", "You packed a charger, right?", "That notification has a family now.", "A meticulous archive of unfinished intentions."],
+  },
+  {
+    q: "What lives in your terminal history?",
+    opts: ["Useful aliases and notes", "One command copied forty times", "Mostly `cd` and `ls`", "An accidental `rm` I still fear"],
+    roasts: ["A terminal with adult supervision.", "Paste-driven development: a classic.", "You are exploring, one directory at a time.", "The command line remembers. It always remembers."],
+  },
+  {
+    q: "The phone bootloops after a module install. First move?",
+    opts: ["Boot safe mode and disable it", "Flash the same ZIP again", "Wipe everything, including hope", "Ask the group without sharing logs"],
+    roasts: ["A calm, reversible decision. Suspicious.", "The definition of ‘try turning it off and on’.", "Your data would like a word.", "The support channel has seen this movie."],
+  },
+  {
+    q: "How do you test a new build?",
+    opts: ["Checklist on spare hardware", "Daily driver—YOLO", "Ask one friend to be brave", "Wait for someone online to try it"],
+    roasts: ["Quality assurance has entered the chat.", "Your warranty just left it.", "Friendship is the real test suite.", "You call this ‘crowdsourced confidence’."],
+  },
+  {
+    q: "Pick a backup strategy.",
+    opts: ["Recent copy stored off-device", "A backup from the last major update", "Screenshots of my settings", "Trust the universe"],
+    roasts: ["The cloud is not your only personality trait.", "Vintage backup. Fine year, questionable freshness.", "An archival masterpiece of the wrong data.", "The universe has a very slow restore process."],
+  },
+  {
+    q: "Which changelog line gets your attention first?",
+    opts: ["Security patches and fixes", "Performance improvements", "Known issues: none", "Changed a thing, trust me"],
+    roasts: ["You read the important bit. The important bit reads you.", "A benchmark enthusiast has been detected.", "You believe in miracles—and clean installs.", "Minimalism has gone too far."],
+  },
+  {
+    q: "A clean compile suddenly takes forever. You…",
+    opts: ["Inspect the task that stalled", "Delete caches, then delete more", "Assume it’s indexing forever", "Open a second terminal to stare at it"],
+    roasts: ["Observability! In this economy?", "The cache was innocent. Probably.", "‘Gradle is thinking’ is not a diagnosis.", "Two terminals, twice the suspense."],
+  },
+  {
+    q: "What’s your approach to root modules?",
+    opts: ["One at a time, with notes", "Install every green checkmark", "Keep the ones I forgot I installed", "My modules have modules"],
+    roasts: ["A controlled experiment. We’re taking notes.", "The checkbox is not a compatibility report.", "Archaeology, but the ruins are your boot image.", "You have achieved module-ception."],
+  },
+  {
+    q: "Choose a commit message.",
+    opts: ["fix: handle the null device", "stuff", "final-final-2", "works on my machine"],
+    roasts: ["Future-you sends a polite thank-you.", "A detailed account of absolutely nothing.", "There are at least three sequels coming.", "The CI server would like to reproduce that claim."],
+  },
+  {
+    q: "A random root guide promises a one-click fix. You…",
+    opts: ["Check the device and post date", "Run every command with sudo", "Read comments, then guess", "Bookmark it for 2031"],
+    roasts: ["You check compatibility before consequences. Nice.", "Admin privileges: because suspense needed a sequel.", "Peer review by vibes. Bold methodology.", "A long-term research project with no milestones."],
+  },
+  {
+    q: "Someone asks for help but shares no logs. You…",
+    opts: ["Ask for model, build, and logs", "Send one patient reply", "Guess from vibes", "Pretend screenshots are logs"],
+    roasts: ["A support engineer in their natural habitat.", "Your patience deserves its own changelog.", "The diagnostic protocol is ‘hmm’.", "Pixelated evidence has entered the case file."],
+  },
+  {
+    q: "Your build is ready. How do you announce it?",
+    opts: ["Clear notes and install steps", "One screenshot and a dream", "Say ‘stable’ and vanish", "Post at 3 a.m. with no context"],
+    roasts: ["Release notes: the unsung hero of release day.", "Marketing has discovered the screenshot button.", "Confidence: high. Support availability: mysterious.", "Your users are asleep; your build is not."],
+  },
+  {
+    q: "You have thirty minutes free. What happens?",
+    opts: ["Review a pull request", "Flash something on the spare phone", "Watch one episode (three later)", "Open a wiki and lose the evening"],
+    roasts: ["You came here to be productive. Suspiciously.", "The spare phone is never actually spared.", "A short episode has flexible definitions.", "The wiki rabbit hole has no fastboot mode."],
+  },
+  {
+    q: "Pick your anime protagonist energy.",
+    opts: ["Quiet strategist with a backup plan", "Overpowered but on 3% battery", "Side character with the better playlist", "Skips the intro but knows every word"],
+    roasts: ["The plot twist is that your backups work.", "Final-boss energy, low-power mode.", "The soundtrack is carrying the whole arc.", "You have memorized the skip button’s timing."],
+  },
+  {
+    q: "Your shuffle plays at maximum volume. What’s next?",
+    opts: ["A J-pop opening theme", "An EDM drop mid-log review", "Phonk during a clean flash", "A ballad that makes Gradle emotional"],
+    roasts: ["Your terminal now has an opening sequence.", "Build failed? Drop the beat, not the session.", "The progress bar is doing a tiny drift.", "Even the dependency graph feels something."],
+  },
 ];
 
 /* ---------- Ask ---------- */

@@ -16,7 +16,7 @@ export function Kicker({ children, className }: { children: ReactNode; className
 }
 
 /** "§ 0N ── LABEL" — every section opens with this row. */
-export function SectionMark({ num, label, className }: { num: string; label: string; className?: string }) {
+export function SectionMark({ num, label, className }: { num: string; label: ReactNode; className?: string }) {
   // § numerals drift a few px with scroll (shared scroll clock)
   const ref = useRef<HTMLSpanElement>(null);
   useScrollVar(ref);
@@ -38,7 +38,7 @@ export function SectionHead({
   titleClassName,
 }: {
   num: string;
-  label: string;
+  label: ReactNode;
   title: ReactNode;
   lede?: ReactNode;
   className?: string;
@@ -61,7 +61,7 @@ type Variant = "ink" | "outline" | "accent";
 
 const BTN_BASE =
   "inline-flex min-h-11 items-center justify-center gap-2.5 rounded-full px-6 text-[15px] font-medium leading-none whitespace-nowrap " +
-  "transition-[background-color,color,border-color] duration-[var(--dur-2)] ease-[var(--ease-out)] disabled:opacity-50";
+  "site-button transition-[background-color,color,border-color,transform,box-shadow] duration-[var(--dur-2)] ease-[var(--ease-out)] disabled:opacity-50";
 
 const BTN_VARIANT: Record<Variant, string> = {
   ink: "bg-ink text-paper hover:bg-ink-soft",
@@ -175,7 +175,7 @@ export function Figure({
   className,
   bodyClassName,
 }: {
-  caption: string;
+  caption: ReactNode;
   children: ReactNode;
   className?: string;
   bodyClassName?: string;

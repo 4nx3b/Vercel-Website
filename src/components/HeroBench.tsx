@@ -1,6 +1,8 @@
 import { Zap } from "lucide-react";
 import { cn } from "../utils/cn";
-import { PARTITIONS, type PartitionKey } from "../lib/data";
+import type { PartitionKey } from "../lib/data";
+import { useContent } from "../content/store";
+import { EText } from "../content/Editable";
 
 /** Partition buttons, Flash and the live readout under FIG. 1. */
 export function PartitionBench({
@@ -16,11 +18,14 @@ export function PartitionBench({
   flashing: boolean;
   flashed: boolean;
 }) {
-  const note = PARTITIONS.find((x) => x.key === active);
+  const { content } = useContent();
+  const partitions = content.hero.partitions;
+  const noteIndex = partitions.findIndex((item) => item.key === active);
+  const note = partitions[noteIndex];
   return (
     <div className="m-rise w-full" style={{ ["--m-delay" as string]: "1.1s" }}>
       <div role="group" aria-label="Inspect a partition" className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-        {PARTITIONS.map((x) => (
+        {partitions.map((x, index) => (
           <button
             key={x.key}
             type="button"
@@ -31,7 +36,7 @@ export function PartitionBench({
               active === x.key ? "border-ink bg-ink text-paper" : "border-rule-strong text-ink-soft hover:border-ink hover:text-ink"
             )}
           >
-            {x.label}
+            <EText path={`hero.partitions.${index}.label`} label={`Partition ${x.key} label`} />
           </button>
         ))}
         <button
@@ -52,7 +57,7 @@ export function PartitionBench({
           "flashed · boot patched ✓"
         ) : note ? (
           <>
-            <span className="uppercase text-vermilion-ink">{note.label}</span> · {note.note}
+            <span className="uppercase text-vermilion-ink"><EText path={`hero.partitions.${noteIndex}.label`} label={`Partition ${note.key} label`} /></span> · <EText path={`hero.partitions.${noteIndex}.note`} label={`Partition ${note.key} note`} />
           </>
         ) : (
           "hover or pick a partition"

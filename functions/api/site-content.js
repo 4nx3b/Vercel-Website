@@ -6,15 +6,23 @@ const WEB_API_KEY = "AIzaSyCUG-oxLlGWKulnV8E0PwSEmr_s0EyCRUk";
 const ADMIN_EMAIL = "asaxxhiii@gmail.com";
 const MAX_JSON_BYTES = 900 * 1024;
 const MAX_IMAGE_BYTES = 1000 * 1000;
+const MAX_PROFILE_AVATAR_BYTES = 220_000;
+const IMAGE_DATA_URL = /^data:image\/(webp|png|jpeg);base64,([A-Za-z0-9+/]+={0,2})$/;
+const PROFILE_AVATAR_DATA_URL = /^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/;
 
-const json = (obj, status = 200, cache = "no-store") =>
-  new Response(JSON.stringify(obj), { status, headers: { "Content-Type": "application/json", "Cache-Control": cache } });
+const json = (obj, status = 200, cache = "no-store", headOnly = false) =>
+  new Response(headOnly ? null : JSON.stringify(obj), { status, headers: { "Content-Type": "application/json", "Cache-Control": cache } });
 
 function serviceAccount(env) {
   const raw = env.FIREBASE_SERVICE_ACCOUNT_KEY;
   if (!raw) throw Object.assign(new Error("Missing FIREBASE_SERVICE_ACCOUNT_KEY"), { status: 503 });
-  const sa = JSON.parse(raw);
-  if (!sa.client_email || !sa.private_key) throw Object.assign(new Error("Bad FIREBASE_SERVICE_ACCOUNT_KEY"), { status: 503 });
+  let sa;
+  try {
+    sa = JSON.parse(raw);
+  } catch {
+    throw Object.assign(new Error("FIREBASE_SERVICE_ACCOUNT_KEY is not valid JSON"), { status: 503 });
+  }
+  if (!sa || !sa.client_email || !sa.private_key) throw Object.assign(new Error("Bad FIREBASE_SERVICE_ACCOUNT_KEY"), { status: 503 });
   return sa;
 }
 
@@ -52,8 +60,10 @@ async function googleAccessToken(env) {
 }
 
 function docUrl(env, path) {
-  const sa = serviceAccount(env);
-  const pid = env.FIREBASE_PROJECT_ID || sa.project_id || DEFAULT_PROJECT_ID;
+  const pid = env.FIREBASE_PROJECT_ID || DEFAULT_PROJECT_ID;
+  if (pid !== DEFAULT_PROJECT_ID) {
+    throw Object.assign(new Error(`FIREBASE_PROJECT_ID must be ${DEFAULT_PROJECT_ID} to share content with the client`), { status: 503 });
+  }
   return `https://firestore.googleapis.com/v1/projects/${pid}/databases/(default)/documents/${path}`;
 }
 
@@ -66,7 +76,7 @@ async function firestore(env, method, url, body) {
   });
   const d = await r.json().catch(() => null);
   if (r.status === 404) return null;
-  if (!r.ok) throw new Error(d?.error?.message || `Firestore ${method} ${r.status}`);
+  if (!r.ok) throw Object.assign(new Error(d?.error?.message || `Firestore ${method} ${r.status}`), { status: r.status === 403 ? 403 : r.status >= 500 ? 502 : r.status });
   return d;
 }
 
@@ -79,54 +89,97 @@ async function requireOwner(request) {
     body: JSON.stringify({ idToken }),
   });
   const d = await r.json().catch(() => null);
-  if (!r.ok || d?.users?.[0]?.email !== ADMIN_EMAIL) throw Object.assign(new Error("Not the owner"), { status: 401 });
+  const user = d?.users?.[0];
+  const email = String(user?.email || "").toLowerCase();
+  // Same policy as the Vercel handler: a valid token for the admin email; no verified-email gate.
+  if (!r.ok) throw Object.assign(new Error("The owner sign-in has expired or is invalid. Sign in again."), { status: 401, code: "token_invalid" });
+  if (email !== ADMIN_EMAIL.toLowerCase()) throw Object.assign(new Error("This account is not the site owner."), { status: 401, code: "not_owner" });
 }
 
 async function handle({ request, env }) {
   const url = new URL(request.url);
   const imageId = url.searchParams.get("image");
+  const ownerProfile = url.searchParams.get("profile") === "1";
   try {
     if (request.method === "GET" || request.method === "HEAD") {
+      if (ownerProfile) {
+        const doc = await firestore(env, "GET", docUrl(env, "siteOwner/profile"));
+        return json(
+          {
+            resource: "siteOwner/profile",
+            avatar: doc?.fields?.avatar?.stringValue || "",
+            updatedAt: doc?.fields?.updatedAt?.stringValue || null,
+          },
+          200,
+          "no-store",
+          request.method === "HEAD"
+        );
+      }
       if (imageId) {
-        if (!/^[\w-]{4,80}$/.test(imageId)) return json({ error: "bad image id" }, 400);
+        if (!/^[\w-]{4,80}$/.test(imageId)) return json({ error: { message: "bad image id", code: "error" } }, 400);
         const doc = await firestore(env, "GET", docUrl(env, `siteImages/${imageId}`));
-        const m = (doc?.fields?.data?.stringValue || "").match(/^data:([\w/+.-]+);base64,(.+)$/);
-        if (!m) return json({ error: "no such image" }, 404);
+        const m = (doc?.fields?.data?.stringValue || "").match(IMAGE_DATA_URL);
+        if (!m) return json({ error: { message: "no such image", code: "error" } }, 404);
         const bin = Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0));
         return new Response(request.method === "HEAD" ? null : bin, {
-          headers: { "Content-Type": m[1], "Cache-Control": "public, max-age=31536000, immutable" },
+          headers: { "Content-Type": `image/${m[1]}`, "Cache-Control": "public, max-age=31536000, immutable" },
         });
       }
       const doc = await firestore(env, "GET", docUrl(env, "siteContent/live"));
       return json(
         { json: doc?.fields?.json?.stringValue || "{}", updatedAt: doc?.fields?.updatedAt?.stringValue || null },
         200,
-        "public, s-maxage=15, stale-while-revalidate=60"
+        "public, max-age=0, s-maxage=5, stale-while-revalidate=5",
+        request.method === "HEAD"
       );
     }
     if (request.method === "POST") {
       await requireOwner(request);
-      const body = await request.json().catch(() => ({}));
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        return json({ error: { message: "Request body must be valid JSON", code: "error" } }, 400);
+      }
       const now = new Date().toISOString();
+      if (ownerProfile) {
+        const avatar = typeof body?.avatar === "string" ? body.avatar : "";
+        if (avatar && !PROFILE_AVATAR_DATA_URL.test(avatar)) {
+          return json({ error: { message: "Expected a PNG, JPEG, or WebP profile image", code: "error" } }, 400);
+        }
+        if (enc.encode(avatar).length > MAX_PROFILE_AVATAR_BYTES) {
+          return json({ error: { message: "Profile image is too large", code: "error" } }, 413);
+        }
+        await firestore(env, "PATCH", `${docUrl(env, "siteOwner/profile")}?updateMask.fieldPaths=avatar&updateMask.fieldPaths=updatedAt`, {
+          fields: { avatar: { stringValue: avatar }, updatedAt: { stringValue: now } },
+        });
+        return json({ resource: "siteOwner/profile", ok: true, updatedAt: now });
+      }
       if (imageId) {
         const data = String(body?.data || "");
-        if (!/^data:image\/(webp|png|jpeg);base64,/.test(data)) return json({ error: "expected an image data URL" }, 400);
-        if (data.length > MAX_IMAGE_BYTES) return json({ error: "image too large" }, 413);
+        if (!IMAGE_DATA_URL.test(data)) return json({ error: { message: "Expected a WebP, PNG, or JPEG image data URL", code: "error" } }, 400);
+        if (enc.encode(data).length > MAX_IMAGE_BYTES) return json({ error: { message: "Image is too large", code: "error" } }, 413);
         const id = crypto.randomUUID().replace(/-/g, "");
         await firestore(env, "PATCH", docUrl(env, `siteImages/${id}`), { fields: { data: { stringValue: data }, createdAt: { stringValue: now } } });
         return json({ ok: true, id });
       }
       const text = typeof body?.json === "string" ? body.json : JSON.stringify(body?.json ?? {});
-      if (enc.encode(text).length > MAX_JSON_BYTES) return json({ error: "content too large" }, 413);
-      JSON.parse(text);
+      if (enc.encode(text).length > MAX_JSON_BYTES) return json({ error: { message: "Site content is too large", code: "error" } }, 413);
+      let parsed;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        return json({ error: { message: "Published content must be valid JSON", code: "error" } }, 400);
+      }
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return json({ error: { message: "Published content must be a JSON object", code: "error" } }, 400);
       await firestore(env, "PATCH", `${docUrl(env, "siteContent/live")}?updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt`, {
         fields: { json: { stringValue: text }, updatedAt: { stringValue: now } },
       });
       return json({ ok: true, updatedAt: now });
     }
-    return json({ error: "method not allowed" }, 405);
+    return json({ error: { message: "method not allowed", code: "error" } }, 405);
   } catch (e) {
-    return json({ error: e.message || "error" }, e.status || 500);
+    return json({ error: { message: e.message || "error", code: e.code || `http_${e.status || 500}` } }, e.status || 500);
   }
 }
 

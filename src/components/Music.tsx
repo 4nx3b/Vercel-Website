@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { PLAYLISTS, type Playlist } from "../lib/data";
+import { useContent } from "../content/store";
+import { EImage, EText } from "../content/Editable";
 
 /* ---------------- Playlist shelf ---------------- */
 
@@ -42,15 +44,15 @@ function coverCandidates(p: Playlist, live: string | null) {
   return Array.from(new Set(list));
 }
 
-function Cover({ p, live, top }: { p: Playlist; live: string | null; top: boolean }) {
-  const candidates = coverCandidates(p, live);
+function Cover({ p, live, top, override, alt }: { p: Playlist; live: string | null; top: boolean; override: string; alt: string }) {
+  const candidates = Array.from(new Set([...(override ? [override] : []), ...coverCandidates(p, live)]));
   const [i, setI] = useState(0);
   const [ready, setReady] = useState(false);
   // a new live URL restarts the chain
   useEffect(() => {
     setI(0);
     setReady(false);
-  }, [live]);
+  }, [live, override]);
   const src = candidates[Math.min(i, candidates.length - 1)];
   const last = i >= candidates.length - 1;
   const next = () => {
@@ -63,7 +65,7 @@ function Cover({ p, live, top }: { p: Playlist; live: string | null; top: boolea
     <img
       key={src}
       src={src}
-      alt=""
+      alt={override && src === override ? alt : ""}
       width={480}
       height={480}
       loading="eager"
@@ -82,12 +84,18 @@ function Cover({ p, live, top }: { p: Playlist; live: string | null; top: boolea
 
 /** Five YouTube Music playlists as a swipeable stack of real covers. */
 export function PlaylistShelf() {
+  const { content, editing } = useContent();
   const [lists, setLists] = useState<Playlist[]>(readCache);
   const [order, setOrder] = useState<number[]>(() => PLAYLISTS.map((_, i) => i));
   const [live, setLive] = useState(false);
   const [liveCovers, setLiveCovers] = useState<Record<string, string>>({});
   const deckRef = useRef<HTMLDivElement>(null);
   const reduced = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const displayLists = lists.map((playlist, index) => ({
+    ...playlist,
+    label: content.music.playlistLabels[index] ?? playlist.label,
+    title: content.music.playlistTitles[index] ?? playlist.title,
+  }));
 
   /** Refresh title, cover and count on every page load (covers are signed URLs). */
   useEffect(() => {
@@ -247,7 +255,8 @@ export function PlaylistShelf() {
     };
   }, [cycle, reduced]);
 
-  const top = lists[order[0]];
+  const topIndex = order[0];
+  const top = displayLists[topIndex];
 
   return (
     <div
@@ -271,7 +280,8 @@ export function PlaylistShelf() {
         className="pl-deck"
       >
         {order.map((li, depth) => {
-          const p = lists[li];
+          const p = displayLists[li];
+          const sourceIndex = PLAYLISTS.findIndex((item) => item.id === p.id);
           const isTop = depth === 0;
           return (
             <div
@@ -281,17 +291,22 @@ export function PlaylistShelf() {
               style={{ ["--d" as string]: depth, zIndex: order.length - depth }}
               aria-hidden={!isTop}
             >
-              <a
-                href={`https://music.youtube.com/playlist?list=${p.id}`}
-                target="_blank"
-                rel="noreferrer"
-                draggable={false}
-                tabIndex={isTop ? 0 : -1}
-                className="block h-full w-full rounded-[var(--radius-lg)]"
-                aria-label={`${p.label}: ${p.title}${typeof p.itemCount === "number" ? `, ${p.itemCount} tracks` : ""} — open in YouTube Music`}
-              >
-                <Cover p={p} live={liveCovers[p.id] ?? null} top={depth === 0} />
-              </a>
+              <EImage srcPath={`music.playlistImages.${sourceIndex}`} altPath={`music.playlistImageAlts.${sourceIndex}`} className="h-full w-full">
+                {(override, alt) => (
+                  <a
+                    href={`https://music.youtube.com/playlist?list=${p.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    draggable={false}
+                    tabIndex={isTop ? 0 : -1}
+                    onClick={(event) => editing && event.preventDefault()}
+                    className="block h-full w-full rounded-[var(--radius-lg)]"
+                    aria-label={`${p.label}: ${p.title}${typeof p.itemCount === "number" ? `, ${p.itemCount} tracks` : ""} — open in YouTube Music`}
+                  >
+                    <Cover p={p} live={liveCovers[p.id] ?? null} top={isTop} override={override} alt={alt} />
+                  </a>
+                )}
+              </EImage>
             </div>
           );
         })}
@@ -299,15 +314,15 @@ export function PlaylistShelf() {
 
       <div className="pl-meta" aria-live="polite">
         <p key={top?.id} className="m-swap">
-          <span className="kicker block text-ink-soft">{top?.label}</span>
-          <span className="mt-1 block truncate text-md text-ink">{top?.title}</span>
+          <span className="kicker block text-ink-soft"><EText path={`music.playlistLabels.${topIndex}`} fallback={top?.label} label="Playlist genre label" /></span>
+          <span className="mt-1 block truncate text-md text-ink"><EText path={`music.playlistTitles.${topIndex}`} fallback={top?.title} label="Playlist title" /></span>
           {typeof top?.itemCount === "number" && (
             <span className="mt-0.5 block font-mono text-xs text-graphite tabular">
               {top.itemCount.toLocaleString("en-US")} tracks{live ? "" : ""}
             </span>
           )}
         </p>
-        <p className="mt-2 font-mono text-xs text-graphite">Swipe the covers</p>
+        <p className="mt-2 font-mono text-xs text-graphite"><EText path="music.swipeInstruction" label="Playlist swipe instruction" /></p>
       </div>
     </div>
   );

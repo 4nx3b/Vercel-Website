@@ -71,18 +71,26 @@ Accessibility: skip link, one h1, header/main/footer landmarks, 2px
 | 06 | Ask | AMA composer + answered questions (Firestore, votes, owner console) |
 | — | Links, Footer | 12 channels, site map, IST clock |
 
-## API routes (serverless, unchanged)
+## API routes (serverless)
 
 ```txt
 api/
+├─ site-content.js       # public published-content/image reads; owner-only writes
 ├─ telegram.js           # sends Telegram notification for new questions
 ├─ telegram-webhook.js   # Telegram bot reply-to-answer support
-└─ ama-vote.js           # vote sync to Firestore (service account)
+└─ ama-vote.js            # vote sync to Firestore (service account)
 ```
 
-Environment variables required by the API routes: `TELEGRAM_BOT_TOKEN`,
+`functions/api/site-content.js` mirrors the published-content and image API for Cloudflare Pages.
+
+Environment variables used by the API routes: `TELEGRAM_BOT_TOKEN`,
 `TELEGRAM_CHAT_ID`, `FIREBASE_SERVICE_ACCOUNT_KEY` (+ optional
-`FIREBASE_PROJECT_ID`).
+`FIREBASE_PROJECT_ID`). Vercel, Cloudflare Pages, and Wasmer all use the same
+Firestore project (`therealreze-2a3bf`) as the source of truth for published
+content and uploaded images. Vercel and Cloudflare use their `/api/site-content`
+functions; static hosts without that function (including Wasmer) fall back to
+owner-authenticated Firestore REST writes and public Firestore reads. Deploy
+`firestore.rules` for those direct paths to work.
 
 ## Deployment on Vercel
 
@@ -113,9 +121,9 @@ In the Cloudflare dashboard (Pages → project → Settings → Build):
 | --- | --- |
 | Build command | `npm run build` |
 | Build output directory | `dist` (also set in `wrangler.toml`) |
-| Environment variable | `NODE_VERSION = 20` |
+| Environment variable | `NODE_VERSION = 22.12.0` |
 
-`functions/` holds Cloudflare Pages Functions that mirror `/api/yt-playlists` and `/api/yt-cover`, so live playlist covers and counts work on Cloudflare too (Vercel ignores this folder and keeps using `/api`).
+`functions/` holds Cloudflare Pages Functions for the routes that need a host API, including shared site content and images. Vercel ignores this folder and keeps using `/api`.
 
 ### If the live Cloudflare site looks old or blank
 
@@ -132,30 +140,90 @@ deployment** because newer builds are failing. Check, in order:
 4. Functions in `functions/` are picked up automatically; after a green build,
    `/api/yt-cover?id=…` answers with a 302 and `/api/yt-playlists` with JSON.
 
-`public/_headers` is copied into `dist` and only read by Cloudflare. The `/api/*` routes are
-Vercel functions, so on Cloudflare the playlist refresh and AMA notifications quietly fall back
-to cached or local data. Vercel deploys are unaffected by these files.
+`public/_headers` is copied into `dist` and only read by Cloudflare. Routes implemented in
+`functions/` work there; unmirrored API routes such as Telegram notifications still fall back to
+cached or local behavior. Vercel deploys are unaffected by these files.
 
-## Owner editor
+## Shared published content across the three hosts
 
-Sign in with the owner account (footer **Owner** link, or open `/#admin`). A toolbar appears at the
-bottom: **Edit** turns on inline editing, **Publish** saves to Firestore (`siteContent/live`),
-**Discard** drops the local draft, **Reset** clears all published overrides.
+The live document is `siteContent/live` in the shared Firebase project `therealreze-2a3bf`.
+Build the same repository for `therealreze.vercel.app`, `v3rsi0n.wasmer.app`, and
+`v3rsi0n.miuka.moe`; each host reads that same Firestore document rather than keeping its own
+published copy. The content functions reject a `FIREBASE_PROJECT_ID` override that differs from
+the client project, rather than silently creating separate copies. Vercel and Cloudflare use their
+site-content functions. Wasmer is treated as a static host: when `/api/site-content` is absent,
+the editor reads and writes Firestore directly with the signed-in owner token. Uploaded images use `siteImages/{id}` and have the same API /
+direct-Firestore fallback. This direct path is gated by `firestore.rules`.
 
-Published content is served to visitors by `/api/site-content`, which reads and writes with the
-service account (`FIREBASE_SERVICE_ACCOUNT_KEY`, the same variable `/api/ama-vote` uses). Writes
-are accepted only when the owner's sign-in token checks out at Google as the admin email.
+There is no Wasmer deployment manifest in this repository. Configure its project to build this
+repository with `npm ci && npm run build` and serve the generated `dist` directory. Deploy the
+Firestore rules below before relying on Wasmer reads, publishing, or image uploads. Keep the
+Firebase project ID / web API key and the Vercel and Cloudflare service-account configuration
+pointed at the same Firebase project. If the Firebase web API key has HTTP-referrer restrictions,
+allow `therealreze.vercel.app`, `v3rsi0n.wasmer.app`, and `v3rsi0n.miuka.moe`.
 
-- **Vercel:** the variable is already set for the AMA, so publishing is live for everyone.
+Published content, uploaded images, and the owner profile are shared. Owner login sessions and
+unpublished drafts remain browser-origin-local, so sign in separately on each domain and publish
+the draft to make it live everywhere.
+
+## Owner editor and page builder
+
+Open the site menu (hamburger) and choose **Owner login**; the login entry is only in the sidebar.
+After signing in, the same sidebar shows the owner profile icon. Choose **Set profile icon** or
+**Change icon** to upload a PNG, JPEG, or WebP image; it is resized and saved in
+`siteOwner/profile` so it appears on later logins and all three hosts.
+
+From the sidebar, choose **Open page builder**. The workshop is owner-only and previews the
+private draft behind its panel; visitors continue to see the last published version until you
+choose **Publish to everyone**.
+
+Use **Page order** to move, hide, restore, duplicate, or remove sections. **Start a new section**
+offers a blank canvas, field-note, quote-band, and feature-grid templates. Compose custom sections
+from headings, paragraphs, pull quotes, link buttons, optimized images, cards, callouts, lists,
+metrics, existing ROM/app project tiles, dividers, and spacing blocks; reorder or remove individual
+blocks in their settings. Every section can use an editorial, split, card-grid, or banner
+composition; paper, ink, or vermilion surfaces; optional grid/dot/hatch textures; and reveal,
+stagger, scroll-stack, drift, or still motion.
+The **Design system** controls the site-wide font and motion presets, while the closing band/footer
+can be hidden without deleting its content. The Ask section stays visible for its public question
+feed and owner moderation console. Custom sections can add themselves to the navigation.
+
+Uploaded builder images use the owner-only media API or the Firestore fallback on static hosts;
+they are compressed to WebP (maximum 1600px / 700 KB). **Edit mode** also keeps the inline text
+and image tools available on the live page. Drafts are stored locally for the owner; the published
+Firestore document is the shared source of truth, so publishing is required for all visitors to see
+changes.
+
+**Publish** saves to Firestore (`siteContent/live`), **Discard** drops the local draft, and **Reset**
+clears all published overrides.
+
+On Vercel and Cloudflare, `/api/site-content` reads and writes published content, uploaded images,
+and the shared owner profile with the service account (`FIREBASE_SERVICE_ACCOUNT_KEY`, the same
+variable `/api/ama-vote` uses). Every owner write (content, images, the profile icon) is
+authenticated the same way: the server asks Google who the Firebase ID token belongs to and accepts
+it only for the admin email. Email *verification* is not required — the owner signs in with email +
+password, and such accounts are unverified unless a verification link was clicked. (Requiring it was
+what made "Set profile icon" fail with "Permission denied".) Only when a host has no `/api` at all
+(404/405 or a non-JSON reply) does the site write Firestore directly, restricted by `firestore.rules`.
+Errors always come back as `{ "error": { "message", "code" } }` and the owner panel shows the message.
+
+Run the endpoint tests (no network or credentials needed): `node scripts/test-site-content.mjs`.
+
+- **Vercel:** use the service-account environment variable configured for the project.
 - **Cloudflare:** add `FIREBASE_SERVICE_ACCOUNT_KEY` under Workers & Pages → project →
   Settings → Variables and Secrets (same JSON value), then redeploy.
+- **Wasmer:** no service-account function is required; direct Firestore publishing, image access,
+  and the shared owner icon work after the rules below are deployed.
 
-Also deploy the rules (recommended; it lets the site read Firestore directly as a fallback):
+Deploy the rules (required for Wasmer direct reads/writes and any direct-Firestore fallback). They
+also make shared owner profiles and images readable from static hosts and keep the AMA queue private
+until answered. The CLI command publishes the rules and the composite index used by the public
+answered-question query:
 
-1. Firebase console → **Firestore Database**
-2. **Rules** tab
-3. Paste the contents of `firestore.rules`
-4. **Publish** (or run `firebase deploy --only firestore:rules`)
+```sh
+firebase deploy --project therealreze-2a3bf --only firestore:rules,firestore:indexes
+```
 
-After Publish the sidebar says **"live for everyone"** only once an anonymous read returns the new
-version; otherwise it tells you what is missing.
+Or paste `firestore.rules` in Firebase Console → **Firestore Database** → **Rules** and publish it, then create the `amaQuestions` composite index from `firestore.indexes.json` in the **Indexes** tab.
+
+The Vercel and Cloudflare content APIs use their service account and do not rely on client rules for those API reads and writes. If an API returns `PERMISSION_DENIED`, grant its service account Firestore access and confirm `FIREBASE_PROJECT_ID` points at this same database. Wasmer and any direct-Firestore fallback still require the deployed rules. After Publish, the editor reports **"live for everyone"** only once the shared Firestore document can be read back; otherwise it reports the missing access or API setup.

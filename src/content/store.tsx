@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ABOUT, APP, FIREBASE, HERO, ROM_POST, SOCIALS } from "../lib/data";
-import { OWNER_EVENT, isOwner, jfetch, refreshTokenIfNeeded } from "../lib/owner";
+import { ABOUT, ADMIN_EMAIL, ANIME, APP, FIREBASE, GAMES, HERO, MUSIC, NAV_LINKS, PARTITIONS, PLAYLISTS, QUIZ, ROM_POST, SOCIALS } from "../lib/data";
+import { OWNER_EVENT, apiErrorMessage, apiMissing, isOwner, jfetch, ownerPost, refreshTokenIfNeeded } from "../lib/owner";
 
 /* ------------------------------------------------------------------ *
  * Editable site content.
@@ -13,9 +13,61 @@ import { OWNER_EVENT, isOwner, jfetch, refreshTokenIfNeeded } from "../lib/owner
 
 export type Block = { id: string; type: "text" | "image"; text?: string; src?: string; alt?: string };
 export type SectionId = "hero" | "work" | "about" | "ask" | "links" | "footer";
+export type BuiltinSectionId = "hero" | "work" | "ticker" | "about" | "ask" | "links";
+export type SectionMotion = "reveal" | "stagger" | "stack" | "drift" | "none";
+export type BuilderLayout = "editorial" | "split" | "cards" | "banner";
+export type BuilderBackground = "paper" | "sunk" | "panel" | "accent";
+export type BuilderTexture = "none" | "grid" | "dots" | "hatch";
+export type BuilderBlockType = "heading" | "text" | "quote" | "button" | "image" | "card" | "callout" | "list" | "metric" | "project" | "divider" | "spacer";
+export type BuilderBlock = {
+  id: string;
+  type: BuilderBlockType;
+  text?: string;
+  eyebrow?: string;
+  title?: string;
+  body?: string;
+  label?: string;
+  value?: string;
+  href?: string;
+  variant?: "ink" | "accent" | "outline";
+  source?: "rom" | "app";
+  src?: string;
+  alt?: string;
+  caption?: string;
+  items?: string[];
+  size?: "sm" | "md" | "lg";
+};
+export type BuiltinPageSection = {
+  id: string;
+  kind: "builtin";
+  component: BuiltinSectionId;
+  visible: boolean;
+  motion: SectionMotion;
+};
+export type CustomPageSection = {
+  id: string;
+  kind: "custom";
+  visible: boolean;
+  label: string;
+  title: string;
+  description: string;
+  showInNav: boolean;
+  navLabel: string;
+  layout: BuilderLayout;
+  background: BuilderBackground;
+  texture: BuilderTexture;
+  motion: SectionMotion;
+  blocks: BuilderBlock[];
+};
+export type PageSection = BuiltinPageSection | CustomPageSection;
 
 export const DEFAULTS = {
-  version: 1,
+  version: 3,
+  brand: { name: "v3rsi0n", logotype: "V3RSI0N" },
+  nav: {
+    links: NAV_LINKS.map((link) => ({ ...link })),
+    cta: "Ask me",
+  },
   hero: {
     kicker: HERO.kicker,
     pill: HERO.pill,
@@ -25,17 +77,41 @@ export const DEFAULTS = {
     emphasis: HERO.emphasis,
     age: HERO.age,
     gender: HERO.gender,
+    flag: HERO.flag,
+    country: HERO.country,
     ctaPrimary: HERO.ctaPrimary,
     ctaSecondary: HERO.ctaSecondary,
     portrait: "art/hero-portrait-900.webp",
     portraitAlt: "Anime illustration: a blue-haired bassist sitting on a laundromat bench beside her bass",
+    stickerOne: "Flash it, don’t fear it",
+    stickerTwo: "v3rsi0n / ROM.LOG",
+    benchKicker: "Bench",
+    benchTitle: "Take a stock device apart, one partition at a time.",
+    benchDescription: "Pick a partition to see what lives there, or flash the whole stack.",
+    figureCaption: "Fig. 1 — Partition stack, exploded",
+    figureAlt: "Figure 1: an exploded isometric phone with userdata, vendor, system, and boot partitions",
+    partitions: PARTITIONS.map((partition) => ({ ...partition })),
+  },
+  work: {
+    sectionLabel: "Work",
+    titleLine1: "One ROM, one app,",
+    titleLine2: "both",
+    titleEmphasis: "shipped",
   },
   rom: {
     title: ROM_POST.title,
     codename: ROM_POST.codename,
     variant: ROM_POST.variant,
+    date: ROM_POST.date,
     dateLabel: ROM_POST.dateLabel,
+    releasedLabel: "Released",
+    maintainerLabel: "Maintainer",
+    changelogLabel: "Changelog",
+    tipLabel: "Tip",
+    notesLabel: "Notes",
+    warningLabel: "Warning",
     maintainer: ROM_POST.maintainer,
+    maintainerUrl: ROM_POST.maintainerUrl,
     thumbnail: ROM_POST.thumbnail,
     thumbnailAlt: ROM_POST.thumbnailAlt,
     links: ROM_POST.links.map((l) => ({ label: l.label, url: l.url, primary: !!l.primary })),
@@ -45,31 +121,264 @@ export const DEFAULTS = {
     notes: [...ROM_POST.notes],
     warning: ROM_POST.warning,
   },
-  app: { title: APP.title, desc: APP.desc, tags: [...APP.tags] },
+  app: {
+    name: APP.name,
+    repo: APP.repo,
+    sector: APP.sector,
+    title: APP.title,
+    desc: APP.desc,
+    tags: [...APP.tags],
+    link: APP.link,
+    linkLabel: APP.linkLabel,
+  },
   about: {
+    sectionLabel: "About",
+    titleLead: "The person behind",
+    titleMiddle: "the",
+    titleEmphasis: "builds",
+    shortTitle: "The short version.",
+    deviceRoleLabel: "Role",
+    deviceNameLabel: "Device",
+    deviceDetailLabel: "Detail",
+    intoLabel: "Into",
+    devicesLabel: "Devices",
+    gamesLabel: "Games",
+    playTitle: "The playground.",
+    playDescription: "Four canvas games in a modal, nothing at stake. High scores stay in your browser. Escape closes any of them.",
+    animeTitle: "Logged on AniList.",
+    animePrompt: `anilist stats --user ${ANIME.handle}`,
+    animeGet: "The full watch list, scored.",
+    anilistHandle: ANIME.handle,
+    anilistLinkLabel: `${ANIME.handle} on AniList`,
+    anilistUrl: ANIME.url,
+    musicTitle: "Mostly J-pop and EDM.",
+    musicPrompt: `last.fm now --user ${MUSIC.handle}`,
+    musicGet: "Scrobbles, top artists, the lot.",
+    musicChecks: [
+      ABOUT.interests[2].desc,
+      "Five playlists: Japanese, English, Hindi, Phonk and a mix.",
+      "Three tracks on rotation live in the header player.",
+      "Scrobbled on Last.fm.",
+    ],
+    lastfmHandle: MUSIC.handle,
+    lastfmLinkLabel: `${MUSIC.handle} on Last.fm`,
+    lastfmUrl: MUSIC.url,
+    musicPlaylistsLabel: "My YouTube Music playlists",
+    tabLabels: ["Me", "Anime", "Music", "Play"],
     line: ABOUT.facts.line,
+    age: ABOUT.facts.age,
+    gender: ABOUT.facts.gender,
+    flag: ABOUT.facts.flag,
+    country: ABOUT.facts.country,
     interests: ABOUT.interests.map((i) => ({ title: i.title, desc: i.desc })),
     devices: ABOUT.devices.map((d) => ({ role: d.role, device: d.device, detail: d.detail, aside: d.aside ?? "" })),
     gamesLead: ABOUT.gamesLead,
     games: [...ABOUT.games],
   },
+  play: {
+    games: GAMES.map((game) => ({ ...game })),
+    quiz: QUIZ.map((item) => ({ ...item, opts: [...item.opts], roasts: [...item.roasts] })),
+    modalFooter: "ESC to eject · scores persist locally",
+  },
+  ask: {
+    sectionLabel: "Ask",
+    titleLead: "Ask me",
+    titleEmphasis: "anything",
+    lede: "Root, ROMs, anime, whatever. Questions land in Firestore and ping my Telegram; answers show up here once I’ve replied. Ten per visitor per day.",
+    composerTitle: "New question",
+    questionLabel: "Your question",
+    questionPlaceholder: "Magisk or KernelSU for a fresh install?",
+    nameLabel: "Name",
+    nameOptional: "(optional)",
+    namePlaceholder: "anon",
+    sendLabel: "Send question",
+    answeredLabel: "Answered",
+    sortLabels: ["Top", "Recent", "Oldest"],
+  },
+  links: {
+    sectionLabel: "Elsewhere",
+    title: "Twelve channels, all of them read.",
+    description: "Telegram is fastest for build support. Everything else is where the anime, music and side projects live.",
+  },
   socials: SOCIALS.map((s) => ({ name: s.name, handle: s.handle, url: s.url })),
+  music: {
+    playlistImages: PLAYLISTS.map(() => ""),
+    playlistImageAlts: PLAYLISTS.map((p) => `${p.label} YouTube Music playlist cover`),
+    playlistLabels: PLAYLISTS.map(() => null as string | null),
+    playlistTitles: PLAYLISTS.map(() => null as string | null),
+    swipeInstruction: "Swipe the covers",
+  },
   footer: {
+    availability: "Open for collabs",
     line: "Versioned in public, tested on real hardware.",
     band: "art/footer-band-1280.webp",
     bandAlt: "Anime key visual: four bandmates carrying guitar cases across a sunlit crosswalk",
     bandKicker: "End of transmission",
     bandLine: "Thanks for scrolling. Go flash something.",
+    telegramLabel: "Telegram",
+    telegramUrl: "https://t.me/v3rsi0n",
+    githubLabel: "GitHub",
+    githubUrl: "https://github.com/4nx3b",
+    signature: "v3rsi0n.",
+  },
+  design: {
+    fontPreset: "editorial" as "editorial" | "bookish" | "grotesk" | "typewriter",
+    motionPreset: "balanced" as "quiet" | "balanced" | "expressive",
+  },
+  layout: {
+    footerVisible: true,
+    sections: [
+      { id: "hero", kind: "builtin", component: "hero", visible: true, motion: "reveal" },
+      { id: "work", kind: "builtin", component: "work", visible: true, motion: "reveal" },
+      { id: "ticker", kind: "builtin", component: "ticker", visible: true, motion: "none" },
+      { id: "about", kind: "builtin", component: "about", visible: true, motion: "reveal" },
+      { id: "ask", kind: "builtin", component: "ask", visible: true, motion: "reveal" },
+      { id: "links", kind: "builtin", component: "links", visible: true, motion: "reveal" },
+    ] as PageSection[],
   },
   blocks: { hero: [], work: [], about: [], ask: [], links: [], footer: [] } as Record<SectionId, Block[]>,
 };
 
 export type SiteContent = typeof DEFAULTS;
 
+/** Preserve owner-edited quiz entries while appending newly released defaults. */
+function ensureQuizBankDefaults(content: SiteContent): SiteContent {
+  const current = Array.isArray(content.play?.quiz) ? content.play.quiz : [];
+  const defaults = DEFAULTS.play.quiz;
+  if (current.length >= defaults.length) return content;
+  return {
+    ...content,
+    play: { ...content.play, quiz: [...current, ...defaults.slice(current.length)] },
+  };
+}
+
 const CACHE_KEY = "site_content_v1";
 const DRAFT_KEY = "site_content_draft_v1";
+const OWNER_AVATAR_CACHE_KEY = "site_owner_profile_avatar_v1";
+const OWNER_PROFILE_API_URL = "/api/site-content?profile=1";
 const DOC_URL = () =>
   `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents/siteContent/live`;
+const OWNER_PROFILE_URL = () =>
+  `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents/siteOwner/profile`;
+const MAX_OWNER_AVATAR_CHARS = 220_000;
+
+function isOwnerAvatar(value: unknown): value is string {
+  return typeof value === "string" && value.length <= MAX_OWNER_AVATAR_CHARS &&
+    (!value || /^data:image\/(?:webp|png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/.test(value));
+}
+
+async function readOwnerAvatarFromApi(): Promise<string | null> {
+  try {
+    const response = await fetch(OWNER_PROFILE_API_URL, {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    const data = await response.json().catch(() => null);
+    if (data?.resource !== "siteOwner/profile") {
+      return null;
+    }
+    if (!response.ok) return null;
+    const value = data?.avatar || "";
+    return isOwnerAvatar(value) ? value : "";
+  } catch {
+    return null;
+  }
+}
+
+async function readOwnerAvatarFromFirestore(): Promise<string> {
+  const response = await fetch(`${OWNER_PROFILE_URL()}?key=${encodeURIComponent(FIREBASE.apiKey)}`, {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  if (response.status === 404) return "";
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      const detail = data?.error?.message ? ` Firebase: ${data.error.message}` : "";
+      throw new Error(`Firestore denied the profile read. Publish firestore.rules to Firebase project ${FIREBASE.projectId} to enable the shared owner icon.${detail}`);
+    }
+    throw new Error(data?.error?.message || `Profile read failed (${response.status})`);
+  }
+  const value = data?.fields?.avatar?.stringValue || "";
+  return isOwnerAvatar(value) ? value : "";
+}
+
+async function readOwnerAvatar(): Promise<string> {
+  const apiAvatar = await readOwnerAvatarFromApi();
+  return apiAvatar ?? readOwnerAvatarFromFirestore();
+}
+
+async function writeOwnerAvatarToFirestore(value: string, token: string): Promise<string> {
+  const updatedAt = new Date().toISOString();
+  const url = `${OWNER_PROFILE_URL()}?key=${encodeURIComponent(FIREBASE.apiKey)}&updateMask.fieldPaths=avatar&updateMask.fieldPaths=updatedAt`;
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ fields: { avatar: { stringValue: value }, updatedAt: { stringValue: updatedAt } } }),
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    const detail = data?.error?.message ? ` Firebase: ${data.error.message}` : "";
+    if (response.status === 401) {
+      throw new Error(`The owner sign-in expired. Sign in again as ${ADMIN_EMAIL}.${detail}`);
+    }
+    if (response.status === 403) {
+      throw new Error(`Firestore denied the profile update. This host has no /api, so it writes Firestore directly: deploy firestore.rules to ${FIREBASE.projectId}.${detail}`);
+    }
+    throw new Error(data?.error?.message || `Profile update failed (${response.status})`);
+  }
+  return updatedAt;
+}
+
+async function writeOwnerAvatar(value: string): Promise<string> {
+  const { response, data } = await ownerPost(OWNER_PROFILE_API_URL, { avatar: value });
+  if (response?.ok && data?.resource === "siteOwner/profile") {
+    return typeof data.updatedAt === "string" ? data.updatedAt : new Date().toISOString();
+  }
+  if (apiMissing(response)) {
+    // No API on this host (static preview / old deploy): the owner-gated Firestore rules path.
+    return writeOwnerAvatarToFirestore(value, await refreshTokenIfNeeded());
+  }
+  const msg = apiErrorMessage(data);
+  if (response?.status === 401) throw new Error(msg || `Your owner sign-in has expired. Sign in again as ${ADMIN_EMAIL}.`);
+  throw new Error(msg || `Profile update failed (${response?.status})`);
+}
+
+export function cachedOwnerAvatar(): string {
+  const avatar = read<string>(OWNER_AVATAR_CACHE_KEY);
+  return isOwnerAvatar(avatar) ? avatar : "";
+}
+
+export async function loadOwnerAvatar(): Promise<string> {
+  const avatar = await readOwnerAvatar();
+  write(OWNER_AVATAR_CACHE_KEY, avatar);
+  return avatar;
+}
+
+export async function saveOwnerAvatar(avatar: string): Promise<void> {
+  if (!isOwnerAvatar(avatar)) throw new Error("Choose a PNG, JPEG, or WebP image that is smaller than 220 KB after resizing.");
+  await writeOwnerAvatar(avatar);
+  write(OWNER_AVATAR_CACHE_KEY, avatar);
+}
+
+const SITE_IMAGE_DATA_URL = /^data:image\/(?:webp|png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/;
+export async function loadSiteImageData(id: string): Promise<string> {
+  if (!/^[\w-]{4,80}$/.test(id)) throw new Error("Invalid published image ID.");
+  // The API serves the bytes with an immutable cache header; works without client rules.
+  try {
+    const r = await fetch(`/api/site-content?image=${encodeURIComponent(id)}`, { cache: "force-cache" });
+    if (r.ok && (r.headers.get("content-type") || "").startsWith("image/")) return URL.createObjectURL(await r.blob());
+  } catch {
+    /* fall through to Firestore (static hosts) */
+  }
+  const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents/siteImages/${encodeURIComponent(id)}?key=${encodeURIComponent(FIREBASE.apiKey)}`;
+  const doc = await jfetch(url, { cache: "force-cache" });
+  const value = doc?.fields?.data?.stringValue;
+  if (typeof value !== "string" || value.length > 1_000_000 || !SITE_IMAGE_DATA_URL.test(value)) {
+    throw new Error("Published image is missing or invalid.");
+  }
+  return value;
+}
 
 /* ---------------- helpers ---------------- */
 
@@ -136,9 +445,10 @@ type PublicDoc = { json: Json; updatedAt: string | null; via: "api" | "firestore
  * works even before the siteContent rules are deployed (anonymous direct
  * reads get 403 until then). Falls back to a direct Firestore read.
  */
-export async function readPublished(): Promise<PublicDoc | null> {
+export async function readPublished(fresh = false): Promise<PublicDoc | null> {
   try {
-    const r = await fetch(`/api/site-content?t=${Date.now()}`, { cache: "no-store", headers: { Accept: "application/json" } });
+    const url = fresh ? `/api/site-content?t=${Date.now()}` : "/api/site-content";
+    const r = await fetch(url, { cache: fresh ? "no-store" : "default", headers: { Accept: "application/json" } });
     if (r.ok && (r.headers.get("content-type") || "").includes("json")) {
       const d = await r.json();
       if (typeof d?.json === "string") return { json: JSON.parse(d.json) as Json, updatedAt: d.updatedAt ?? null, via: "api" };
@@ -147,7 +457,7 @@ export async function readPublished(): Promise<PublicDoc | null> {
     /* no API here (preview) */
   }
   try {
-    const doc = await jfetch(DOC_URL());
+    const doc = await jfetch(`${DOC_URL()}?key=${encodeURIComponent(FIREBASE.apiKey)}`, { cache: "no-store" });
     const raw = doc?.fields?.json?.stringValue;
     if (typeof raw === "string") return { json: JSON.parse(raw) as Json, updatedAt: doc?.fields?.updatedAt?.stringValue ?? null, via: "firestore" };
   } catch {
@@ -156,32 +466,50 @@ export async function readPublished(): Promise<PublicDoc | null> {
   return null;
 }
 
-/** Owner write: server endpoint (verifies the token at Google), else direct PATCH. Returns updatedAt. */
+/**
+ * Prefer the host's authenticated publishing API, then fall back to Firestore
+ * for static hosts such as Wasmer that have no serverless API route. The
+ * direct path is still owner-gated by firestore.rules and shares siteContent/live.
+ */
 async function writePublished(payload: unknown): Promise<string> {
-  const token = await refreshTokenIfNeeded();
-  const text = JSON.stringify(payload);
-  try {
-    const r = await fetch("/api/site-content", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-      body: JSON.stringify({ json: text }),
-    });
-    const ct = r.headers.get("content-type") || "";
-    if (ct.includes("json")) {
-      const d = await r.json();
-      if (r.ok && d?.updatedAt) return d.updatedAt as string;
-      if (r.status !== 404 && r.status !== 503) throw new Error(d?.error || `Publish failed (${r.status})`);
-    }
-  } catch (e) {
-    if (!/Failed to fetch|NetworkError|Load failed/i.test((e as Error).message)) throw e;
+  const json = JSON.stringify(payload);
+  const { response, data } = await ownerPost("/api/site-content", { json });
+  if (response?.ok && typeof data?.updatedAt === "string") return data.updatedAt;
+
+  if (!apiMissing(response)) {
+    // The API answered: show its real reason (never fall back after 401/403/400/413).
+    const msg = apiErrorMessage(data);
+    if (response?.status === 401) throw new Error(msg || "Your owner sign-in has expired. Sign in again, then publish.");
+    throw new Error(msg || `Publish failed (${response?.status})`);
   }
-  const now = new Date().toISOString();
-  await jfetch(`${DOC_URL()}?updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-    body: JSON.stringify({ fields: { json: { stringValue: text }, updatedAt: { stringValue: now } } }),
-  });
-  return now;
+
+  // No /api on this host: write the shared doc directly (owner-gated by firestore.rules).
+  if (new TextEncoder().encode(json).length > 900_000) {
+    throw new Error("Published content is too large. Remove some large text or images and try again.");
+  }
+  const token = await refreshTokenIfNeeded();
+  const updatedAt = new Date().toISOString();
+  const url = `${DOC_URL()}?key=${encodeURIComponent(FIREBASE.apiKey)}&updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt`;
+  let direct: Response;
+  try {
+    direct = await fetch(url, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ fields: { json: { stringValue: json }, updatedAt: { stringValue: updatedAt } } }),
+    });
+  } catch {
+    throw new Error("Could not reach the publishing API or Firestore. Check your connection and try again.");
+  }
+  if (direct.ok) return updatedAt;
+  const directData = await direct.json().catch(() => null);
+  if (direct.status === 401) throw new Error("Your owner sign-in has expired. Sign in again, then publish.");
+  if (direct.status === 403) throw new Error(`This host has no /api, so it publishes to Firestore directly, and Firestore denied it: deploy firestore.rules to ${FIREBASE.projectId}.`);
+  throw new Error(apiErrorMessage(directData) || `Firestore publish failed (${direct.status})`);
+}
+
+function explainPublishError(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  return message || "Couldn’t publish. Please try again.";
 }
 
 /* ---------------- context ---------------- */
@@ -246,7 +574,9 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     const sync = () => {
       const o = isOwner();
       setOwner(o);
-      if (!o) {
+      if (o) {
+        setDraft((current) => current ?? read<SiteContent>(DRAFT_KEY));
+      } else {
         setEditingState(false);
         setDraft(null);
       }
@@ -259,13 +589,15 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const base = useMemo(() => deepMerge(DEFAULTS, published), [published]);
-  const content = draft ?? base;
+  const base = useMemo(() => ensureQuizBankDefaults(deepMerge(DEFAULTS, published)), [published]);
+  // Merge cached drafts over current defaults as the editor schema evolves.
+  const content = useMemo(() => ensureQuizBankDefaults(draft ? deepMerge(base, draft) : base), [base, draft]);
 
   const set = useCallback(
     (path: string, value: unknown) => {
       setDraft((d) => {
-        const next = setPath(d ?? base, path, value);
+        const current = ensureQuizBankDefaults(d ? deepMerge(base, d) : base);
+        const next = setPath(current, path, value);
         write(DRAFT_KEY, next);
         return next;
       });
@@ -274,13 +606,13 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     [base]
   );
 
-  /** Write, then confirm what an anonymous visitor would read. */
+  /** Write, then confirm what a public visitor can read through the API. */
   const save = useCallback(async (payload: unknown): Promise<Status> => {
     const at = await writePublished(payload);
     setPublishedAt(at);
-    const check = await readPublished();
-    if (check && check.updatedAt === at) return { kind: "saved", msg: "Published, live for everyone" };
-    return { kind: "warn", msg: "Published, but visitors can't read it yet: deploy firestore.rules" };
+    const check = await readPublished(true);
+    if (check && check.updatedAt === at) return { kind: "saved", msg: "Published — live for everyone" };
+    return { kind: "warn", msg: "Saved to Firestore, but the public endpoint could not confirm it yet. Refresh to verify." };
   }, []);
 
   const publish = useCallback(async () => {
@@ -294,12 +626,8 @@ export function ContentProvider({ children }: { children: ReactNode }) {
       write(DRAFT_KEY, null);
       setDraft(null);
       setStatus(result);
-    } catch (e) {
-      const m = (e as Error).message || "";
-      setStatus({
-        kind: "error",
-        msg: /permission|PERMISSION_DENIED|403/i.test(m) ? "Permission denied: deploy firestore.rules first" : m || "Couldn't publish",
-      });
+    } catch (error) {
+      setStatus({ kind: "error", msg: explainPublishError(error) });
     }
   }, [save]);
 
@@ -318,8 +646,8 @@ export function ContentProvider({ children }: { children: ReactNode }) {
       write(DRAFT_KEY, null);
       setDraft(null);
       setStatus(result.kind === "saved" ? { kind: "saved", msg: "Reset to defaults" } : result);
-    } catch (e) {
-      setStatus({ kind: "error", msg: (e as Error).message || "Couldn't reset" });
+    } catch (error) {
+      setStatus({ kind: "error", msg: explainPublishError(error) });
     }
   }, [save]);
 
