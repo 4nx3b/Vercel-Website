@@ -139,11 +139,30 @@ deployment** because newer builds are failing. Check, in order:
 Vercel functions, so on Cloudflare the playlist refresh and AMA notifications quietly fall back
 to cached or local data. Vercel deploys are unaffected by these files.
 
-## Owner editor
+## Owner editor and page builder
 
-Sign in with the owner account (footer **Owner** link, or open `/#admin`). A toolbar appears at the
-bottom: **Edit** turns on inline editing, **Publish** saves to Firestore (`siteContent/live`),
-**Discard** drops the local draft, **Reset** clears all published overrides.
+Sign in with the owner account (footer **Owner** link, or open `/#admin`), open the site menu, and
+choose **Open page builder**. The workshop is owner-only and previews the private draft behind its
+panel; visitors continue to see the last published version until you choose **Publish to everyone**.
+
+Use **Page order** to move, hide, restore, duplicate, or remove sections. **Start a new section**
+offers a blank canvas, field-note, quote-band, and feature-grid templates. Compose custom sections
+from headings, paragraphs, pull quotes, link buttons, optimized images, cards, callouts, lists,
+metrics, existing ROM/app project tiles, dividers, and spacing blocks; reorder or remove individual
+blocks in their settings. Every section can use an editorial, split, card-grid, or banner
+composition; paper, ink, or vermilion surfaces; optional grid/dot/hatch textures; and reveal,
+stagger, scroll-stack, drift, or still motion.
+The **Design system** controls the site-wide font and motion presets, while the closing band/footer
+can be hidden without deleting its content. The Ask section stays visible because it hosts the
+owner sign-in entry point. Custom sections can add themselves to the navigation.
+
+Uploaded builder images use the existing owner-verified media API and are compressed to WebP
+(maximum 1600px / 700 KB). **Edit mode** also keeps the inline text and image tools available on
+the live page. Drafts are stored locally for the owner; the public read endpoint serves only the
+last successful publish, so publishing is required for all visitors to see changes.
+
+**Publish** saves to Firestore (`siteContent/live`), **Discard** drops the local draft, and **Reset**
+clears all published overrides.
 
 Published content is served to visitors by `/api/site-content`, which reads and writes with the
 service account (`FIREBASE_SERVICE_ACCOUNT_KEY`, the same variable `/api/ama-vote` uses). Writes

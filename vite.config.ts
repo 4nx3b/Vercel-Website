@@ -28,6 +28,10 @@ function cfAsyncOff(): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss(), viteSingleFile(), cfAsyncOff()],
+  server: {
+    host: "0.0.0.0",
+    allowedHosts: [".e2b.app"],
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),

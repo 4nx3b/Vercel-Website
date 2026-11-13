@@ -328,6 +328,11 @@ async function uploadImage(dataUrl: string): Promise<string> {
   return `fs:siteImages/${data.id}`;
 }
 
+/** Compress and upload a builder image using the same immutable WebP media store. */
+export async function uploadSiteImage(file: File): Promise<string> {
+  return uploadImage(await toWebp(file));
+}
+
 /** Wraps an image; in edit mode adds a "Replace image" button that opens a small dialog. */
 export function EImage({ srcPath, altPath, className, children }: { srcPath: string; altPath: string; className?: string; children: (src: string, alt: string) => ReactNode }) {
   const { editing, content, set } = useContent();

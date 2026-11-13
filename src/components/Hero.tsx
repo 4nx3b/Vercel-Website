@@ -53,6 +53,12 @@ export function Hero() {
 
   const { content, editing } = useContent();
   const h = content.hero;
+  const pageSections = Array.isArray(content.layout?.sections) ? content.layout.sections : [];
+  const hasBuiltin = (component: string) => pageSections.some((section) => section.kind === "builtin" && section.component === component && section.visible !== false);
+  const customFallback = pageSections.find((section) => section.kind === "custom" && section.visible !== false && section.showInNav);
+  const customFallbackHref = customFallback ? `#site-${customFallback.id.replace(/[^a-z0-9_-]/gi, "-")}` : "#main";
+  const primaryHref = hasBuiltin("work") ? "#work" : customFallbackHref;
+  const secondaryHref = hasBuiltin("ask") ? "#ask" : customFallbackHref;
   const sentence = `${h.line1} ${h.line2} ${h.line3} ${h.emphasis}.`;
 
   return (
@@ -141,11 +147,11 @@ export function Hero() {
               </span>
             </p>
             <div className="m-rise mt-7 flex flex-wrap items-center gap-3" style={{ ["--m-delay" as string]: "0.4s" }}>
-              <Button href="#work" onClick={(event) => editing && event.preventDefault()} variant="ink" className="min-h-[52px] px-7 text-[16px]">
+              <Button href={primaryHref} onClick={(event) => editing && event.preventDefault()} variant="ink" className="min-h-[52px] px-7 text-[16px]">
                 <EText path="hero.ctaPrimary" label="Primary button" />
                 <ArrowRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
               </Button>
-              <Button href="#ask" onClick={(event) => editing && event.preventDefault()} variant="outline" className="min-h-[52px] bg-paper/80 px-7 text-[16px]">
+              <Button href={secondaryHref} onClick={(event) => editing && event.preventDefault()} variant="outline" className="min-h-[52px] bg-paper/80 px-7 text-[16px]">
                 <MessageCircle aria-hidden className="h-4 w-4" strokeWidth={1.75} />
                 <EText path="hero.ctaSecondary" label="Secondary button" />
               </Button>
