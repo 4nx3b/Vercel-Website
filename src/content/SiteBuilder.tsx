@@ -384,7 +384,7 @@ export function SiteBuilder({ open, onClose }: { open: boolean; onClose: () => v
     const target = sections[index];
     if (!target) return;
     if (target.kind === "builtin" && target.component === "ask") {
-      window.alert("The Ask section contains the owner sign-in entry point, so it must stay on the page.");
+      window.alert("The Ask section hosts the public question feed and owner moderation console, so it must stay on the page.");
       return;
     }
     setSections(sections.filter((_, i) => i !== index));
@@ -393,7 +393,7 @@ export function SiteBuilder({ open, onClose }: { open: boolean; onClose: () => v
   const toggleVisibility = (index: number) => {
     const target = sections[index];
     if (target?.kind === "builtin" && target.component === "ask" && target.visible) {
-      window.alert("The Ask section contains the owner sign-in entry point, so it must stay visible.");
+      window.alert("The Ask section hosts the public question feed and owner moderation console, so it must stay visible.");
       return;
     }
     updateSection(index, (section) => ({ ...section, visible: !section.visible } as PageSection));
@@ -441,12 +441,12 @@ export function SiteBuilder({ open, onClose }: { open: boolean; onClose: () => v
             <SelectField path="design.fontPreset" label="Type system" options={FONT_OPTIONS} />
             <SelectField path="design.motionPreset" label="Motion energy" options={MOTION_OPTIONS} />
             <p className="builder-help">Curated system fonts use the existing font stack and local fallbacks—no added font downloads.</p>
-            <ToggleField path="layout.footerVisible" label="Show closing band and footer" note="Ask stays visible as the owner sign-in entry point." />
+            <ToggleField path="layout.footerVisible" label="Show closing band and footer" note="The Ask question and moderation console stays available in the page." />
           </section>
 
           <section className="builder-settings-group builder-sections-group">
             <div className="builder-group-heading"><span>02</span><h2>Page order</h2></div>
-            <p className="builder-help">Reorder with the arrows, hide a section, or remove it. Ask stays visible for owner sign-in.</p>
+            <p className="builder-help">Reorder with the arrows, hide a section, or remove it. Ask stays visible for its question feed and owner moderation console.</p>
             <ol className="builder-section-list">
               {sections.map((section, index) => {
                 const name = section.kind === "custom" ? section.title || "Untitled section" : BUILTINS.find((item) => item.id === section.component)?.label || section.component;

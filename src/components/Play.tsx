@@ -18,6 +18,7 @@ function tok(name: string, fallback: string) {
 
 const SNAKE_N = 15;
 const SNAKE_CELL = 20;
+const SNAKE_TICK_MS = 170;
 
 function SnakeGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -132,7 +133,7 @@ function SnakeGame() {
         s.snake.pop();
       }
       draw();
-    }, 110);
+    }, SNAKE_TICK_MS);
 
     draw();
     return () => clearInterval(iv);
@@ -190,14 +191,17 @@ function PongGame() {
   const [winner, setWinner] = useState<null | "you" | "ai">(null);
   // Frozen court until Play or a tap on it (hovering never starts it)
   const [started, setStarted] = useState(false);
+  const [pointBreak, setPointBreak] = useState(false);
+  const pointBreakRef = useRef(false);
+  const breakTimer = useRef<number>(0);
+  const winnerRef = useRef<null | "you" | "ai">(null);
+  winnerRef.current = winner;
   const s = useRef({ py: 80, ay: 80, bx: 150, by: 110, vx: 3.2, vy: 2.1, pyTarget: 80, you: 0, ai: 0, paused: true });
   const start = useCallback(() => {
-    if (!s.current.paused || winnerRef.current) return;
+    if (!s.current.paused || winnerRef.current || pointBreakRef.current) return;
     s.current.paused = false;
     setStarted(true);
   }, []);
-  const winnerRef = useRef<null | "you" | "ai">(null);
-  winnerRef.current = winner;
 
   const reset = (full: boolean) => {
     const st = s.current;
@@ -206,6 +210,9 @@ function PongGame() {
     st.vx = (Math.random() > 0.5 ? 1 : -1) * 3.2;
     st.vy = (Math.random() - 0.5) * 4;
     if (full) {
+      window.clearTimeout(breakTimer.current);
+      pointBreakRef.current = false;
+      setPointBreak(false);
       st.you = 0;
       st.ai = 0;
       st.paused = false;
@@ -244,7 +251,21 @@ function PongGame() {
         if (st.bx < -8) {
           st.ai += 1;
           setScores({ you: st.you, ai: st.ai });
-          if (st.ai >= 5) { st.paused = true; setWinner("ai"); } else reset(false);
+          if (st.ai >= 5) {
+            st.paused = true;
+            setWinner("ai");
+          } else {
+            reset(false);
+            st.paused = true;
+            pointBreakRef.current = true;
+            setPointBreak(true);
+            window.clearTimeout(breakTimer.current);
+            breakTimer.current = window.setTimeout(() => {
+              pointBreakRef.current = false;
+              setPointBreak(false);
+              if (!winnerRef.current) s.current.paused = false;
+            }, 3000);
+          }
         }
         if (st.bx > 308) {
           st.you += 1;
@@ -272,6 +293,7 @@ function PongGame() {
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
+      window.clearTimeout(breakTimer.current);
       cv.removeEventListener("pointermove", onMove);
       cv.removeEventListener("pointerdown", onDown);
     };
@@ -297,6 +319,12 @@ function PongGame() {
               <PlayIcon aria-hidden className="h-5 w-5 translate-x-px fill-current" strokeWidth={1.5} />
             </button>
             <MonoTag className="text-ink-soft">Tap Play or tap the court, then steer with the pointer</MonoTag>
+          </div>
+        )}
+        {pointBreak && !winner && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-composer/90 px-4 text-center">
+            <MonoTag className="text-vermilion-ink">Point to the AI</MonoTag>
+            <MonoTag className="text-ink-soft">Next point in 3 seconds — get ready</MonoTag>
           </div>
         )}
         {winner && (
@@ -388,21 +416,37 @@ function ReactionGame() {
 
 /* ================= Roast Quiz ================= */
 
+const QUIZ_QUESTIONS_PER_RUN = 10;
+function randomQuizOrder(length: number): number[] {
+  const indices = Array.from({ length }, (_, index) => index);
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  return indices.slice(0, Math.min(QUIZ_QUESTIONS_PER_RUN, indices.length));
+}
+
 function QuizGame() {
   const { content, editing } = useContent();
   const quiz = content.play.quiz;
   const [step, setStep] = useState(0);
   const [roasts, setRoasts] = useState<string[]>([]);
   const [picked, setPicked] = useState<number | null>(null);
+  const [runQuestions, setRunQuestions] = useState(() => randomQuizOrder(quiz.length));
+  const advanceTimer = useRef<number>(0);
+
+  useEffect(() => () => window.clearTimeout(advanceTimer.current), []);
 
   const pick = (i: number) => {
     if (picked !== null) return;
     setPicked(i);
-    const r = quiz[step].roasts[i];
-    setTimeout(() => {
-      setRoasts((prev) => [...prev, r]);
+    const questionIndex = runQuestions[step];
+    const roast = quiz[questionIndex]?.roasts[i] ?? "The diagnostic result escaped into the logs.";
+    window.clearTimeout(advanceTimer.current);
+    advanceTimer.current = window.setTimeout(() => {
+      setRoasts((previous) => [...previous, roast]);
       setPicked(null);
-      setStep((s) => s + 1);
+      setStep((current) => current + 1);
     }, 1100);
   };
 
@@ -430,7 +474,7 @@ function QuizGame() {
     );
   }
 
-  if (step >= quiz.length) {
+  if (step >= runQuestions.length) {
     return (
       <div className="flex flex-col gap-4">
         <MonoTag className="text-moss-ink">Diagnosis complete</MonoTag>
@@ -442,24 +486,33 @@ function QuizGame() {
             </li>
           ))}
         </ul>
+        <p className="font-mono text-xs text-graphite">Every run draws a fresh set of questions from the {quiz.length}-question bank.</p>
         <button
-          onClick={() => { setStep(0); setRoasts([]); }}
+          onClick={() => {
+            setStep(0);
+            setRoasts([]);
+            setPicked(null);
+            setRunQuestions(randomQuizOrder(quiz.length));
+          }}
           className="self-start inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-[15px] font-medium text-paper transition-colors duration-[var(--dur-2)] hover:bg-ink-soft"
         >
-          Run it back
+          Run a new remix
         </button>
       </div>
     );
   }
 
-  const q = quiz[step];
+  const questionIndex = runQuestions[step] ?? 0;
+  const q = quiz[questionIndex] ?? quiz[0];
+  if (!q) return <MonoTag className="text-graphite">No quiz questions are available yet.</MonoTag>;
+  const selectedRoast = picked === null ? "" : q.roasts[picked] ?? "The diagnostic result escaped into the logs.";
   return (
     <div>
       <div className="flex items-center justify-between pb-4">
-        <MonoTag className="text-graphite tabular">Question {step + 1} / {quiz.length}</MonoTag>
-        <MonoTag className="text-vermilion-ink">Roast mode</MonoTag>
+        <MonoTag className="text-graphite tabular">Question {step + 1} / {runQuestions.length}</MonoTag>
+        <MonoTag className="text-vermilion-ink">Random remix · {quiz.length} in bank</MonoTag>
       </div>
-      <EText path={`play.quiz.${step}.q`} as="p" className="block font-display text-title text-ink" label={`Quiz question ${step + 1}`} />
+      <EText path={`play.quiz.${questionIndex}.q`} as="p" className="block font-display text-title text-ink" label={`Quiz question ${step + 1}`} />
       <div className="mt-5 flex flex-col gap-2.5">
         {q.opts.map((_, i) => (
           <button
@@ -470,16 +523,16 @@ function QuizGame() {
               picked === i ? "border-vermilion bg-vermilion-wash text-ink" : "border-rule-strong text-ink-soft hover:border-ink hover:text-ink"
             )}
           >
-            <EText path={`play.quiz.${step}.opts.${i}`} label={`Quiz question ${step + 1}, option ${i + 1}`} />
+            <EText path={`play.quiz.${questionIndex}.opts.${i}`} label={`Quiz question ${step + 1}, option ${i + 1}`} />
           </button>
         ))}
       </div>
       {editing && (
         <div className="mt-4 flex flex-col gap-2 border-t border-rule pt-4">
-          {q.roasts.map((_, index) => <EText key={index} path={`play.quiz.${step}.roasts.${index}`} as="p" className="block text-sm text-ink-soft" label={`Quiz response ${step + 1}, option ${index + 1}`} />)}
+          {q.roasts.map((_, index) => <EText key={index} path={`play.quiz.${questionIndex}.roasts.${index}`} as="p" className="block text-sm text-ink-soft" label={`Quiz response ${step + 1}, option ${index + 1}`} />)}
         </div>
       )}
-      {picked !== null && <MonoTag className="m-swap mt-4 block text-vermilion-ink">{q.roasts[picked]}</MonoTag>}
+      {picked !== null && <MonoTag className="m-swap mt-4 block text-vermilion-ink">{selectedRoast}</MonoTag>}
     </div>
   );
 }

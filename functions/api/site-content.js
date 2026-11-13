@@ -58,8 +58,10 @@ async function googleAccessToken(env) {
 }
 
 function docUrl(env, path) {
-  const sa = serviceAccount(env);
-  const pid = env.FIREBASE_PROJECT_ID || sa.project_id || DEFAULT_PROJECT_ID;
+  const pid = env.FIREBASE_PROJECT_ID || DEFAULT_PROJECT_ID;
+  if (pid !== DEFAULT_PROJECT_ID) {
+    throw Object.assign(new Error(`FIREBASE_PROJECT_ID must be ${DEFAULT_PROJECT_ID} to share content with the client`), { status: 503 });
+  }
   return `https://firestore.googleapis.com/v1/projects/${pid}/databases/(default)/documents/${path}`;
 }
 

@@ -501,17 +501,11 @@ export function Ask() {
   const [status, setStatus] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
   const [page, setPage] = useState(1);
   const [ownerOpen, setOwnerOpen] = useState(false);
-  // #admin and the footer "Owner" link open the same sign-in sheet
+  // The sidebar's Owner login entry is the sole way to open this console.
   useEffect(() => {
     const openSheet = () => setOwnerOpen(true);
-    const fromHash = () => window.location.hash === "#admin" && openSheet();
-    fromHash();
-    window.addEventListener("hashchange", fromHash);
     window.addEventListener("v3:open-owner", openSheet);
-    return () => {
-      window.removeEventListener("hashchange", fromHash);
-      window.removeEventListener("v3:open-owner", openSheet);
-    };
+    return () => window.removeEventListener("v3:open-owner", openSheet);
   }, []);
   const [loading, setLoading] = useState(true);
   const PAGE = 4;
@@ -583,20 +577,12 @@ export function Ask() {
         <div className="grid gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-20">
           {/* Composer */}
           <div>
-            <div className="flex items-start justify-between gap-4">
-              <SectionHead
-                num="06"
-                label={<EText path="ask.sectionLabel" label="Ask section label" />}
-                title={<span id="ask-title"><EText path="ask.titleLead" label="Ask heading" /> <em className="ital"><EText path="ask.titleEmphasis" label="Ask heading emphasis" /></em>.</span>}
-                lede={<EText path="ask.lede" multiline label="Ask section description" />}
-              />
-              <button
-                onClick={() => setOwnerOpen(true)}
-                className="min-h-11 shrink-0 rounded-full border border-rule-strong px-4 font-mono text-xs text-ink-soft transition-colors duration-[var(--dur-2)] hover:border-ink hover:text-ink"
-              >
-                Owner
-              </button>
-            </div>
+            <SectionHead
+              num="06"
+              label={<EText path="ask.sectionLabel" label="Ask section label" />}
+              title={<span id="ask-title"><EText path="ask.titleLead" label="Ask heading" /> <em className="ital"><EText path="ask.titleEmphasis" label="Ask heading emphasis" /></em>.</span>}
+              lede={<EText path="ask.lede" multiline label="Ask section description" />}
+            />
 
             <Reveal delay={80}>
               <form onSubmit={submit} className="mt-10 rounded-[var(--radius-lg)] border border-ink bg-composer shadow-[var(--shadow-ink)]">

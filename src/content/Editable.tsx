@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type ElementType, type ReactNode } from "react";
 import { ArrowDown, ArrowUp, ImagePlus, Plus, Trash2, Type } from "lucide-react";
 import { cn } from "../utils/cn";
+import { FIREBASE } from "../lib/data";
 import { refreshTokenIfNeeded } from "../lib/owner";
-import { getPath, useContent, useField, type Block, type SectionId } from "./store";
+import { getPath, loadSiteImageData, useContent, useField, type Block, type SectionId } from "./store";
 
 /* ------------------------------------------------------------------ *
  * Inline editing primitives. For visitors they render exactly what the
@@ -243,14 +244,39 @@ function EditableRow({ children, onUp, onDown, onRemove, first, last, label }: {
 const MAX_W = 1600;
 const MAX_BYTES = 700 * 1024;
 
-/** `fs:siteImages/<id>` resolves to one immutable, browser-cached API URL. */
+/** `fs:siteImages/<id>` resolves through the host API, then shared Firestore on static hosts. */
 export function resolveSrc(src: string | undefined) {
   if (!src) return src;
   if (src.startsWith("fs:siteImages/")) return `/api/site-content?image=${encodeURIComponent(src.slice("fs:siteImages/".length))}`;
   return src;
 }
 export function useResolvedSrc(src: string | undefined) {
-  return resolveSrc(src);
+  const [resolved, setResolved] = useState<string | undefined>(() => src?.startsWith("fs:siteImages/") ? undefined : src);
+  useEffect(() => {
+    if (!src?.startsWith("fs:siteImages/")) {
+      setResolved(src);
+      return;
+    }
+    let active = true;
+    setResolved(undefined);
+    const id = src.slice("fs:siteImages/".length);
+    const apiUrl = resolveSrc(src)!;
+    const useFirestore = () => loadSiteImageData(id).then((data) => {
+      if (active) setResolved(data);
+    });
+    void fetch(apiUrl, { method: "HEAD", cache: "force-cache", headers: { Accept: "image/*" } })
+      .then((response) => {
+        if (response.ok && (response.headers.get("content-type") || "").startsWith("image/")) {
+          if (active) setResolved(apiUrl);
+          return;
+        }
+        return useFirestore();
+      })
+      .catch(useFirestore)
+      .catch(() => { if (active) setResolved(undefined); });
+    return () => { active = false; };
+  }, [src]);
+  return resolved;
 }
 
 function canvasBlob(canvas: HTMLCanvasElement, quality: number) {
@@ -298,34 +324,54 @@ async function toWebp(file: File): Promise<string> {
   }
 }
 
+const IMAGE_DATA_URL = /^data:image\/(?:webp|png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/;
+
+async function uploadImageDirect(dataUrl: string, token: string): Promise<string> {
+  if (!IMAGE_DATA_URL.test(dataUrl) || new TextEncoder().encode(dataUrl).length > 1_000_000) {
+    throw new Error("Image must be a PNG, JPEG, or WebP smaller than 700 KB after compression.");
+  }
+  const id = typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID().replace(/-/g, "")
+    : `img${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
+  const createdAt = new Date().toISOString();
+  const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents/siteImages/${id}?key=${encodeURIComponent(FIREBASE.apiKey)}&updateMask.fieldPaths=data&updateMask.fieldPaths=createdAt`;
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ fields: { data: { stringValue: dataUrl }, createdAt: { stringValue: createdAt } } }),
+  });
+  const result = await response.json().catch(() => null);
+  if (!response.ok) {
+    if (response.status === 401) throw new Error("Your owner session has expired. Sign in again before uploading.");
+    if (response.status === 403) throw new Error("Firestore denied direct image publishing. Deploy firestore.rules and confirm the verified owner account.");
+    throw new Error(result?.error?.message || `Firestore image upload failed (${response.status})`);
+  }
+  return `fs:siteImages/${id}`;
+}
+
 async function uploadImage(dataUrl: string): Promise<string> {
   const token = await refreshTokenIfNeeded();
-  let response: Response;
+  let response: Response | null = null;
+  let data: any = null;
   try {
     response = await fetch("/api/site-content?image=1", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ data: dataUrl }),
     });
+    data = await response.json().catch(() => null);
   } catch {
-    throw new Error("Could not reach the image publishing API. Check your connection and try again.");
+    // Static hosts without an API can write the owner-only Firestore media document directly.
   }
 
-  const data = await response.json().catch(() => null);
+  if (response?.ok && typeof data?.id === "string") return `fs:siteImages/${data.id}`;
+  if (response?.status === 401) throw new Error("Your owner session has expired. Sign in again before uploading.");
+  const apiMissing = !response || response.status === 404 || response.status === 405 || response.status === 503 || response.status >= 500 ||
+    !(response.headers.get("content-type") || "").includes("json") || (response.ok && typeof data?.id !== "string");
+  if (apiMissing || response?.status === 403) return uploadImageDirect(dataUrl, token);
   const detail = String(data?.error || "");
-  if (!response.ok) {
-    if (response.status === 401) throw new Error("Your owner session has expired. Sign in again before uploading.");
-    if (response.status === 404) throw new Error("The image publishing API is missing from this deployment. Deploy the Vercel API functions first.");
-    if (response.status === 503 || /FIREBASE_SERVICE_ACCOUNT_KEY/i.test(detail)) {
-      throw new Error("Image publishing is not configured on Vercel. Add FIREBASE_SERVICE_ACCOUNT_KEY and redeploy.");
-    }
-    if (response.status === 403 || /PERMISSION_DENIED|permission denied/i.test(detail)) {
-      throw new Error("The Vercel service account cannot write images to this Firestore project. Check its Firestore IAM access.");
-    }
-    throw new Error(detail || `Image upload failed (${response.status})`);
-  }
-  if (typeof data?.id !== "string") throw new Error("The image publishing API returned an invalid response.");
-  return `fs:siteImages/${data.id}`;
+  if (response?.status === 400 || response?.status === 413) throw new Error(detail || "Image upload failed because the image is invalid or too large.");
+  throw new Error(detail || `Image upload failed (${response?.status ?? "unknown"})`);
 }
 
 /** Compress and upload a builder image using the same immutable WebP media store. */
