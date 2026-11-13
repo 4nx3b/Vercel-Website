@@ -117,7 +117,7 @@ async function handle({ request, env }) {
         );
       }
       if (imageId) {
-        if (!/^[\w-]{4,80}$/.test(imageId)) return json({ error: "bad image id" }, 400);
+        if (!/^[\w-]{4,80}$/.test(imageId)) return json({ error: { message: "bad image id", code: "error" } }, 400);
         const doc = await firestore(env, "GET", docUrl(env, `siteImages/${imageId}`));
         const m = (doc?.fields?.data?.stringValue || "").match(IMAGE_DATA_URL);
         if (!m) return json({ error: "no such image" }, 404);
@@ -178,9 +178,9 @@ async function handle({ request, env }) {
       });
       return json({ ok: true, updatedAt: now });
     }
-    return json({ error: "method not allowed" }, 405);
+    return json({ error: { message: "method not allowed", code: "error" } }, 405);
   } catch (e) {
-    return json({ error: e.message || "error" }, e.status || 500);
+    return json({ error: { message: e.message || "error", code: e.code || `http_${e.status || 500}` } }, e.status || 500);
   }
 }
 

@@ -488,6 +488,21 @@ export async function readPublished(fresh = false): Promise<PublicDoc | null> {
  * direct path is still owner-gated by firestore.rules and shares siteContent/live.
  */
 async function writePublished(payload: unknown): Promise<string> {
+  const json = JSON.stringify(payload);
+  const { response, data } = await ownerPost("/api/site-content", { json });
+  if (response?.ok && typeof data?.updatedAt === "string") return data.updatedAt;
+
+  if (!apiMissing(response)) {
+    // The API answered: show its real reason (never fall back after 401/403/400/413).
+    const msg = apiErrorMessage(data);
+    if (response?.status === 401) throw new Error(msg || "Your owner sign-in has expired. Sign in again, then publish.");
+    throw new Error(msg || `Publish failed (${response?.status})`);
+  }
+
+  // No /api on this host: write the shared doc directly (owner-gated by firestore.rules).
+  if (new TextEncoder().encode(json).length > 900_000) {
+    throw new Error("Published content is too large. Remove some large text or images and try again.");
+  }
   const token = await refreshTokenIfNeeded();
   const json = JSON.stringify(payload);
   let response: Response | null = null;
