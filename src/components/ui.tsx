@@ -61,7 +61,7 @@ type Variant = "ink" | "outline" | "accent";
 
 const BTN_BASE =
   "inline-flex min-h-11 items-center justify-center gap-2.5 rounded-full px-6 text-[15px] font-medium leading-none whitespace-nowrap " +
-  "transition-[background-color,color,border-color] duration-[var(--dur-2)] ease-[var(--ease-out)] disabled:opacity-50";
+  "site-button transition-[background-color,color,border-color,transform,box-shadow] duration-[var(--dur-2)] ease-[var(--ease-out)] disabled:opacity-50";
 
 const BTN_VARIANT: Record<Variant, string> = {
   ink: "bg-ink text-paper hover:bg-ink-soft",

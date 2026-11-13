@@ -158,7 +158,7 @@ const layoutClass: Record<BuilderLayout, string> = {
 };
 
 /** A fully owner-created section. All copy remains plain text and all media uses the shared image API. */
-export function BuilderSection({ section, sectionIndex }: { section: CustomPageSection; sectionIndex: number }) {
+export function BuilderSection({ section, sectionIndex, scrollChapter }: { section: CustomPageSection; sectionIndex: number; scrollChapter?: string }) {
   const { editing } = useContent();
   const rootId = `site-${section.id.replace(/[^a-z0-9_-]/gi, "-")}`;
   const background = section.background || "paper";
@@ -168,6 +168,7 @@ export function BuilderSection({ section, sectionIndex }: { section: CustomPageS
     <section
       id={rootId}
       aria-label={section.title || section.label || "Custom section"}
+      data-scroll-chapter={scrollChapter}
       data-texture={section.texture || "none"}
       className={cn("builder-section relative overflow-clip", `builder-section--${background}`)}
     >

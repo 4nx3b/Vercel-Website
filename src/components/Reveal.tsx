@@ -13,6 +13,7 @@ export function Reveal({
   as: Tag = "div",
   style,
   id,
+  scrollChapter,
   variant = "rise",
 }: {
   children: ReactNode;
@@ -21,6 +22,7 @@ export function Reveal({
   as?: ElementType;
   style?: CSSProperties;
   id?: string;
+  scrollChapter?: string;
   variant?: "rise" | "focus";
 }) {
   const { ref, inView } = useInView<HTMLElement>(0.12);
@@ -28,6 +30,7 @@ export function Reveal({
     <Tag
       ref={ref}
       id={id}
+      data-scroll-chapter={scrollChapter}
       data-reveal={variant === "focus" ? "focus" : ""}
       data-inview={inView ? "" : undefined}
       style={{ ...style, ["--reveal-delay" as string]: `${delay}ms` }}

@@ -89,6 +89,18 @@
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in: cubic-bezier(0.5, 0, 0.75, 0);
   --stagger: 70ms;
+  --stack-enter-y: 7vh;
+  --stack-exit-y: -5vh;
+  --stack-enter-scale: 0.965;
+  --stack-exit-scale: 0.95;
+  --stack-enter-opacity: 0.68;
+  --stack-exit-opacity: 0.76;
+  --stagger-enter-y: 24px;
+  --stagger-enter-scale: 0.985;
+  --drift-in-y: 4vh;
+  --drift-out-y: -3vh;
+  --drift-in-scale: 0.985;
+  --drift-out-scale: 1.01;
 
   /* alive layer */
   --blur-header: 14px;
@@ -2151,26 +2163,57 @@ html.js [data-reveal="focus"][data-settled] {
   transition: none;
 }
 
-/* Scroll-linked card stack: each project eases in, settles, then recedes as the next card arrives. */
+/* Scroll-linked project deck: each card rises into the reading plane, settles, then recedes. */
 .scroll-stack {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: clamp(28px, 4vw, 48px);
+  margin-top: 3.5rem;
+  perspective: 1400px;
 }
 .scroll-stack-card {
   transform-origin: 50% 0%;
   transition: transform 0.35s var(--ease-out);
 }
+.scroll-stack > .scroll-stack-card {
+  position: relative;
+  isolation: isolate;
+}
+.scroll-stack > .scroll-stack-card::before,
+.scroll-stack > .scroll-stack-card::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0 10px -9px;
+  border: 1px solid color-mix(in srgb, var(--color-panel-text) 16%, var(--color-panel));
+  border-radius: var(--radius-xl);
+  background: var(--color-panel);
+  content: "";
+  pointer-events: none;
+  transition: transform var(--dur-3) var(--ease-out), border-color var(--dur-3) var(--ease-out);
+}
+.scroll-stack > .scroll-stack-card::before {
+  transform: translateY(7px) rotate(0.35deg);
+}
+.scroll-stack > .scroll-stack-card::after {
+  inset: 0 18px -17px 2px;
+  z-index: -2;
+  border-color: color-mix(in srgb, var(--color-panel-text) 10%, var(--color-panel));
+  background: var(--color-panel-3);
+  transform: translateY(12px) rotate(-0.4deg);
+}
 @keyframes scroll-stack-pass {
   0% {
-    transform: translate3d(0, 22px, 0) scale(0.985);
+    transform: translate3d(0, var(--stack-enter-y), 0) scale(var(--stack-enter-scale));
+    opacity: var(--stack-enter-opacity);
   }
-  34%,
-  74% {
+  18%,
+  68% {
     transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
   }
   100% {
-    transform: translate3d(0, -18px, 0) scale(0.975);
+    transform: translate3d(0, var(--stack-exit-y), 0) scale(var(--stack-exit-scale));
+    opacity: var(--stack-exit-opacity);
   }
 }
 @supports (animation-timeline: view()) {
@@ -2265,6 +2308,18 @@ html.js [data-reveal][data-inview] .scroll-stagger > :nth-child(8) { transition-
   --stagger: 48ms;
   --parallax: 3px;
   --lift-slab: 6px;
+  --stack-enter-y: 4vh;
+  --stack-exit-y: -3vh;
+  --stack-enter-scale: 0.985;
+  --stack-exit-scale: 0.98;
+  --stack-enter-opacity: 0.84;
+  --stack-exit-opacity: 0.9;
+  --stagger-enter-y: 14px;
+  --stagger-enter-scale: 0.995;
+  --drift-in-y: 2vh;
+  --drift-out-y: -1.5vh;
+  --drift-in-scale: 0.995;
+  --drift-out-scale: 1.005;
 }
 [data-motion-preset="expressive"] {
   --dur-enter: 0.72s;
@@ -2272,6 +2327,18 @@ html.js [data-reveal][data-inview] .scroll-stagger > :nth-child(8) { transition-
   --stagger: 105ms;
   --parallax: 9px;
   --lift-slab: 13px;
+  --stack-enter-y: 10vh;
+  --stack-exit-y: -7vh;
+  --stack-enter-scale: 0.92;
+  --stack-exit-scale: 0.93;
+  --stack-enter-opacity: 0.52;
+  --stack-exit-opacity: 0.68;
+  --stagger-enter-y: 36px;
+  --stagger-enter-scale: 0.97;
+  --drift-in-y: 6vh;
+  --drift-out-y: -5vh;
+  --drift-in-scale: 0.975;
+  --drift-out-scale: 1.02;
 }
 html.js [data-motion-preset="expressive"] [data-reveal] .scroll-stagger > * {
   transition-duration: 0.58s;
@@ -2472,9 +2539,9 @@ html.js [data-reveal].site-motion-stagger[data-inview] .scroll-stagger > :nth-ch
 html.js .site-motion-none [data-reveal] { opacity: 1 !important; transform: none !important; filter: none !important; }
 html.js .site-motion-none [data-reveal] .scroll-stagger > * { opacity: 1 !important; transform: none !important; transition: none !important; }
 @keyframes section-scroll-drift {
-  0% { translate: 0 22px; }
-  35%, 70% { translate: 0 0; }
-  100% { translate: 0 -14px; }
+  0% { translate: 0 var(--drift-in-y); scale: var(--drift-in-scale); }
+  35%, 68% { translate: 0 0; scale: 1; }
+  100% { translate: 0 var(--drift-out-y); scale: var(--drift-out-scale); }
 }
 @supports (animation-timeline: view()) {
   .site-motion-drift > section {
@@ -2879,8 +2946,15 @@ html.js .site-motion-none [data-reveal] .scroll-stagger > * { opacity: 1 !import
   .site-motion-drift > section {
     animation: none !important;
     translate: none !important;
+    scale: 1 !important;
   }
   .builder-card:hover { transform: none !important; }
+  .site-button:hover,
+  .site-button:active,
+  .scroll-stack-layer:hover,
+  .site-header a:hover .wm-tile { transform: none !important; }
+  .scroll-stack > .scroll-stack-card:hover::before,
+  .scroll-stack > .scroll-stack-card:hover::after { transform: none !important; }
   .fig-parallax {
     transform: none !important;
   }
@@ -2907,3 +2981,163 @@ html.js .site-motion-none [data-reveal] .scroll-stagger > * { opacity: 1 !import
     transform: none !important;
   }
 }
+
+/* ══════════════ additional scroll choreography ══════════════ */
+
+/* List rows move with the viewport instead of only firing a one-time reveal. */
+@keyframes scroll-stagger-pass {
+  from { opacity: var(--stack-enter-opacity); transform: translate3d(0, var(--stagger-enter-y), 0) scale(var(--stagger-enter-scale)); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@supports (animation-timeline: view()) {
+  html.js .scroll-stagger > * {
+    animation-name: scroll-stagger-pass;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 82%;
+  }
+}
+
+/* Live project-surface tilt is driven by the shared fine-pointer variables. */
+.scroll-stack-layer {
+  transform: perspective(1500px) rotateX(calc(var(--py, 0) * -0.35deg)) rotateY(calc(var(--px, 0) * 0.45deg));
+  transform-style: preserve-3d;
+  transition: transform var(--dur-3) var(--ease-out), border-color var(--dur-3) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .scroll-stack > .scroll-stack-card:hover::before { transform: translateY(3px) rotate(0deg); }
+  .scroll-stack > .scroll-stack-card:hover::after { transform: translateY(7px) rotate(0deg); }
+  .scroll-stack-layer:hover {
+    border-color: color-mix(in srgb, var(--color-panel-text) 40%, var(--color-panel-rule));
+    transform: translateY(-2px) perspective(1500px) rotateX(calc(var(--py, 0) * -0.35deg)) rotateY(calc(var(--px, 0) * 0.45deg));
+    transition: border-color var(--dur-3) var(--ease-out);
+  }
+  .site-button:not(:disabled):hover { transform: translateY(-2px); }
+  .site-button:not(:disabled):active { transform: translateY(0) scale(0.985); }
+  .site-button > svg:last-child { transition: transform var(--dur-2) var(--ease-out); }
+  .site-button:not(:disabled):hover > svg:last-child { transform: translate(2px, -2px); }
+  .site-header nav[aria-label="Primary"] > ul a { position: relative; }
+  .site-header nav[aria-label="Primary"] > ul a::after {
+    position: absolute;
+    right: 0;
+    bottom: -6px;
+    left: 0;
+    height: 1px;
+    background: var(--color-vermilion);
+    content: "";
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+  .site-header nav[aria-label="Primary"] > ul a:hover::after { transform: scaleX(1); }
+  .site-header a:hover .wm-tile { transform: rotate(-6deg) translateY(-1px); }
+}
+.wm-tile { transition: transform var(--dur-2) var(--ease-out); }
+
+/* A compact chapter rail: the active index advances as sections cross the reading line. */
+.scroll-index {
+  position: fixed;
+  z-index: 42;
+  top: 50%;
+  right: max(10px, calc((100vw - var(--page-max)) / 2 - 36px));
+  transform: translateY(-50%);
+}
+.scroll-index-caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+.scroll-index-list {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.scroll-index-list::before {
+  position: absolute;
+  top: 16px;
+  right: 4px;
+  bottom: 16px;
+  width: 1px;
+  background: var(--color-rule);
+  content: "";
+}
+.scroll-index-list a {
+  position: relative;
+  display: flex;
+  width: 30px;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--color-graphite);
+  text-decoration: none;
+  transition: color var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out);
+}
+.scroll-index-number {
+  font: 10px/1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  transition: color var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+}
+.scroll-index-mark {
+  position: absolute;
+  right: 3px;
+  width: 1px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--color-rule-strong);
+  transition: width var(--dur-2) var(--ease-out), height var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out);
+}
+.scroll-index-title {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  right: calc(100% + 10px);
+  max-width: min(180px, 34vw);
+  padding: 7px 9px;
+  border: 1px solid var(--color-rule-strong);
+  background: color-mix(in srgb, var(--color-paper) 94%, transparent);
+  color: var(--color-ink);
+  font: 10px/1.25 var(--font-mono);
+  letter-spacing: 0.04em;
+  opacity: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transform: translate3d(5px, -50%, 0);
+  transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.scroll-index-list li[data-active] > a { color: var(--color-vermilion-ink); }
+.scroll-index-list li[data-active] .scroll-index-number { transform: translateX(-1px); }
+.scroll-index-list li[data-active] .scroll-index-mark {
+  width: 3px;
+  height: 17px;
+  background: var(--color-vermilion);
+}
+.scroll-index-list a:hover .scroll-index-title,
+.scroll-index-list a:focus-visible .scroll-index-title {
+  opacity: 1;
+  transform: translate3d(0, -50%, 0);
+}
+.scroll-index-list a:focus-visible {
+  outline: 2px solid var(--color-vermilion);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) and (min-width: 768px) {
+  .scroll-index-list a { width: 44px; min-height: 44px; }
+  .scroll-index-list::before { top: 23px; right: 6px; bottom: 23px; }
+  .scroll-index-mark { right: 5px; }
+}
+@media (max-width: 767px) {
+  .scroll-index { display: none; }
+}
+.site-button:not(:disabled):active { transform: translateY(0) scale(0.985); }
