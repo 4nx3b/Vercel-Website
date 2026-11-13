@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ABOUT, ADMIN_EMAIL, ANIME, APP, FIREBASE, GAMES, HERO, MUSIC, NAV_LINKS, PARTITIONS, PLAYLISTS, QUIZ, ROM_POST, SOCIALS } from "../lib/data";
-import { OWNER_EVENT, apiErrorMessage, apiMissing, isOwner, jfetch, ownerPost, refreshTokenIfNeeded } from "../lib/owner";
+import { OWNER_EVENT, isOwner, jfetch, refreshTokenIfNeeded } from "../lib/owner";
 
 /* ------------------------------------------------------------------ *
  * Editable site content.
@@ -261,6 +261,7 @@ const DOC_URL = () =>
 const OWNER_PROFILE_URL = () =>
   `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents/siteOwner/profile`;
 const MAX_OWNER_AVATAR_CHARS = 220_000;
+let ownerProfileApiSupported: boolean | null = null;
 
 function isOwnerAvatar(value: unknown): value is string {
   return typeof value === "string" && value.length <= MAX_OWNER_AVATAR_CHARS &&
@@ -275,12 +276,15 @@ async function readOwnerAvatarFromApi(): Promise<string | null> {
     });
     const data = await response.json().catch(() => null);
     if (data?.resource !== "siteOwner/profile") {
+      ownerProfileApiSupported = false;
       return null;
     }
+    ownerProfileApiSupported = true;
     if (!response.ok) return null;
     const value = data?.avatar || "";
     return isOwnerAvatar(value) ? value : "";
   } catch {
+    ownerProfileApiSupported = false;
     return null;
   }
 }
@@ -323,25 +327,43 @@ async function writeOwnerAvatarToFirestore(value: string, token: string): Promis
       throw new Error(`The owner sign-in expired. Sign in again as ${ADMIN_EMAIL}.${detail}`);
     }
     if (response.status === 403) {
-      throw new Error(`Firestore denied the profile update. This host has no /api, so it writes Firestore directly: deploy firestore.rules to ${FIREBASE.projectId}.${detail}`);
+      throw new Error(`Firestore denied the profile update. Publish firestore.rules to Firebase project ${FIREBASE.projectId}, then sign out and back in as the verified owner ${ADMIN_EMAIL}.${detail}`);
     }
     throw new Error(data?.error?.message || `Profile update failed (${response.status})`);
   }
   return updatedAt;
 }
 
-async function writeOwnerAvatar(value: string): Promise<string> {
-  const { response, data } = await ownerPost(OWNER_PROFILE_API_URL, { avatar: value });
-  if (response?.ok && data?.resource === "siteOwner/profile") {
-    return typeof data.updatedAt === "string" ? data.updatedAt : new Date().toISOString();
+async function writeOwnerAvatar(value: string, token: string): Promise<string> {
+  if (ownerProfileApiSupported !== true) await readOwnerAvatarFromApi();
+  if (ownerProfileApiSupported) {
+    try {
+      const response = await fetch(OWNER_PROFILE_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ avatar: value }),
+      });
+      const data = await response.json().catch(() => null);
+      if (response.ok && data?.resource === "siteOwner/profile") {
+        return typeof data.updatedAt === "string" ? data.updatedAt : new Date().toISOString();
+      }
+      if (response.status === 404 || response.status === 405 || response.status >= 500) {
+        ownerProfileApiSupported = false;
+      } else if (response.status === 401) {
+        throw new Error(data?.error?.message || `The owner sign-in expired. Sign in again as ${ADMIN_EMAIL}.`);
+      } else if (response.status === 403) {
+        throw new Error(data?.error?.message || `Permission denied. Verify the owner email ${ADMIN_EMAIL} and sign in again.`);
+      } else if (response.ok) {
+        ownerProfileApiSupported = false;
+      } else {
+        throw new Error(data?.error?.message || `Profile update failed (${response.status})`);
+      }
+    } catch (error) {
+      if (error instanceof Error && /permission denied|verify the owner|sign-in expired|not allowed/i.test(error.message)) throw error;
+      ownerProfileApiSupported = false;
+    }
   }
-  if (apiMissing(response)) {
-    // No API on this host (static preview / old deploy): the owner-gated Firestore rules path.
-    return writeOwnerAvatarToFirestore(value, await refreshTokenIfNeeded());
-  }
-  const msg = apiErrorMessage(data);
-  if (response?.status === 401) throw new Error(msg || `Your owner sign-in has expired. Sign in again as ${ADMIN_EMAIL}.`);
-  throw new Error(msg || `Profile update failed (${response?.status})`);
+  return writeOwnerAvatarToFirestore(value, token);
 }
 
 export function cachedOwnerAvatar(): string {
@@ -357,20 +379,14 @@ export async function loadOwnerAvatar(): Promise<string> {
 
 export async function saveOwnerAvatar(avatar: string): Promise<void> {
   if (!isOwnerAvatar(avatar)) throw new Error("Choose a PNG, JPEG, or WebP image that is smaller than 220 KB after resizing.");
-  await writeOwnerAvatar(avatar);
+  const token = await refreshTokenIfNeeded();
+  await writeOwnerAvatar(avatar, token);
   write(OWNER_AVATAR_CACHE_KEY, avatar);
 }
 
 const SITE_IMAGE_DATA_URL = /^data:image\/(?:webp|png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/;
 export async function loadSiteImageData(id: string): Promise<string> {
   if (!/^[\w-]{4,80}$/.test(id)) throw new Error("Invalid published image ID.");
-  // The API serves the bytes with an immutable cache header; works without client rules.
-  try {
-    const r = await fetch(`/api/site-content?image=${encodeURIComponent(id)}`, { cache: "force-cache" });
-    if (r.ok && (r.headers.get("content-type") || "").startsWith("image/")) return URL.createObjectURL(await r.blob());
-  } catch {
-    /* fall through to Firestore (static hosts) */
-  }
   const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents/siteImages/${encodeURIComponent(id)}?key=${encodeURIComponent(FIREBASE.apiKey)}`;
   const doc = await jfetch(url, { cache: "force-cache" });
   const value = doc?.fields?.data?.stringValue;
@@ -488,27 +504,63 @@ async function writePublished(payload: unknown): Promise<string> {
     throw new Error("Published content is too large. Remove some large text or images and try again.");
   }
   const token = await refreshTokenIfNeeded();
-  const updatedAt = new Date().toISOString();
-  const url = `${DOC_URL()}?key=${encodeURIComponent(FIREBASE.apiKey)}&updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt`;
-  let direct: Response;
+  const json = JSON.stringify(payload);
+  let response: Response | null = null;
+  let data: any = null;
   try {
-    direct = await fetch(url, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ fields: { json: { stringValue: json }, updatedAt: { stringValue: updatedAt } } }),
+    response = await fetch("/api/site-content", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+      body: JSON.stringify({ json }),
     });
+    data = await response.json().catch(() => null);
   } catch {
-    throw new Error("Could not reach the publishing API or Firestore. Check your connection and try again.");
+    // A static host or preview may not have an /api route. Try the shared Firestore document.
   }
-  if (direct.ok) return updatedAt;
-  const directData = await direct.json().catch(() => null);
-  if (direct.status === 401) throw new Error("Your owner sign-in has expired. Sign in again, then publish.");
-  if (direct.status === 403) throw new Error(`This host has no /api, so it publishes to Firestore directly, and Firestore denied it: deploy firestore.rules to ${FIREBASE.projectId}.`);
-  throw new Error(apiErrorMessage(directData) || `Firestore publish failed (${direct.status})`);
+
+  if (response?.ok && typeof data?.updatedAt === "string") return data.updatedAt;
+  if (response?.status === 401) throw new Error("Your owner session is no longer valid. Sign in again, then publish.");
+
+  const apiMissing = !response || response.status === 404 || response.status === 405 || response.status === 503 || response.status >= 500 ||
+    !(response.headers.get("content-type") || "").includes("json") || (response.ok && typeof data?.updatedAt !== "string");
+  if (apiMissing || response?.status === 403) {
+    if (new TextEncoder().encode(json).length > 900_000) {
+      throw new Error("Published content is too large for the direct Firestore fallback. Remove some large text or images and try again.");
+    }
+    const updatedAt = new Date().toISOString();
+    const url = `${DOC_URL()}?key=${encodeURIComponent(FIREBASE.apiKey)}&updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt`;
+    let directResponse: Response;
+    try {
+      directResponse = await fetch(url, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ fields: { json: { stringValue: json }, updatedAt: { stringValue: updatedAt } } }),
+      });
+    } catch {
+      throw new Error("Could not reach the publishing API or Firestore. Check your connection and try again.");
+    }
+    const directData = await directResponse.json().catch(() => null);
+    if (directResponse.ok) return updatedAt;
+    if (directResponse.status === 401) throw new Error("Your owner session is no longer valid. Sign in again, then publish.");
+    if (directResponse.status === 403) {
+      throw new Error("Firestore denied direct publishing. Deploy firestore.rules and confirm the signed-in owner account is verified.");
+    }
+    throw new Error(directData?.error?.message || `Firestore publish failed (${directResponse.status})`);
+  }
+
+  const detail = String(data?.error || "");
+  if (response?.status === 400 || response?.status === 413) {
+    throw new Error(detail || "The published content is invalid or too large.");
+  }
+  throw new Error(detail || `Publish failed (${response?.status ?? "unknown"})`);
 }
 
 function explainPublishError(error: unknown) {
   const message = error instanceof Error ? error.message : "";
+  if (/Firestore denied direct publishing/i.test(message)) return message;
+  if (/PERMISSION_DENIED|permission denied|403/i.test(message)) {
+    return "The publishing service cannot write to this Firestore project. Check its Firestore rules and owner permissions.";
+  }
   return message || "Couldn’t publish. Please try again.";
 }
 

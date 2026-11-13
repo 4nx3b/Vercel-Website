@@ -75,7 +75,7 @@ Accessibility: skip link, one h1, header/main/footer landmarks, 2px
 
 ```txt
 api/
-├─ site-content.js       # public published-content/image reads; owner-only writes
+├─ site-content.js       # public published-content/image reads; owner-verified writes
 ├─ telegram.js           # sends Telegram notification for new questions
 ├─ telegram-webhook.js   # Telegram bot reply-to-answer support
 └─ ama-vote.js            # vote sync to Firestore (service account)
@@ -188,7 +188,7 @@ The **Design system** controls the site-wide font and motion presets, while the 
 can be hidden without deleting its content. The Ask section stays visible for its public question
 feed and owner moderation console. Custom sections can add themselves to the navigation.
 
-Uploaded builder images use the owner-only media API or the Firestore fallback on static hosts;
+Uploaded builder images use the owner-verified media API or the Firestore fallback on static hosts;
 they are compressed to WebP (maximum 1600px / 700 KB). **Edit mode** also keeps the inline text
 and image tools available on the live page. Drafts are stored locally for the owner; the published
 Firestore document is the shared source of truth, so publishing is required for all visitors to see
@@ -199,15 +199,9 @@ clears all published overrides.
 
 On Vercel and Cloudflare, `/api/site-content` reads and writes published content, uploaded images,
 and the shared owner profile with the service account (`FIREBASE_SERVICE_ACCOUNT_KEY`, the same
-variable `/api/ama-vote` uses). Every owner write (content, images, the profile icon) is
-authenticated the same way: the server asks Google who the Firebase ID token belongs to and accepts
-it only for the admin email. Email *verification* is not required — the owner signs in with email +
-password, and such accounts are unverified unless a verification link was clicked. (Requiring it was
-what made "Set profile icon" fail with "Permission denied".) Only when a host has no `/api` at all
-(404/405 or a non-JSON reply) does the site write Firestore directly, restricted by `firestore.rules`.
-Errors always come back as `{ "error": { "message", "code" } }` and the owner panel shows the message.
-
-Run the endpoint tests (no network or credentials needed): `node scripts/test-site-content.mjs`.
+variable `/api/ama-vote` uses). Owner writes are authenticated with a Firebase ID token; profile
+updates also require the owner email to be verified. If the function is missing or unavailable, the
+site falls back to direct Firestore REST, which is restricted by the verified-owner rules.
 
 - **Vercel:** use the service-account environment variable configured for the project.
 - **Cloudflare:** add `FIREBASE_SERVICE_ACCOUNT_KEY` under Workers & Pages → project →

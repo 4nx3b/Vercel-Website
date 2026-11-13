@@ -5,6 +5,7 @@ service cloud.firestore {
       // Same policy as /api/site-content: the signed-in admin account.
       // (Password accounts are unverified unless a verification link was clicked.)
       return request.auth != null
+        && request.auth.token.email_verified == true
         && request.auth.token.email == "asaxxhiii@gmail.com";
     }
 

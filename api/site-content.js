@@ -21,13 +21,8 @@ const PROFILE_AVATAR_DATA_URL = /^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+
 
 export const config = { api: { bodyParser: { sizeLimit: "3mb" } } };
 
-function httpError(message, status, code) {
-  return Object.assign(new Error(message), { status, code });
-}
-
-/** One error shape for every response: { error: { message, code } }. */
-function errBody(message, code) {
-  return { error: { message, code: code || "error" } };
+function httpError(message, status) {
+  return Object.assign(new Error(message), { status });
 }
 
 function serviceAccount() {
@@ -115,14 +110,8 @@ async function firestore(method, url, body) {
   return data;
 }
 
-/**
- * Trust the identity returned by Google, never an email supplied in a body.
- * Ownership = a valid Google-issued ID token whose account email is the admin's.
- * Email *verification* is deliberately not required: the owner signs in with
- * email + password, and those accounts are unverified unless a link was
- * clicked. That gate is what made "Set profile icon" fail with 403.
- */
-async function requireOwner(req) {
+/** Trust the identity returned by Firebase, never an email supplied in a body. */
+async function requireOwner(req, requireVerifiedEmail = false) {
   const authorization = req.headers?.authorization || req.headers?.Authorization || "";
   const idToken = String(authorization).replace(/^Bearer\s+/i, "").trim();
   if (!idToken) throw httpError("Sign in as the site owner first", 401);
@@ -135,11 +124,11 @@ async function requireOwner(req) {
   const data = await response.json().catch(() => null);
   const user = data?.users?.[0];
   const email = String(user?.email || "").toLowerCase();
-  if (!response.ok) {
-    throw httpError("The owner sign-in has expired or is invalid. Sign in again.", 401, "token_invalid");
+  if (!response.ok || email !== ADMIN_EMAIL.toLowerCase()) {
+    throw httpError("This Firebase account is not allowed to publish site content", 401);
   }
-  if (email !== ADMIN_EMAIL.toLowerCase()) {
-    throw httpError("This account is not the site owner.", 401, "not_owner");
+  if (requireVerifiedEmail && user?.emailVerified !== true) {
+    throw httpError(`Verify the owner email ${ADMIN_EMAIL} before saving the shared profile icon`, 403);
   }
 }
 
@@ -173,7 +162,7 @@ function send(res, status, obj, cache = "no-store", headOnly = false) {
 
 function sendError(res, error) {
   const status = Number.isInteger(error?.status) ? error.status : 500;
-  return send(res, status, errBody(error?.message || "Site content request failed", error?.code || `http_${status}`));
+  return send(res, status, { error: error?.message || "Site content request failed" });
 }
 
 export default async function handler(req, res) {
@@ -199,11 +188,11 @@ export default async function handler(req, res) {
       }
 
       if (imageId) {
-        if (!/^[\w-]{4,80}$/.test(imageId)) return send(res, 400, errBody("Invalid image ID"));
+        if (!/^[\w-]{4,80}$/.test(imageId)) return send(res, 400, { error: "Invalid image ID" });
         const doc = await firestore("GET", docUrl(`siteImages/${imageId}`));
         const dataUrl = doc?.fields?.data?.stringValue || "";
         const match = dataUrl.match(IMAGE_DATA_URL);
-        if (!match) return send(res, 404, errBody("Image not found"));
+        if (!match) return send(res, 404, { error: "Image not found" });
 
         res.statusCode = 200;
         res.setHeader("Content-Type", `image/${match[1]}`);
@@ -225,17 +214,17 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "POST") {
-      await requireOwner(req);
+      await requireOwner(req, ownerProfile);
       const body = await readBody(req);
       const now = new Date().toISOString();
 
       if (ownerProfile) {
         const avatar = typeof body?.avatar === "string" ? body.avatar : "";
         if (avatar && !PROFILE_AVATAR_DATA_URL.test(avatar)) {
-          return send(res, 400, errBody("Expected a PNG, JPEG, or WebP profile image"));
+          return send(res, 400, { error: "Expected a PNG, JPEG, or WebP profile image" });
         }
         if (Buffer.byteLength(avatar, "utf8") > MAX_PROFILE_AVATAR_BYTES) {
-          return send(res, 413, errBody("Profile image is too large"));
+          return send(res, 413, { error: "Profile image is too large" });
         }
 
         await firestore("PATCH", `${docUrl("siteOwner/profile")}?updateMask.fieldPaths=avatar&updateMask.fieldPaths=updatedAt`, {
@@ -250,8 +239,8 @@ export default async function handler(req, res) {
       if (imageId) {
         const dataUrl = String(body?.data || "");
         const match = dataUrl.match(IMAGE_DATA_URL);
-        if (!match) return send(res, 400, errBody("Expected a WebP, PNG, or JPEG image data URL"));
-        if (Buffer.byteLength(dataUrl) > MAX_IMAGE_BYTES) return send(res, 413, errBody("Image is too large"));
+        if (!match) return send(res, 400, { error: "Expected a WebP, PNG, or JPEG image data URL" });
+        if (Buffer.byteLength(dataUrl) > MAX_IMAGE_BYTES) return send(res, 413, { error: "Image is too large" });
 
         const id = randomUUID().replace(/-/g, "");
         await firestore("PATCH", docUrl(`siteImages/${id}`), {
@@ -264,15 +253,15 @@ export default async function handler(req, res) {
       }
 
       const json = typeof body?.json === "string" ? body.json : JSON.stringify(body?.json ?? {});
-      if (Buffer.byteLength(json, "utf8") > MAX_JSON_BYTES) return send(res, 413, errBody("Site content is too large"));
+      if (Buffer.byteLength(json, "utf8") > MAX_JSON_BYTES) return send(res, 413, { error: "Site content is too large" });
       let parsed;
       try {
         parsed = JSON.parse(json);
       } catch {
-        return send(res, 400, errBody("Published content must be valid JSON"));
+        return send(res, 400, { error: "Published content must be valid JSON" });
       }
       if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-        return send(res, 400, errBody("Published content must be a JSON object"));
+        return send(res, 400, { error: "Published content must be a JSON object" });
       }
 
       await firestore("PATCH", `${docUrl("siteContent/live")}?updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt`, {
@@ -285,7 +274,7 @@ export default async function handler(req, res) {
     }
 
     res.setHeader("Allow", "GET, HEAD, POST");
-    return send(res, 405, errBody("Method not allowed"));
+    return send(res, 405, { error: "Method not allowed" });
   } catch (error) {
     return sendError(res, error);
   }
