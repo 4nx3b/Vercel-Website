@@ -117,6 +117,30 @@ In the Cloudflare dashboard (Pages → project → Settings → Build):
 
 `functions/` holds Cloudflare Pages Functions that mirror `/api/yt-playlists` and `/api/yt-cover`, so live playlist covers and counts work on Cloudflare too (Vercel ignores this folder and keeps using `/api`).
 
+### If the live Cloudflare site looks old or blank
+
+When `v3rsi0n.miuka.moe` still serves a tiny page that loads `/src/main.tsx` (stale anime
+stats, blank playlist covers, `/api/*` returning HTML), Cloudflare is serving an **old
+deployment** because newer builds are failing. Check, in order:
+
+1. **Workers & Pages → project → Deployments**: the latest build must be green. If it is
+   red, open it and copy the build log.
+2. **Settings → Build**: command `npm run build`, output directory `dist`. Node comes from
+   `.node-version` (22.12.0 — Vite 7 needs Node ≥ 20.19); or set `NODE_VERSION = 22.12.0`.
+3. **Speed → Optimization → Rocket Loader: Off.** Every script also carries
+   `data-cfasync="false"` so Rocket Loader skips them, but turning it off is safest.
+4. Functions in `functions/` are picked up automatically; after a green build,
+   `/api/yt-cover?id=…` answers with a 302 and `/api/yt-playlists` with JSON.
+
 `public/_headers` is copied into `dist` and only read by Cloudflare. The `/api/*` routes are
 Vercel functions, so on Cloudflare the playlist refresh and AMA notifications quietly fall back
 to cached or local data. Vercel deploys are unaffected by these files.
+
+## Owner editor
+
+Sign in with the owner account (footer **Owner** link, or open `/#admin`). A toolbar appears at the
+bottom: **Edit** turns on inline editing, **Publish** saves to Firestore (`siteContent/live`),
+**Discard** drops the local draft, **Reset** clears all published overrides.
+
+Before Publish works, deploy the rules in `firestore.rules`: Firebase console → Firestore →
+Rules → paste → Publish (or `firebase deploy --only firestore:rules`).

@@ -24,5 +24,15 @@ service cloud.firestore {
 
       allow update, delete: if isAdmin();
     }
+
+    // Owner inline editor: published site content + uploaded images
+    match /siteContent/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /siteImages/{id} {
+      allow read: if true;
+      allow write: if isAdmin() && request.resource.data.data.size() < 1000000;
+    }
   }
 }

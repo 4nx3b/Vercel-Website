@@ -3,6 +3,8 @@ import { ArrowRight, MessageCircle } from "lucide-react";
 import { HERO, type PartitionKey } from "../lib/data";
 import { usePointerVars } from "../hooks/usePointerVars";
 import { useScrollVar } from "../hooks/useScrollVar";
+import { useContent } from "../content/store";
+import { Blocks, EText } from "../content/Editable";
 import { FigPhone, type FigPhoneHandle } from "./FigPhone";
 import { PartitionBench } from "./HeroBench";
 import { SakuraField, SpeedLines } from "./AnimeFx";
@@ -50,7 +52,9 @@ export function Hero() {
     setActive("boot");
   };
 
-  const sentence = `${HERO.lines.join(" ")} ${HERO.emphasis}.`;
+  const { content } = useContent();
+  const h = content.hero;
+  const sentence = `${h.line1} ${h.line2} ${h.line3} ${h.emphasis}.`;
 
   return (
     <>
@@ -68,10 +72,10 @@ export function Hero() {
               <p className="flex items-center gap-3 font-mono text-micro uppercase tracking-[0.18em]">
                 <span className="shrink-0 whitespace-nowrap text-vermilion-ink">§ 00</span>
                 <span aria-hidden className="h-px w-8 bg-rule-strong" />
-                <span className="text-graphite">{HERO.kicker}</span>
+                <EText path="hero.kicker" className="text-graphite" label="Hero kicker" />
               </p>
               <Pill badge="New" className="m-float">
-                {HERO.pill}
+                <EText path="hero.pill" label="Hero badge" />
               </Pill>
             </div>
             <p aria-hidden className="hero-wordmark mt-4 select-none font-display text-ink">
@@ -120,7 +124,12 @@ export function Hero() {
           <div className="relative z-20 mt-10 lg:col-span-6 lg:col-start-1 lg:row-start-2 lg:mt-6">
             <h1 id="hero-title" aria-label={sentence} className="font-display text-page font-normal text-ink">
               <span aria-hidden className="m-focus block" style={{ ["--i" as string]: 3 }}>
-                {HERO.lines[0]} {HERO.lines[1]} {HERO.lines[2]} <em className="ital">{HERO.emphasis}</em>.
+                <EText path="hero.line1" label="Headline part 1" /> <EText path="hero.line2" label="Headline part 2" />{" "}
+                <EText path="hero.line3" label="Headline part 3" />{" "}
+                <em className="ital">
+                  <EText path="hero.emphasis" label="Headline emphasis" />
+                </em>
+                .
               </span>
             </h1>
             <p className="m-rise mt-5 font-mono text-md text-ink-soft" style={{ ["--m-delay" as string]: "0.32s" }}>
@@ -132,16 +141,19 @@ export function Hero() {
             </p>
             <div className="m-rise mt-7 flex flex-wrap items-center gap-3" style={{ ["--m-delay" as string]: "0.4s" }}>
               <Button href="#work" variant="ink" className="min-h-[52px] px-7 text-[16px]">
-                {HERO.ctaPrimary}
+                <EText path="hero.ctaPrimary" label="Primary button" />
                 <ArrowRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
               </Button>
               <Button href="#ask" variant="outline" className="min-h-[52px] bg-paper/80 px-7 text-[16px]">
                 <MessageCircle aria-hidden className="h-4 w-4" strokeWidth={1.75} />
-                {HERO.ctaSecondary}
+                <EText path="hero.ctaSecondary" label="Secondary button" />
               </Button>
             </div>
           </div>
 
+        </div>
+        <div className="page relative">
+          <Blocks section="hero" />
         </div>
       </section>
 

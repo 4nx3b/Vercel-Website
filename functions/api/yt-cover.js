@@ -20,3 +20,6 @@ export async function onRequestGet({ request }) {
     headers: { Location: target, "Cache-Control": "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400" },
   });
 }
+
+// HEAD gets the same answer (otherwise Pages falls through to the static index).
+export const onRequestHead = onRequestGet;
