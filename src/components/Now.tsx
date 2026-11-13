@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { ArrowUpRight, Check } from "lucide-react";
 import { cn } from "../utils/cn";
-import { ABOUT, ANIME, MUSIC } from "../lib/data";
+import { useContent } from "../content/store";
+import { Blocks, EField, EStringList, EText } from "../content/Editable";
 import { PlaylistShelf } from "./Music";
 import { agoShort, useAniList, type AnimeStats as AnimeStatsT } from "../hooks/useAniList";
 import { Play } from "./Play";
@@ -19,13 +20,14 @@ function UseCase({
   link,
   aside,
 }: {
-  title: string;
-  prompt: string;
+  title: ReactNode;
+  prompt: ReactNode;
   checks: ReactNode[];
-  get: string;
-  link?: { href: string; label: string };
+  get: ReactNode;
+  link?: { href: string; label: ReactNode; urlPath?: string };
   aside?: ReactNode;
 }) {
+  const { editing } = useContent();
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
       <div>
@@ -55,12 +57,14 @@ function UseCase({
               href={link.href}
               target={link.href.startsWith("#") ? undefined : "_blank"}
               rel="noreferrer"
+              onClick={(event) => editing && event.preventDefault()}
               className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-ink underline decoration-rule-strong underline-offset-4 transition-colors duration-[var(--dur-2)] hover:decoration-ink"
             >
               {link.label}
               <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
             </a>
           )}
+          {link?.urlPath && <EField path={link.urlPath} label="Profile link URL" type="url" />}
         </div>
       </div>
       {aside && <div>{aside}</div>}
@@ -136,52 +140,53 @@ function AnimeStats({ stats, gridRef }: { stats: AnimeStatsT; gridRef: React.Ref
 
 /** Anime tab: one AniList hook feeds both the checklist and the stat grid. */
 function AnimeTab() {
+  const { content } = useContent();
+  const about = content.about;
   const gridRef = useRef<HTMLDListElement>(null);
   const stats = useAniList(gridRef);
   return (
     <UseCase
-      title="Logged on AniList."
-      prompt={`anilist stats --user ${ANIME.handle}`}
+      title={<EText path="about.animeTitle" label="Anime tab title" />}
+      prompt={<EText path="about.animePrompt" label="Anime command example" />}
       checks={[
         `${stats.count.toLocaleString("en-US")} titles completed.`,
         `${stats.episodes.toLocaleString("en-US")} episodes logged.`,
         `Mean score ${stats.mean.toFixed(1)}.`,
       ]}
-      get="The full watch list, scored."
-      link={{ href: ANIME.url, label: `${ANIME.handle} on AniList` }}
+      get={<EText path="about.animeGet" label="AniList description" />}
+      link={{ href: about.anilistUrl, label: <EText path="about.anilistLinkLabel" label="AniList link label" />, urlPath: "about.anilistUrl" }}
       aside={<AnimeStats stats={stats} gridRef={gridRef} />}
     />
   );
 }
 
 function MeTab() {
-  const f = ABOUT.facts;
+  const { content } = useContent();
+  const about = content.about;
   return (
     <div className="grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16">
       <div>
-        <h3 className="font-display text-page font-normal text-ink">The short version.</h3>
+        <EText path="about.shortTitle" as="h3" className="block font-display text-page font-normal text-ink" label="Short bio heading" />
         <p className="mt-4 font-mono text-md text-ink-soft">
-          {f.age} <span aria-hidden className="text-graphite">·</span> {f.gender}{" "}
+          <EText path="about.age" label="About age" /> <span aria-hidden className="text-graphite">·</span> <EText path="about.gender" label="About gender" />{" "}
           <span aria-hidden className="text-graphite">·</span>{" "}
-          <span role="img" aria-label={f.country}>
-            {f.flag}
-          </span>
+          <span role="img" aria-label={about.country}><EText path="about.flag" label="About country flag" /></span>
         </p>
-        <p className="mt-3 max-w-[48ch] text-lg text-ink-soft">{f.line}</p>
+        <EText path="about.line" as="p" multiline className="mt-3 block max-w-[48ch] text-lg text-ink-soft" label="About summary" />
 
-        <h4 className="mt-10 font-mono text-xs uppercase tracking-[0.14em] text-graphite">Into</h4>
-        <ul className="mt-3 border-t border-rule">
-          {ABOUT.interests.map((it) => (
-            <li key={it.title} className="border-b border-rule py-4">
-              <p className="text-lg font-semibold text-ink">{it.title}</p>
-              <p className="mt-1 text-md text-ink-soft">{it.desc}</p>
+        <h4 className="mt-10 font-mono text-xs uppercase tracking-[0.14em] text-graphite"><EText path="about.intoLabel" label="Interests label" /></h4>
+        <ul className="scroll-stagger mt-3 border-t border-rule">
+          {about.interests.map((interest, index) => (
+            <li key={`${interest.title}-${index}`} className="border-b border-rule py-4">
+              <EText path={`about.interests.${index}.title`} as="p" className="block text-lg font-semibold text-ink" label={`Interest ${index + 1} title`} />
+              <EText path={`about.interests.${index}.desc`} as="p" multiline className="mt-1 block text-md text-ink-soft" label={`Interest ${index + 1} description`} />
             </li>
           ))}
         </ul>
       </div>
 
       <div>
-        <h4 className="font-mono text-xs uppercase tracking-[0.14em] text-graphite">Devices</h4>
+        <h4 className="font-mono text-xs uppercase tracking-[0.14em] text-graphite"><EText path="about.devicesLabel" label="Devices label" /></h4>
         <table className="mt-3 w-full border-t border-ink text-left">
           <thead className="sr-only sm:not-sr-only">
             <tr className="border-b border-rule font-mono text-xs uppercase tracking-[0.12em] text-graphite">
@@ -190,94 +195,87 @@ function MeTab() {
               <th scope="col" className="py-3 font-normal">Detail</th>
             </tr>
           </thead>
-          <tbody>
-            {ABOUT.devices.map((d) => (
-              <tr key={d.role} className="flex flex-col gap-1 border-b border-rule py-4 sm:table-row sm:py-0">
+          <tbody className="scroll-stagger">
+            {about.devices.map((device, index) => (
+              <tr key={`${device.role}-${index}`} className="flex flex-col gap-1 border-b border-rule py-4 sm:table-row sm:py-0">
                 <th scope="row" className="font-mono text-xs font-normal uppercase tracking-[0.12em] text-vermilion-ink sm:py-4 sm:pr-4 sm:align-top">
-                  {d.role}
+                  <EText path={`about.devices.${index}.role`} label={`Device ${index + 1} role`} />
                 </th>
-                <td className="text-lg font-medium text-ink sm:py-4 sm:pr-4 sm:align-top">{d.device}</td>
+                <td className="text-lg font-medium text-ink sm:py-4 sm:pr-4 sm:align-top">
+                  <EText path={`about.devices.${index}.device`} label={`Device ${index + 1} name`} />
+                </td>
                 <td className="text-md text-ink-soft sm:py-4 sm:align-top">
-                  <span className="font-mono text-sm">{d.detail}</span>
-                  {d.aside && <span className="block text-sm italic text-graphite">({d.aside})</span>}
+                  <span className="font-mono text-sm"><EText path={`about.devices.${index}.detail`} label={`Device ${index + 1} detail`} /></span>
+                  {device.aside && <span className="block text-sm italic text-graphite">(<EText path={`about.devices.${index}.aside`} label={`Device ${index + 1} aside`} />)</span>}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
 
-        <h4 className="mt-10 font-mono text-xs uppercase tracking-[0.14em] text-graphite">Games · {ABOUT.gamesLead}</h4>
-        <ol className="mt-3 border-t border-ink">
-          {ABOUT.games.map((g, i) => (
-            <li key={g} className="flex items-baseline gap-4 border-b border-rule py-3">
-              <span className="w-6 shrink-0 font-mono text-xs text-graphite tabular">{String(i + 1).padStart(2, "0")}</span>
-              <span className="text-lg text-ink">{g}</span>
-            </li>
-          ))}
-        </ol>
+        <h4 className="mt-10 font-mono text-xs uppercase tracking-[0.14em] text-graphite">
+          <EText path="about.gamesLabel" label="Games label" /> · <EText path="about.gamesLead" label="Games introduction" />
+        </h4>
+        <EStringList
+          path="about.games"
+          as="ol"
+          className="scroll-stagger mt-3 border-t border-ink"
+          itemClassName="flex items-baseline gap-4 border-b border-rule py-3 text-lg text-ink"
+          textClassName="text-lg text-ink"
+          itemLabel="game"
+          numbered
+        />
       </div>
     </div>
   );
 }
 
-const TABS = [
-  {
-    id: "me",
-    label: "Me",
-    render: () => <MeTab />,
-  },
-  {
-    id: "anime",
-    label: "Anime",
-    render: () => <AnimeTab />,
-  },
-  {
-    id: "music",
-    label: "Music",
-    render: () => (
-      <div className="flex flex-col gap-12">
-        <section aria-label="My YouTube Music playlists">
-          <Kicker className="text-ink-soft">My YouTube Music playlists</Kicker>
-          <div className="mt-4">
-            <PlaylistShelf />
-          </div>
-        </section>
-        <UseCase
-          title="Mostly J-pop and EDM."
-          prompt={`last.fm now --user ${MUSIC.handle}`}
-          checks={[
-            ABOUT.interests[2].desc,
-            "Five playlists: Japanese, English, Hindi, Phonk and a mix.",
-            "Three tracks on rotation live in the header player.",
-            "Scrobbled on Last.fm.",
-          ]}
-          get="Scrobbles, top artists, the lot."
-          link={{ href: MUSIC.url, label: `${MUSIC.handle} on Last.fm` }}
-        />
-      </div>
-    ),
-  },
-  {
-    id: "play",
-    label: "Play",
-    render: () => (
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
-        <div>
-          <h3 className="font-display text-page font-normal text-ink">The playground.</h3>
-          <p className="mt-4 max-w-[48ch] text-lg text-ink-soft">
-            Four canvas games in a modal, nothing at stake. High scores stay in your browser. Escape closes any of them.
-          </p>
+function MusicTab() {
+  const { content } = useContent();
+  const about = content.about;
+  return (
+    <div className="flex flex-col gap-12">
+      <section aria-label={about.musicPlaylistsLabel}>
+        <Kicker className="text-ink-soft"><EText path="about.musicPlaylistsLabel" label="Playlist section label" /></Kicker>
+        <div className="mt-4">
+          <PlaylistShelf />
         </div>
-        <Play />
+      </section>
+      <UseCase
+        title={<EText path="about.musicTitle" label="Music tab title" />}
+        prompt={<EText path="about.musicPrompt" label="Music command example" />}
+        checks={about.musicChecks.map((_, index) => <EText key={index} path={`about.musicChecks.${index}`} label={`Music detail ${index + 1}`} />)}
+        get={<EText path="about.musicGet" label="Last.fm description" />}
+        link={{ href: about.lastfmUrl, label: <EText path="about.lastfmLinkLabel" label="Last.fm link label" />, urlPath: "about.lastfmUrl" }}
+      />
+    </div>
+  );
+}
+
+function PlayTab() {
+  return (
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
+      <div>
+        <EText path="about.playTitle" as="h3" className="block font-display text-page font-normal text-ink" label="Playground title" />
+        <EText path="about.playDescription" as="p" multiline className="mt-4 block max-w-[48ch] text-lg text-ink-soft" label="Playground description" />
       </div>
-    ),
-  },
+      <Play />
+    </div>
+  );
+}
+
+const TABS = [
+  { id: "me", render: () => <MeTab /> },
+  { id: "anime", render: () => <AnimeTab /> },
+  { id: "music", render: () => <MusicTab /> },
+  { id: "play", render: () => <PlayTab /> },
 ] as const;
 
 /** Hashes that select a tab: #about → Me, #play → Play, #now-tab-<id> → that tab. */
 const HASH_TAB: Record<string, string> = { "#about": "me", "#play": "play" };
 
 export function Now() {
+  const { editing } = useContent();
   const [active, setActive] = useState(0);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -288,6 +286,7 @@ export function Now() {
   };
 
   const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (editing && (e.target as HTMLElement).closest('[role="textbox"]')) return;
     if (e.key === "ArrowRight") { e.preventDefault(); go(active + 1); }
     else if (e.key === "ArrowLeft") { e.preventDefault(); go(active - 1); }
     else if (e.key === "Home") { e.preventDefault(); go(0); }
@@ -316,12 +315,13 @@ export function Now() {
       <span id="play" aria-hidden className="absolute top-0" />
       <SectionHead
         num="02"
-        label="About"
+        label={<EText path="about.sectionLabel" label="About section label" />}
         title={
           <span id="now-title">
-            The person behind
+            <EText path="about.titleLead" label="About heading line one" />
             <br />
-            the <em className="ital">builds</em>.
+            <EText path="about.titleMiddle" label="About heading line two" />{" "}
+            <em className="ital"><EText path="about.titleEmphasis" label="About heading emphasis" /></em>.
           </span>
         }
       />
@@ -340,14 +340,22 @@ export function Now() {
                 aria-selected={on}
                 aria-controls={`now-panel-${t.id}`}
                 tabIndex={on ? 0 : -1}
-                onClick={() => setActive(i)}
+                onClick={(event) => {
+                  const target = event.target as HTMLElement;
+                  if (editing && target.closest('[role="textbox"]')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return;
+                  }
+                  setActive(i);
+                }}
                 className={cn(
                   "relative flex min-h-12 shrink-0 items-baseline gap-2.5 pb-3 pt-2 text-[17px] transition-colors duration-[var(--dur-2)]",
                   on ? "text-ink" : "text-ink-soft hover:text-ink"
                 )}
               >
                 <span className={cn("font-mono text-xs tabular", on ? "text-vermilion-ink" : "text-graphite")}>{String(i + 1).padStart(2, "0")}</span>
-                <span className={on ? "font-medium" : ""}>{t.label}</span>
+                <span className={on ? "font-medium" : ""}><EText path={`about.tabLabels.${i}`} label={`About tab ${i + 1} label`} /></span>
                 {on && <span aria-hidden className="m-grow-x absolute inset-x-0 -bottom-px h-0.5 bg-ink" />}
               </button>
             );
@@ -365,6 +373,7 @@ export function Now() {
           {tab.render()}
         </div>
       </Reveal>
+      <Blocks section="about" />
     </section>
   );
 }

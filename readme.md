@@ -71,14 +71,17 @@ Accessibility: skip link, one h1, header/main/footer landmarks, 2px
 | 06 | Ask | AMA composer + answered questions (Firestore, votes, owner console) |
 | — | Links, Footer | 12 channels, site map, IST clock |
 
-## API routes (serverless, unchanged)
+## API routes (serverless)
 
 ```txt
 api/
+├─ site-content.js       # public published-content/image reads; owner-verified writes
 ├─ telegram.js           # sends Telegram notification for new questions
 ├─ telegram-webhook.js   # Telegram bot reply-to-answer support
-└─ ama-vote.js           # vote sync to Firestore (service account)
+└─ ama-vote.js            # vote sync to Firestore (service account)
 ```
+
+`functions/api/site-content.js` mirrors the content API for Cloudflare Pages.
 
 Environment variables required by the API routes: `TELEGRAM_BOT_TOKEN`,
 `TELEGRAM_CHAT_ID`, `FIREBASE_SERVICE_ACCOUNT_KEY` (+ optional
@@ -150,12 +153,12 @@ are accepted only when the owner's sign-in token checks out at Google as the adm
 - **Cloudflare:** add `FIREBASE_SERVICE_ACCOUNT_KEY` under Workers & Pages → project →
   Settings → Variables and Secrets (same JSON value), then redeploy.
 
-Also deploy the rules (recommended; it lets the site read Firestore directly as a fallback):
+Also deploy the rules (recommended; they let the site read Firestore directly as a fallback and keep the AMA queue private until answered). The CLI command publishes the rules and the composite index used by the public answered-question query:
 
-1. Firebase console → **Firestore Database**
-2. **Rules** tab
-3. Paste the contents of `firestore.rules`
-4. **Publish** (or run `firebase deploy --only firestore:rules`)
+```sh
+firebase deploy --project therealreze-2a3bf --only firestore:rules,firestore:indexes
+```
 
-After Publish the sidebar says **"live for everyone"** only once an anonymous read returns the new
-version; otherwise it tells you what is missing.
+Or paste `firestore.rules` in Firebase Console → **Firestore Database** → **Rules** and publish it, then create the `amaQuestions` composite index from `firestore.indexes.json` in the **Indexes** tab.
+
+The site-content publish API itself uses the Vercel service account and does not require a Firestore rules deployment. If it returns `PERMISSION_DENIED`, grant that service account Firestore write access in the Firebase project and confirm `FIREBASE_PROJECT_ID` points at the same database. After Publish, the editor reports **"live for everyone"** only once the public read endpoint returns the new version; otherwise it tells you what is missing.

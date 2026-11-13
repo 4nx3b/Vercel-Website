@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, type CSSProperties 
 import type { PartitionKey } from "../lib/data";
 import { prefersReducedMotion } from "../hooks/useInView";
 import { hasFinePointer } from "../hooks/usePointerVars";
+import { useContent } from "../content/store";
 
 /**
  * FIG. 1 — an original exploded isometric drawing: a phone with its partition
@@ -72,6 +73,7 @@ export const FigPhone = forwardRef<
   FigPhoneHandle,
   { active: PartitionKey | null; onActive: (k: PartitionKey) => void }
 >(function FigPhone({ active, onActive }, ref) {
+  const { content } = useContent();
   const flashEls = useRef<(SVGGElement | null)[]>([]);
   const pulseEl = useRef<SVGGElement | null>(null);
   const running = useRef<Animation[]>([]);
@@ -143,7 +145,7 @@ export const FigPhone = forwardRef<
     <svg
       viewBox="0 0 360 400"
       role="img"
-      aria-label="Figure 1: an exploded isometric phone. Four partition slabs (userdata, vendor, system, boot) rise off the device, with root marked as a vermilion dot on the boot slab."
+      aria-label={content.hero.figureAlt}
       className="h-auto w-full max-w-[420px] overflow-visible text-ink"
       overflow="visible"
       fill="none"
@@ -200,7 +202,7 @@ export const FigPhone = forwardRef<
                     stroke="none"
                     fill={active === s.key ? "var(--color-vermilion-ink)" : "var(--color-ink-soft)"}
                   >
-                    {s.label}
+                    {content.hero.partitions.find((partition) => partition.key === s.key)?.label ?? s.label}
                   </text>
                 </g>
 

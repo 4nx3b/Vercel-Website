@@ -1,4 +1,5 @@
 import { cn } from "../utils/cn";
+import { EText } from "../content/Editable";
 
 /** v3rsi0n wordmark — ink tile with a vermilion spark and the serif name. */
 export function Wordmark({ className, spark = true }: { className?: string; spark?: boolean }) {
@@ -8,7 +9,7 @@ export function Wordmark({ className, spark = true }: { className?: string; spar
         <span className="font-mono text-[11px] font-medium leading-none text-paper">v</span>
         <span className={cn("absolute right-[5px] top-[5px] h-[5px] w-[5px] rounded-full bg-vermilion", spark && "m-spark")} />
       </span>
-      <span className="font-display text-title leading-none tracking-[-0.01em] text-[var(--text)]">v3rsi0n</span>
+      <EText path="brand.name" className="font-display text-title leading-none tracking-[-0.01em] text-[var(--text)]" label="Site name" />
     </span>
   );
 }

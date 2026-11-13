@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "amaQuestions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "answered", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

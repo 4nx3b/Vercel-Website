@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Menu, Moon, Sun, X } from "lucide-react";
 import { cn } from "../utils/cn";
-import { NAV_LINKS } from "../lib/data";
 import { useIstClock } from "../hooks/useInView";
 import { supportsViewTimeline } from "../hooks/useScrollVar";
 import { Wordmark } from "./Wordmark";
@@ -10,6 +9,7 @@ import { HeaderPlayer } from "./MusicPlayer";
 import { useTheme, type Theme } from "../hooks/useTheme";
 import { useContent } from "../content/store";
 import { EditingBanner, OwnerPanel } from "../content/OwnerPanel";
+import { EText } from "../content/Editable";
 
 /** Two-option Sun / Moon switch for the sidebar. */
 function ThemeSwitch() {
@@ -62,7 +62,7 @@ function ThemeIconButton() {
 }
 
 export function Nav() {
-  const { owner, dirty } = useContent();
+  const { owner, dirty, editing, content } = useContent();
   const ownerRef = useRef(owner);
   ownerRef.current = owner;
   const [scrolled, setScrolled] = useState(false);
@@ -195,18 +195,19 @@ export function Nav() {
       <div aria-hidden className="nav-frost" />
       <div aria-hidden className="nav-progress" />
       <nav aria-label="Primary" className="page flex h-16 items-center justify-between gap-6">
-        <a href="#top" aria-label="v3rsi0n, back to top" className="flex min-h-11 items-center rounded-[var(--radius-sm)]">
+        <a href="#top" onClick={(event) => editing && event.preventDefault()} aria-label={`${content.brand.name}, back to top`} className="flex min-h-11 items-center rounded-[var(--radius-sm)]">
           <Wordmark />
         </a>
 
         <ul className="hidden items-center gap-8 lg:flex">
-          {NAV_LINKS.map((l) => (
+          {content.nav.links.map((l, index) => (
             <li key={l.href}>
               <a
                 href={l.href}
+                onClick={(event) => editing && event.preventDefault()}
                 className="text-[15px] text-[var(--text-2)] transition-colors duration-[var(--dur-2)] hover:text-[var(--text)]"
               >
-                {l.label}
+                <EText path={`nav.links.${index}.label`} label={`Navigation link ${index + 1}`} />
               </a>
             </li>
           ))}
@@ -216,8 +217,8 @@ export function Nav() {
           <HeaderPlayer />
           <span className="hidden font-mono text-xs text-[var(--text-3)] tabular 2xl:inline">IST {clock}</span>
           <ThemeIconButton />
-          <a href="#ask" className={buttonClass("ink", "nav-cta min-h-10 px-5 text-[15px]")}>
-            Ask me
+          <a href="#ask" onClick={(event) => editing && event.preventDefault()} className={buttonClass("ink", "nav-cta min-h-10 px-5 text-[15px]")}>
+            <EText path="nav.cta" label="Header call to action" />
             <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
           </a>
         </div>
@@ -281,15 +282,18 @@ export function Nav() {
           </button>
         </div>
         <ul className="flex flex-col px-5 py-4">
-          {NAV_LINKS.map((l, i) => (
+          {content.nav.links.map((l, index) => (
             <li key={l.href} className="border-b border-rule">
               <a
                 href={l.href}
-                onClick={close}
+                onClick={(event) => {
+                  if (editing) event.preventDefault();
+                  else close();
+                }}
                 className="flex min-h-14 items-baseline gap-4 py-3 font-display text-page text-ink transition-colors duration-[var(--dur-2)] hover:text-vermilion-ink"
               >
-                <span className="font-mono text-xs text-graphite tabular">{String(i + 1).padStart(2, "0")}</span>
-                {l.label}
+                <span className="font-mono text-xs text-graphite tabular">{String(index + 1).padStart(2, "0")}</span>
+                <EText path={`nav.links.${index}.label`} label={`Navigation link ${index + 1}`} />
               </a>
             </li>
           ))}
@@ -298,8 +302,8 @@ export function Nav() {
           <OwnerPanel />
           <ThemeSwitch />
           <span className="font-mono text-xs text-graphite tabular">IST {clock}</span>
-          <a href="#ask" onClick={close} className={buttonClass("ink", "w-full")}>
-            Ask me
+          <a href="#ask" onClick={(event) => (editing ? event.preventDefault() : close())} className={buttonClass("ink", "w-full")}>
+            <EText path="nav.cta" label="Header call to action" />
             <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
           </a>
         </div>

@@ -10,6 +10,8 @@ import { MonoTag, SectionHead, StatusDot } from "./ui";
 import { announceOwner, jfetch, lsGet, lsSet, ownerAuth, refreshTokenIfNeeded, setOwnerAuth, type Owner } from "../lib/owner";
 import { Reveal } from "./Reveal";
 import { BurstLines, GiantType, Halftone } from "./AnimeFx";
+import { useContent } from "../content/store";
+import { Blocks, EField, EText } from "../content/Editable";
 
 /* ══════════════════════════════════════════════════════════════════════
    ASK / AMA — ported 1:1 from the previous build:
@@ -488,6 +490,8 @@ function OwnerConsolePresence({ open, onClose, onChanged }: { open: boolean; onC
 /* ================= Public section ================= */
 
 export function Ask() {
+  const { content, editing } = useContent();
+  const copy = content.ask;
   const [items, setItems] = useState<AmaQ[]>([]);
   const [pending, setPending] = useState<AmaQ[]>(() => lsGet<Pending[]>(AMA_KEYS.queue, []).map((q) => ({ ...q, answered: false, dismissed: false })));
   const [voted, setVoted] = useState<string[]>(() => lsGet<string[]>(AMA_KEYS.voted, []));
@@ -517,7 +521,12 @@ export function Ask() {
       const headers = await authHeaders();
       const data = await jfetch(queryUrl(), {
         method: "POST", headers,
-        body: JSON.stringify({ structuredQuery: { from: [{ collectionId: AMA_COLLECTION }], orderBy: { field: { fieldPath: "createdAt" }, direction: "DESCENDING" }, limit: 100 } }),
+        body: JSON.stringify({ structuredQuery: {
+          from: [{ collectionId: AMA_COLLECTION }],
+          where: { fieldFilter: { field: { fieldPath: "answered" }, op: "EQUAL", value: { booleanValue: true } } },
+          orderBy: { field: { fieldPath: "createdAt" }, direction: "DESCENDING" },
+          limit: 100,
+        } }),
       });
       const list = (Array.isArray(data) ? data : []).filter((d: any) => d.document).map((d: any) => fromDoc(d.document));
       setItems(list.filter((q: AmaQ) => q.question && q.answered && !q.dismissed));
@@ -540,6 +549,7 @@ export function Ask() {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    if (editing) return;
     const q = text.trim();
     if (!q) return;
     if (getUsed() >= 10) { setStatus({ kind: "err", msg: "Daily limit reached (10). Come back tomorrow." }); return; }
@@ -576,9 +586,9 @@ export function Ask() {
             <div className="flex items-start justify-between gap-4">
               <SectionHead
                 num="06"
-                label="Ask"
-                title={<span id="ask-title">Ask me <em className="ital">anything</em>.</span>}
-                lede="Root, ROMs, anime, whatever. Questions land in Firestore and ping my Telegram; answers show up here once I've replied. Ten per visitor per day."
+                label={<EText path="ask.sectionLabel" label="Ask section label" />}
+                title={<span id="ask-title"><EText path="ask.titleLead" label="Ask heading" /> <em className="ital"><EText path="ask.titleEmphasis" label="Ask heading emphasis" /></em>.</span>}
+                lede={<EText path="ask.lede" multiline label="Ask section description" />}
               />
               <button
                 onClick={() => setOwnerOpen(true)}
@@ -592,33 +602,35 @@ export function Ask() {
               <form onSubmit={submit} className="mt-10 rounded-[var(--radius-lg)] border border-ink bg-composer shadow-[var(--shadow-ink)]">
                 <div className="flex items-center gap-2.5 border-b border-rule px-5 py-3">
                   <span aria-hidden className="h-2 w-2 rounded-full bg-vermilion" />
-                  <span className="kicker text-ink-soft">New question</span>
+                  <span className="kicker text-ink-soft"><EText path="ask.composerTitle" label="Question form heading" /></span>
                 </div>
                 <div className="flex flex-col gap-5 px-5 py-5">
                   <div>
-                    <label htmlFor="ama-text" className="mb-2 block text-sm font-medium text-ink">Your question</label>
+                    <label htmlFor="ama-text" className="mb-2 block text-sm font-medium text-ink"><EText path="ask.questionLabel" label="Question input label" /></label>
                     <textarea
-                      id="ama-text" value={text} onChange={(e) => setText(e.target.value)} rows={4} required maxLength={280}
-                      placeholder="Magisk or KernelSU for a fresh install?"
+                      id="ama-text" value={text} onChange={(e) => setText(e.target.value)} rows={4} required maxLength={280} disabled={editing}
+                      placeholder={copy.questionPlaceholder}
                       className="w-full resize-none rounded-[var(--radius-sm)] border border-rule-strong bg-paper p-4 text-[16px] text-ink placeholder:text-graphite transition-colors duration-[var(--dur-2)] focus:border-ink"
                     />
+                    <EField path="ask.questionPlaceholder" label="Question placeholder" />
                   </div>
                   <div>
                     <label htmlFor="ama-name" className="mb-2 block text-sm font-medium text-ink">
-                      Name <span className="font-normal text-graphite">(optional)</span>
+                      <EText path="ask.nameLabel" label="Name input label" /> <span className="font-normal text-graphite"><EText path="ask.nameOptional" label="Name optional note" /></span>
                     </label>
                     <input
-                      id="ama-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={40}
-                      placeholder="anon"
+                      id="ama-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} disabled={editing}
+                      placeholder={copy.namePlaceholder}
                       className="min-h-11 w-full rounded-[var(--radius-sm)] border border-rule-strong bg-paper px-4 font-mono text-[16px] text-ink placeholder:text-graphite focus:border-ink"
                     />
+                    <EField path="ask.namePlaceholder" label="Name placeholder" />
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-4 border-t border-rule px-5 py-3">
                   <MonoTag className="text-graphite tabular">{280 - text.length} characters left</MonoTag>
-                  <button type="submit"
-                    className="inline-flex min-h-11 items-center gap-2 rounded-full bg-vermilion px-6 text-[15px] font-medium text-on-accent transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep">
-                    {status?.kind === "ok" ? (<><Check aria-hidden className="h-4 w-4" strokeWidth={2} />Sent</>) : (<>Send question<ArrowRight aria-hidden className="h-4 w-4" strokeWidth={1.75} /></>)}
+                  <button type="submit" disabled={editing}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-full bg-vermilion px-6 text-[15px] font-medium text-on-accent transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep disabled:cursor-not-allowed disabled:opacity-50">
+                    {status?.kind === "ok" ? (<><Check aria-hidden className="h-4 w-4" strokeWidth={2} />Sent</>) : (<><EText path="ask.sendLabel" label="Send question button" /><ArrowRight aria-hidden className="h-4 w-4" strokeWidth={1.75} /></>)}
                   </button>
                 </div>
                 <div aria-live="polite" className="px-5 empty:hidden">
@@ -632,16 +644,16 @@ export function Ask() {
           <Reveal delay={120}>
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink pb-4">
               <h3 className="font-display text-title font-normal text-ink">
-                Answered <span className="font-mono text-xs text-graphite tabular">{String(sorted.length + pending.length).padStart(2, "0")}</span>
+                <EText path="ask.answeredLabel" label="Answered questions heading" /> <span className="font-mono text-xs text-graphite tabular">{String(sorted.length + pending.length).padStart(2, "0")}</span>
               </h3>
               <div className="flex gap-1.5" role="group" aria-label="Sort questions">
-                {SORTS.map((s) => (
-                  <button key={s.key} onClick={() => setSort(s.key)} aria-pressed={sort === s.key}
+                {SORTS.map((s, index) => (
+                  <button key={s.key} onClick={(event) => (editing ? event.preventDefault() : setSort(s.key))} aria-pressed={sort === s.key}
                     className={cn(
                       "min-h-11 rounded-full border px-3.5 font-mono text-xs transition-colors duration-[var(--dur-2)]",
                       sort === s.key ? "border-ink bg-ink text-paper" : "border-rule-strong text-ink-soft hover:border-ink hover:text-ink"
                     )}>
-                    {s.label}
+                    <EText path={`ask.sortLabels.${index}`} label={`Question sort option ${index + 1}`} />
                   </button>
                 ))}
               </div>
@@ -703,6 +715,7 @@ export function Ask() {
             )}
           </Reveal>
         </div>
+        <Blocks section="ask" />
       </div>
 
       <OwnerConsolePresence open={ownerOpen} onClose={() => setOwnerOpen(false)} onChanged={reload} />

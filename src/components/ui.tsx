@@ -16,7 +16,7 @@ export function Kicker({ children, className }: { children: ReactNode; className
 }
 
 /** "§ 0N ── LABEL" — every section opens with this row. */
-export function SectionMark({ num, label, className }: { num: string; label: string; className?: string }) {
+export function SectionMark({ num, label, className }: { num: string; label: ReactNode; className?: string }) {
   // § numerals drift a few px with scroll (shared scroll clock)
   const ref = useRef<HTMLSpanElement>(null);
   useScrollVar(ref);
@@ -38,7 +38,7 @@ export function SectionHead({
   titleClassName,
 }: {
   num: string;
-  label: string;
+  label: ReactNode;
   title: ReactNode;
   lede?: ReactNode;
   className?: string;
@@ -175,7 +175,7 @@ export function Figure({
   className,
   bodyClassName,
 }: {
-  caption: string;
+  caption: ReactNode;
   children: ReactNode;
   className?: string;
   bodyClassName?: string;
