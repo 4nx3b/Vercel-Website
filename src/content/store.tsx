@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ABOUT, ANIME, APP, FIREBASE, GAMES, HERO, MUSIC, NAV_LINKS, PARTITIONS, PLAYLISTS, QUIZ, ROM_POST, SOCIALS } from "../lib/data";
+import { ABOUT, ADMIN_EMAIL, ANIME, APP, FIREBASE, GAMES, HERO, MUSIC, NAV_LINKS, PARTITIONS, PLAYLISTS, QUIZ, ROM_POST, SOCIALS } from "../lib/data";
 import { OWNER_EVENT, isOwner, jfetch, refreshTokenIfNeeded } from "../lib/owner";
 
 /* ------------------------------------------------------------------ *
@@ -255,18 +255,41 @@ function ensureQuizBankDefaults(content: SiteContent): SiteContent {
 const CACHE_KEY = "site_content_v1";
 const DRAFT_KEY = "site_content_draft_v1";
 const OWNER_AVATAR_CACHE_KEY = "site_owner_profile_avatar_v1";
+const OWNER_PROFILE_API_URL = "/api/site-content?profile=1";
 const DOC_URL = () =>
   `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents/siteContent/live`;
 const OWNER_PROFILE_URL = () =>
   `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents/siteOwner/profile`;
 const MAX_OWNER_AVATAR_CHARS = 220_000;
+let ownerProfileApiSupported: boolean | null = null;
 
 function isOwnerAvatar(value: unknown): value is string {
   return typeof value === "string" && value.length <= MAX_OWNER_AVATAR_CHARS &&
     (!value || /^data:image\/(?:webp|png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/.test(value));
 }
 
-async function readOwnerAvatar(): Promise<string> {
+async function readOwnerAvatarFromApi(): Promise<string | null> {
+  try {
+    const response = await fetch(OWNER_PROFILE_API_URL, {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    const data = await response.json().catch(() => null);
+    if (data?.resource !== "siteOwner/profile") {
+      ownerProfileApiSupported = false;
+      return null;
+    }
+    ownerProfileApiSupported = true;
+    if (!response.ok) return null;
+    const value = data?.avatar || "";
+    return isOwnerAvatar(value) ? value : "";
+  } catch {
+    ownerProfileApiSupported = false;
+    return null;
+  }
+}
+
+async function readOwnerAvatarFromFirestore(): Promise<string> {
   const response = await fetch(`${OWNER_PROFILE_URL()}?key=${encodeURIComponent(FIREBASE.apiKey)}`, {
     headers: { Accept: "application/json" },
     cache: "no-store",
@@ -275,7 +298,8 @@ async function readOwnerAvatar(): Promise<string> {
   const data = await response.json().catch(() => null);
   if (!response.ok) {
     if (response.status === 401 || response.status === 403) {
-      throw new Error("Firestore denied the profile read. Deploy firestore.rules to enable the shared owner icon.");
+      const detail = data?.error?.message ? ` Firebase: ${data.error.message}` : "";
+      throw new Error(`Firestore denied the profile read. Publish firestore.rules to Firebase project ${FIREBASE.projectId} to enable the shared owner icon.${detail}`);
     }
     throw new Error(data?.error?.message || `Profile read failed (${response.status})`);
   }
@@ -283,7 +307,12 @@ async function readOwnerAvatar(): Promise<string> {
   return isOwnerAvatar(value) ? value : "";
 }
 
-async function writeOwnerAvatar(value: string, token: string): Promise<string> {
+async function readOwnerAvatar(): Promise<string> {
+  const apiAvatar = await readOwnerAvatarFromApi();
+  return apiAvatar ?? readOwnerAvatarFromFirestore();
+}
+
+async function writeOwnerAvatarToFirestore(value: string, token: string): Promise<string> {
   const updatedAt = new Date().toISOString();
   const url = `${OWNER_PROFILE_URL()}?key=${encodeURIComponent(FIREBASE.apiKey)}&updateMask.fieldPaths=avatar&updateMask.fieldPaths=updatedAt`;
   const response = await fetch(url, {
@@ -293,12 +322,48 @@ async function writeOwnerAvatar(value: string, token: string): Promise<string> {
   });
   const data = await response.json().catch(() => null);
   if (!response.ok) {
-    if (response.status === 401 || response.status === 403) {
-      throw new Error("Firestore rejected the profile update. Deploy the siteOwner/profile rules and check the signed-in owner account.");
+    const detail = data?.error?.message ? ` Firebase: ${data.error.message}` : "";
+    if (response.status === 401) {
+      throw new Error(`The owner sign-in expired. Sign in again as ${ADMIN_EMAIL}.${detail}`);
+    }
+    if (response.status === 403) {
+      throw new Error(`Firestore denied the profile update. Publish firestore.rules to Firebase project ${FIREBASE.projectId}, then sign out and back in as the verified owner ${ADMIN_EMAIL}.${detail}`);
     }
     throw new Error(data?.error?.message || `Profile update failed (${response.status})`);
   }
   return updatedAt;
+}
+
+async function writeOwnerAvatar(value: string, token: string): Promise<string> {
+  if (ownerProfileApiSupported !== true) await readOwnerAvatarFromApi();
+  if (ownerProfileApiSupported) {
+    try {
+      const response = await fetch(OWNER_PROFILE_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ avatar: value }),
+      });
+      const data = await response.json().catch(() => null);
+      if (response.ok && data?.resource === "siteOwner/profile") {
+        return typeof data.updatedAt === "string" ? data.updatedAt : new Date().toISOString();
+      }
+      if (response.status === 404 || response.status === 405 || response.status >= 500) {
+        ownerProfileApiSupported = false;
+      } else if (response.status === 401) {
+        throw new Error(data?.error?.message || `The owner sign-in expired. Sign in again as ${ADMIN_EMAIL}.`);
+      } else if (response.status === 403) {
+        throw new Error(data?.error?.message || `Permission denied. Verify the owner email ${ADMIN_EMAIL} and sign in again.`);
+      } else if (response.ok) {
+        ownerProfileApiSupported = false;
+      } else {
+        throw new Error(data?.error?.message || `Profile update failed (${response.status})`);
+      }
+    } catch (error) {
+      if (error instanceof Error && /permission denied|verify the owner|sign-in expired|not allowed/i.test(error.message)) throw error;
+      ownerProfileApiSupported = false;
+    }
+  }
+  return writeOwnerAvatarToFirestore(value, token);
 }
 
 export function cachedOwnerAvatar(): string {
