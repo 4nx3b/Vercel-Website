@@ -11,7 +11,7 @@ const safeHref = (value: string | undefined) => {
 };
 const safeImageSrc = (value: string | undefined) => {
   const src = value || "";
-  return /^https:\/\/[^\s<>]+$/i.test(src) || /^\/api\/site-content\?image=[\w%.-]+$/.test(src) ? src : "";
+  return /^https:\/\/[^\s<>]+$/i.test(src) || /^\/api\/site-content\?image=[\w%.-]+$/.test(src) || /^data:image\/(?:webp|png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/.test(src) ? src : "";
 };
 
 function ProjectTile({ source, background }: { source: "rom" | "app"; background: BuilderBackground }) {

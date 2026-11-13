@@ -255,10 +255,7 @@ export function Nav() {
           aria-expanded={open}
           aria-controls="mobile-sheet"
           aria-label={open ? "Close menu" : "Open menu"}
-          className={cn(
-            "nav-menu-btn relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-rule-strong text-[var(--text)] transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)]",
-            !owner && "lg:hidden"
-          )}
+          className="nav-menu-btn relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-rule-strong text-[var(--text)] transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)]"
         >
           <Menu aria-hidden className="h-5 w-5" strokeWidth={1.75} />
           {owner && dirty && <span aria-label="Unsaved changes" className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-vermilion" />}
@@ -273,7 +270,7 @@ export function Nav() {
         aria-hidden
         data-open={open}
         onClick={close}
-        className={cn("scrim fixed inset-0 z-[60] bg-[color-mix(in_srgb,var(--color-ink)_35%,transparent)]", !owner && "lg:hidden")}
+        className="scrim fixed inset-0 z-[60] bg-[color-mix(in_srgb,var(--color-ink)_35%,transparent)]"
       />
       <div
         id="mobile-sheet"
@@ -282,7 +279,7 @@ export function Nav() {
         role="dialog"
         aria-modal="true"
         aria-label="Site menu"
-        className={cn("sheet fixed inset-y-0 right-0 z-[70] flex w-[min(340px,88vw)] flex-col overflow-y-auto border-l border-ink bg-paper", !owner && "lg:hidden")}
+        className="sheet fixed inset-y-0 right-0 z-[70] flex w-[min(340px,88vw)] flex-col overflow-y-auto border-l border-ink bg-paper"
       >
         <div className="flex h-16 items-center justify-between border-b border-rule px-5">
           <span className="kicker">Menu</span>

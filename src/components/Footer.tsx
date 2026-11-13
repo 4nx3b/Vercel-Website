@@ -96,13 +96,6 @@ export function Footer() {
             <span className="font-mono text-xs text-graphite">© {new Date().getFullYear()} <EText path="brand.name" label="Site name" /></span>
             <span className="flex items-center gap-4">
               <EText path="footer.line" className="font-mono text-xs text-graphite" label="Footer line" />
-              <button
-                type="button"
-                onClick={() => window.dispatchEvent(new Event("v3:open-owner"))}
-                className="inline-flex min-h-11 items-center font-mono text-xs text-graphite underline decoration-rule-strong underline-offset-4 transition-colors duration-[var(--dur-2)] hover:text-ink"
-              >
-                Owner
-              </button>
             </span>
           </div>
           <p
