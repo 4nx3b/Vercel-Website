@@ -13,9 +13,56 @@ import { OWNER_EVENT, isOwner, jfetch, refreshTokenIfNeeded } from "../lib/owner
 
 export type Block = { id: string; type: "text" | "image"; text?: string; src?: string; alt?: string };
 export type SectionId = "hero" | "work" | "about" | "ask" | "links" | "footer";
+export type BuiltinSectionId = "hero" | "work" | "ticker" | "about" | "ask" | "links";
+export type SectionMotion = "reveal" | "stagger" | "stack" | "drift" | "none";
+export type BuilderLayout = "editorial" | "split" | "cards" | "banner";
+export type BuilderBackground = "paper" | "sunk" | "panel" | "accent";
+export type BuilderTexture = "none" | "grid" | "dots" | "hatch";
+export type BuilderBlockType = "heading" | "text" | "quote" | "button" | "image" | "card" | "callout" | "list" | "metric" | "project" | "divider" | "spacer";
+export type BuilderBlock = {
+  id: string;
+  type: BuilderBlockType;
+  text?: string;
+  eyebrow?: string;
+  title?: string;
+  body?: string;
+  label?: string;
+  value?: string;
+  href?: string;
+  variant?: "ink" | "accent" | "outline";
+  source?: "rom" | "app";
+  src?: string;
+  alt?: string;
+  caption?: string;
+  items?: string[];
+  size?: "sm" | "md" | "lg";
+};
+export type BuiltinPageSection = {
+  id: string;
+  kind: "builtin";
+  component: BuiltinSectionId;
+  visible: boolean;
+  motion: SectionMotion;
+};
+export type CustomPageSection = {
+  id: string;
+  kind: "custom";
+  visible: boolean;
+  label: string;
+  title: string;
+  description: string;
+  showInNav: boolean;
+  navLabel: string;
+  layout: BuilderLayout;
+  background: BuilderBackground;
+  texture: BuilderTexture;
+  motion: SectionMotion;
+  blocks: BuilderBlock[];
+};
+export type PageSection = BuiltinPageSection | CustomPageSection;
 
 export const DEFAULTS = {
-  version: 2,
+  version: 3,
   brand: { name: "v3rsi0n", logotype: "V3RSI0N" },
   nav: {
     links: NAV_LINKS.map((link) => ({ ...link })),
@@ -173,6 +220,21 @@ export const DEFAULTS = {
     githubLabel: "GitHub",
     githubUrl: "https://github.com/4nx3b",
     signature: "v3rsi0n.",
+  },
+  design: {
+    fontPreset: "editorial" as "editorial" | "bookish" | "grotesk" | "typewriter",
+    motionPreset: "balanced" as "quiet" | "balanced" | "expressive",
+  },
+  layout: {
+    footerVisible: true,
+    sections: [
+      { id: "hero", kind: "builtin", component: "hero", visible: true, motion: "reveal" },
+      { id: "work", kind: "builtin", component: "work", visible: true, motion: "reveal" },
+      { id: "ticker", kind: "builtin", component: "ticker", visible: true, motion: "none" },
+      { id: "about", kind: "builtin", component: "about", visible: true, motion: "reveal" },
+      { id: "ask", kind: "builtin", component: "ask", visible: true, motion: "reveal" },
+      { id: "links", kind: "builtin", component: "links", visible: true, motion: "reveal" },
+    ] as PageSection[],
   },
   blocks: { hero: [], work: [], about: [], ask: [], links: [], footer: [] } as Record<SectionId, Block[]>,
 };

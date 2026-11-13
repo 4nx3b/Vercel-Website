@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Loader2, LogOut, PenLine, RotateCcw, Send, Undo2 } from "lucide-react";
+import { Layers, Loader2, LogOut, PenLine, RotateCcw, Send, Undo2 } from "lucide-react";
 import { cn } from "../utils/cn";
 import { announceOwner, setOwnerAuth } from "../lib/owner";
 import { useContent } from "./store";
+import { SiteBuilder } from "./SiteBuilder";
 
 const ago = (iso: string | null) => {
   if (!iso) return "never";
@@ -18,6 +19,7 @@ const ago = (iso: string | null) => {
 export function OwnerPanel() {
   const { owner, editing, setEditing, dirty, status, publish, discard, reset, publishedAt } = useContent();
   const [confirmReset, setConfirmReset] = useState(false);
+  const [builderOpen, setBuilderOpen] = useState(false);
   const [, tick] = useState(0);
   useEffect(() => {
     const id = window.setInterval(() => tick((n) => n + 1), 30_000);
@@ -47,6 +49,10 @@ export function OwnerPanel() {
           <PenLine aria-hidden className="h-4 w-4" strokeWidth={1.75} /> Edit mode
         </span>
         <span aria-hidden className={cn("owner-switch", editing && "owner-switch-on")} />
+      </button>
+
+      <button type="button" onClick={() => { setEditing(true); setBuilderOpen(true); }} className="owner-btn owner-btn-builder">
+        <Layers aria-hidden className="h-4 w-4" strokeWidth={1.75} /> Open page builder
       </button>
 
       <button type="button" disabled={!dirty || busy} onClick={() => void publish()} className="owner-btn owner-btn-accent">
@@ -84,6 +90,7 @@ export function OwnerPanel() {
       <p aria-live="polite" className={cn("font-mono text-xs", status.kind === "error" || status.kind === "warn" ? "text-vermilion-ink" : "text-graphite")}>
         {status.msg ? status.msg : `Last published ${ago(publishedAt)}`}
       </p>
+      <SiteBuilder open={builderOpen} onClose={() => setBuilderOpen(false)} />
     </section>
   );
 }

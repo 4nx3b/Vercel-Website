@@ -63,6 +63,22 @@ function ThemeIconButton() {
 
 export function Nav() {
   const { owner, dirty, editing, content } = useContent();
+  const pageSections = Array.isArray(content.layout?.sections) ? content.layout.sections : [];
+  const visibleBuiltins = new Set(pageSections.flatMap((section) => section.kind === "builtin" && section.visible !== false ? [section.component] : []));
+  const builtinTargets: Record<string, string> = { work: "work", about: "about", play: "about", ask: "ask" };
+  const customNavLinks = pageSections.flatMap((section, index) => section.kind === "custom" && section.visible !== false && section.showInNav
+    ? [{ key: `custom-${section.id}`, href: `#site-${section.id.replace(/[^a-z0-9_-]/gi, "-")}`, path: `layout.sections.${index}.${section.navLabel.trim() ? "navLabel" : "title"}`, fallback: section.navLabel || section.title }]
+    : []);
+  const navLinks = [
+    ...content.nav.links.flatMap((link, index) => {
+      const target = link.href.startsWith("#") ? builtinTargets[link.href.slice(1)] : undefined;
+      if (target && !visibleBuiltins.has(target as "work" | "about" | "ask")) return [];
+      return [{ key: `site-${link.href}-${index}`, href: link.href, path: `nav.links.${index}.label`, fallback: link.label }];
+    }),
+    ...customNavLinks,
+  ];
+  const brandHref = visibleBuiltins.has("hero") ? "#top" : "#main";
+  const ctaHref = visibleBuiltins.has("ask") ? "#ask" : customNavLinks[0]?.href || "#main";
   const ownerRef = useRef(owner);
   ownerRef.current = owner;
   const [scrolled, setScrolled] = useState(false);
@@ -120,6 +136,7 @@ export function Nav() {
     const first = sheetRef.current?.querySelector<HTMLElement>("a, button");
     first?.focus();
     const onKey = (e: KeyboardEvent) => {
+      if (document.querySelector('[role="dialog"][aria-label="Page builder"]')) return;
       if (e.key === "Escape") {
         e.stopPropagation();
         setOpen(false);
@@ -195,19 +212,19 @@ export function Nav() {
       <div aria-hidden className="nav-frost" />
       <div aria-hidden className="nav-progress" />
       <nav aria-label="Primary" className="page flex h-16 items-center justify-between gap-6">
-        <a href="#top" onClick={(event) => editing && event.preventDefault()} aria-label={`${content.brand.name}, back to top`} className="flex min-h-11 items-center rounded-[var(--radius-sm)]">
+        <a href={brandHref} onClick={(event) => editing && event.preventDefault()} aria-label={`${content.brand.name}, back to top`} className="flex min-h-11 items-center rounded-[var(--radius-sm)]">
           <Wordmark />
         </a>
 
         <ul className="hidden items-center gap-8 lg:flex">
-          {content.nav.links.map((l, index) => (
-            <li key={l.href}>
+          {navLinks.map((link, index) => (
+            <li key={link.key}>
               <a
-                href={l.href}
+                href={link.href}
                 onClick={(event) => editing && event.preventDefault()}
                 className="text-[15px] text-[var(--text-2)] transition-colors duration-[var(--dur-2)] hover:text-[var(--text)]"
               >
-                <EText path={`nav.links.${index}.label`} label={`Navigation link ${index + 1}`} />
+                <EText path={link.path} fallback={link.fallback} label={`Navigation link ${index + 1}`} />
               </a>
             </li>
           ))}
@@ -217,7 +234,7 @@ export function Nav() {
           <HeaderPlayer />
           <span className="hidden font-mono text-xs text-[var(--text-3)] tabular 2xl:inline">IST {clock}</span>
           <ThemeIconButton />
-          <a href="#ask" onClick={(event) => editing && event.preventDefault()} className={buttonClass("ink", "nav-cta min-h-10 px-5 text-[15px]")}>
+          <a href={ctaHref} onClick={(event) => editing && event.preventDefault()} className={buttonClass("ink", "nav-cta min-h-10 px-5 text-[15px]")}>
             <EText path="nav.cta" label="Header call to action" />
             <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
           </a>
@@ -282,10 +299,10 @@ export function Nav() {
           </button>
         </div>
         <ul className="flex flex-col px-5 py-4">
-          {content.nav.links.map((l, index) => (
-            <li key={l.href} className="border-b border-rule">
+          {navLinks.map((link, index) => (
+            <li key={link.key} className="border-b border-rule">
               <a
-                href={l.href}
+                href={link.href}
                 onClick={(event) => {
                   if (editing) event.preventDefault();
                   else close();
@@ -293,7 +310,7 @@ export function Nav() {
                 className="flex min-h-14 items-baseline gap-4 py-3 font-display text-page text-ink transition-colors duration-[var(--dur-2)] hover:text-vermilion-ink"
               >
                 <span className="font-mono text-xs text-graphite tabular">{String(index + 1).padStart(2, "0")}</span>
-                <EText path={`nav.links.${index}.label`} label={`Navigation link ${index + 1}`} />
+                <EText path={link.path} fallback={link.fallback} label={`Navigation link ${index + 1}`} />
               </a>
             </li>
           ))}
@@ -302,7 +319,7 @@ export function Nav() {
           <OwnerPanel />
           <ThemeSwitch />
           <span className="font-mono text-xs text-graphite tabular">IST {clock}</span>
-          <a href="#ask" onClick={(event) => (editing ? event.preventDefault() : close())} className={buttonClass("ink", "w-full")}>
+          <a href={ctaHref} onClick={(event) => (editing ? event.preventDefault() : close())} className={buttonClass("ink", "w-full")}>
             <EText path="nav.cta" label="Header call to action" />
             <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
           </a>
