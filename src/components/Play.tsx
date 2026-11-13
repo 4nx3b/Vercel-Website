@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePresence, type PresenceState } from "../hooks/usePresence";
 import { cn } from "../utils/cn";
-import { GAMES, QUIZ, type Game } from "../lib/data";
+import type { Game } from "../lib/data";
+import { useContent } from "../content/store";
+import { EText } from "../content/Editable";
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Gauge, Gamepad2, HelpCircle, Play as PlayIcon, Timer, X, type LucideIcon } from "lucide-react";
 import { MonoTag, StatusDot } from "./ui";
 
@@ -387,6 +389,8 @@ function ReactionGame() {
 /* ================= Roast Quiz ================= */
 
 function QuizGame() {
+  const { content, editing } = useContent();
+  const quiz = content.play.quiz;
   const [step, setStep] = useState(0);
   const [roasts, setRoasts] = useState<string[]>([]);
   const [picked, setPicked] = useState<number | null>(null);
@@ -394,7 +398,7 @@ function QuizGame() {
   const pick = (i: number) => {
     if (picked !== null) return;
     setPicked(i);
-    const r = QUIZ[step].roasts[i];
+    const r = quiz[step].roasts[i];
     setTimeout(() => {
       setRoasts((prev) => [...prev, r]);
       setPicked(null);
@@ -402,7 +406,31 @@ function QuizGame() {
     }, 1100);
   };
 
-  if (step >= QUIZ.length) {
+  if (editing) {
+    return (
+      <div className="flex flex-col gap-6">
+        <MonoTag className="text-vermilion-ink">Quiz copy · {quiz.length} questions</MonoTag>
+        {quiz.map((question, questionIndex) => (
+          <section key={questionIndex} className="border-t border-rule pt-4">
+            <MonoTag className="text-graphite">Question {questionIndex + 1}</MonoTag>
+            <EText path={`play.quiz.${questionIndex}.q`} as="p" className="mt-2 block font-display text-title text-ink" label={`Quiz question ${questionIndex + 1}`} />
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {question.opts.map((_, optionIndex) => (
+                <div key={optionIndex} className="rounded-[var(--radius-sm)] border border-rule p-3">
+                  <EText path={`play.quiz.${questionIndex}.opts.${optionIndex}`} as="p" multiline className="block text-sm text-ink" label={`Quiz question ${questionIndex + 1}, option ${optionIndex + 1}`} />
+                  {question.roasts[optionIndex] !== undefined && (
+                    <EText path={`play.quiz.${questionIndex}.roasts.${optionIndex}`} as="p" multiline className="mt-2 block text-sm text-vermilion-ink" label={`Quiz response ${questionIndex + 1}, option ${optionIndex + 1}`} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    );
+  }
+
+  if (step >= quiz.length) {
     return (
       <div className="flex flex-col gap-4">
         <MonoTag className="text-moss-ink">Diagnosis complete</MonoTag>
@@ -424,28 +452,33 @@ function QuizGame() {
     );
   }
 
-  const q = QUIZ[step];
+  const q = quiz[step];
   return (
     <div>
       <div className="flex items-center justify-between pb-4">
-        <MonoTag className="text-graphite tabular">Question {step + 1} / {QUIZ.length}</MonoTag>
+        <MonoTag className="text-graphite tabular">Question {step + 1} / {quiz.length}</MonoTag>
         <MonoTag className="text-vermilion-ink">Roast mode</MonoTag>
       </div>
-      <p className="font-display text-title text-ink">{q.q}</p>
+      <EText path={`play.quiz.${step}.q`} as="p" className="block font-display text-title text-ink" label={`Quiz question ${step + 1}`} />
       <div className="mt-5 flex flex-col gap-2.5">
-        {q.opts.map((opt, i) => (
+        {q.opts.map((_, i) => (
           <button
-            key={opt}
-            onClick={() => pick(i)}
+            key={i}
+            onClick={(event) => (editing ? event.preventDefault() : pick(i))}
             className={cn(
               "min-h-11 rounded-[var(--radius-sm)] border px-4 py-3 text-left text-md transition-colors duration-[var(--dur-2)]",
               picked === i ? "border-vermilion bg-vermilion-wash text-ink" : "border-rule-strong text-ink-soft hover:border-ink hover:text-ink"
             )}
           >
-            {opt}
+            <EText path={`play.quiz.${step}.opts.${i}`} label={`Quiz question ${step + 1}, option ${i + 1}`} />
           </button>
         ))}
       </div>
+      {editing && (
+        <div className="mt-4 flex flex-col gap-2 border-t border-rule pt-4">
+          {q.roasts.map((_, index) => <EText key={index} path={`play.quiz.${step}.roasts.${index}`} as="p" className="block text-sm text-ink-soft" label={`Quiz response ${step + 1}, option ${index + 1}`} />)}
+        </div>
+      )}
       {picked !== null && <MonoTag className="m-swap mt-4 block text-vermilion-ink">{q.roasts[picked]}</MonoTag>}
     </div>
   );
@@ -507,7 +540,7 @@ function GameShell({ game, onClose, state = "open" }: { game: Game; onClose: () 
           {game.id === "quiz" && <QuizGame />}
         </div>
         <div className="border-t border-rule px-5 py-3">
-          <MonoTag className="text-graphite">ESC to eject · scores persist locally</MonoTag>
+          <MonoTag className="text-graphite"><EText path="play.modalFooter" label="Game modal footer" /></MonoTag>
         </div>
       </div>
     </div>,
@@ -524,6 +557,8 @@ const GAME_ICONS: Record<Game["icon"], LucideIcon> = {
 
 /** The playground — game rows inside the § 04 "Play" tab. Game logic is unchanged. */
 export function Play() {
+  const { content, editing } = useContent();
+  const games = content.play.games;
   const [active, setActive] = useState<Game | null>(null);
   // keep the last game mounted while the dialog animates closed
   const presence = usePresence(!!active, 180);
@@ -538,16 +573,21 @@ export function Play() {
 
   return (
     <div>
-      <ul className="grid gap-px overflow-hidden rounded-[var(--radius-md)] border border-rule bg-rule sm:grid-cols-2">
-        {GAMES.map((game) => {
+      <ul className="scroll-stagger grid gap-px overflow-hidden rounded-[var(--radius-md)] border border-rule bg-rule sm:grid-cols-2">
+        {games.map((game, index) => {
           const Icon = GAME_ICONS[game.icon];
           return (
             <li key={game.id} className="bg-card">
               <button
                 type="button"
                 disabled={!game.playable}
-                onClick={(e) => {
-                  opener.current = e.currentTarget;
+                onClick={(event) => {
+                  if (editing && (event.target as HTMLElement).closest('[role="textbox"]')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return;
+                  }
+                  opener.current = event.currentTarget;
                   setActive(game);
                 }}
                 className="group flex h-full min-h-[88px] w-full items-start gap-4 p-4 text-left transition-colors duration-[var(--dur-2)] enabled:hover:bg-composer disabled:cursor-not-allowed"
@@ -563,9 +603,9 @@ export function Play() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-2">
-                    <span className={cn("text-md font-semibold", game.playable ? "text-ink" : "text-ink-soft")}>{game.name}</span>
+                    <span className={cn("text-md font-semibold", game.playable ? "text-ink" : "text-ink-soft")}><EText path={`play.games.${index}.name`} label={`Game ${index + 1} name`} /></span>
                   </span>
-                  <span className="mt-1 block text-sm text-ink-soft">{game.desc}</span>
+                  <EText path={`play.games.${index}.desc`} as="span" multiline className="mt-1 block text-sm text-ink-soft" label={`Game ${index + 1} description`} />
                 </span>
                 {game.playable && <MonoTag className="hidden shrink-0 pt-0.5 text-vermilion-ink sm:inline">Play</MonoTag>}
               </button>

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ABOUT, APP, FIREBASE, HERO, ROM_POST, SOCIALS } from "../lib/data";
+import { ABOUT, ANIME, APP, FIREBASE, GAMES, HERO, MUSIC, NAV_LINKS, PARTITIONS, PLAYLISTS, QUIZ, ROM_POST, SOCIALS } from "../lib/data";
 import { OWNER_EVENT, isOwner, jfetch, refreshTokenIfNeeded } from "../lib/owner";
 
 /* ------------------------------------------------------------------ *
@@ -15,7 +15,12 @@ export type Block = { id: string; type: "text" | "image"; text?: string; src?: s
 export type SectionId = "hero" | "work" | "about" | "ask" | "links" | "footer";
 
 export const DEFAULTS = {
-  version: 1,
+  version: 2,
+  brand: { name: "v3rsi0n", logotype: "V3RSI0N" },
+  nav: {
+    links: NAV_LINKS.map((link) => ({ ...link })),
+    cta: "Ask me",
+  },
   hero: {
     kicker: HERO.kicker,
     pill: HERO.pill,
@@ -25,17 +30,41 @@ export const DEFAULTS = {
     emphasis: HERO.emphasis,
     age: HERO.age,
     gender: HERO.gender,
+    flag: HERO.flag,
+    country: HERO.country,
     ctaPrimary: HERO.ctaPrimary,
     ctaSecondary: HERO.ctaSecondary,
     portrait: "art/hero-portrait-900.webp",
     portraitAlt: "Anime illustration: a blue-haired bassist sitting on a laundromat bench beside her bass",
+    stickerOne: "Flash it, don’t fear it",
+    stickerTwo: "v3rsi0n / ROM.LOG",
+    benchKicker: "Bench",
+    benchTitle: "Take a stock device apart, one partition at a time.",
+    benchDescription: "Pick a partition to see what lives there, or flash the whole stack.",
+    figureCaption: "Fig. 1 — Partition stack, exploded",
+    figureAlt: "Figure 1: an exploded isometric phone with userdata, vendor, system, and boot partitions",
+    partitions: PARTITIONS.map((partition) => ({ ...partition })),
+  },
+  work: {
+    sectionLabel: "Work",
+    titleLine1: "One ROM, one app,",
+    titleLine2: "both",
+    titleEmphasis: "shipped",
   },
   rom: {
     title: ROM_POST.title,
     codename: ROM_POST.codename,
     variant: ROM_POST.variant,
+    date: ROM_POST.date,
     dateLabel: ROM_POST.dateLabel,
+    releasedLabel: "Released",
+    maintainerLabel: "Maintainer",
+    changelogLabel: "Changelog",
+    tipLabel: "Tip",
+    notesLabel: "Notes",
+    warningLabel: "Warning",
     maintainer: ROM_POST.maintainer,
+    maintainerUrl: ROM_POST.maintainerUrl,
     thumbnail: ROM_POST.thumbnail,
     thumbnailAlt: ROM_POST.thumbnailAlt,
     links: ROM_POST.links.map((l) => ({ label: l.label, url: l.url, primary: !!l.primary })),
@@ -45,21 +74,105 @@ export const DEFAULTS = {
     notes: [...ROM_POST.notes],
     warning: ROM_POST.warning,
   },
-  app: { title: APP.title, desc: APP.desc, tags: [...APP.tags] },
+  app: {
+    name: APP.name,
+    repo: APP.repo,
+    sector: APP.sector,
+    title: APP.title,
+    desc: APP.desc,
+    tags: [...APP.tags],
+    link: APP.link,
+    linkLabel: APP.linkLabel,
+  },
   about: {
+    sectionLabel: "About",
+    titleLead: "The person behind",
+    titleMiddle: "the",
+    titleEmphasis: "builds",
+    shortTitle: "The short version.",
+    deviceRoleLabel: "Role",
+    deviceNameLabel: "Device",
+    deviceDetailLabel: "Detail",
+    intoLabel: "Into",
+    devicesLabel: "Devices",
+    gamesLabel: "Games",
+    playTitle: "The playground.",
+    playDescription: "Four canvas games in a modal, nothing at stake. High scores stay in your browser. Escape closes any of them.",
+    animeTitle: "Logged on AniList.",
+    animePrompt: `anilist stats --user ${ANIME.handle}`,
+    animeGet: "The full watch list, scored.",
+    anilistHandle: ANIME.handle,
+    anilistLinkLabel: `${ANIME.handle} on AniList`,
+    anilistUrl: ANIME.url,
+    musicTitle: "Mostly J-pop and EDM.",
+    musicPrompt: `last.fm now --user ${MUSIC.handle}`,
+    musicGet: "Scrobbles, top artists, the lot.",
+    musicChecks: [
+      ABOUT.interests[2].desc,
+      "Five playlists: Japanese, English, Hindi, Phonk and a mix.",
+      "Three tracks on rotation live in the header player.",
+      "Scrobbled on Last.fm.",
+    ],
+    lastfmHandle: MUSIC.handle,
+    lastfmLinkLabel: `${MUSIC.handle} on Last.fm`,
+    lastfmUrl: MUSIC.url,
+    musicPlaylistsLabel: "My YouTube Music playlists",
+    tabLabels: ["Me", "Anime", "Music", "Play"],
     line: ABOUT.facts.line,
+    age: ABOUT.facts.age,
+    gender: ABOUT.facts.gender,
+    flag: ABOUT.facts.flag,
+    country: ABOUT.facts.country,
     interests: ABOUT.interests.map((i) => ({ title: i.title, desc: i.desc })),
     devices: ABOUT.devices.map((d) => ({ role: d.role, device: d.device, detail: d.detail, aside: d.aside ?? "" })),
     gamesLead: ABOUT.gamesLead,
     games: [...ABOUT.games],
   },
+  play: {
+    games: GAMES.map((game) => ({ ...game })),
+    quiz: QUIZ.map((item) => ({ ...item, opts: [...item.opts], roasts: [...item.roasts] })),
+    modalFooter: "ESC to eject · scores persist locally",
+  },
+  ask: {
+    sectionLabel: "Ask",
+    titleLead: "Ask me",
+    titleEmphasis: "anything",
+    lede: "Root, ROMs, anime, whatever. Questions land in Firestore and ping my Telegram; answers show up here once I’ve replied. Ten per visitor per day.",
+    composerTitle: "New question",
+    questionLabel: "Your question",
+    questionPlaceholder: "Magisk or KernelSU for a fresh install?",
+    nameLabel: "Name",
+    nameOptional: "(optional)",
+    namePlaceholder: "anon",
+    sendLabel: "Send question",
+    answeredLabel: "Answered",
+    sortLabels: ["Top", "Recent", "Oldest"],
+  },
+  links: {
+    sectionLabel: "Elsewhere",
+    title: "Twelve channels, all of them read.",
+    description: "Telegram is fastest for build support. Everything else is where the anime, music and side projects live.",
+  },
   socials: SOCIALS.map((s) => ({ name: s.name, handle: s.handle, url: s.url })),
+  music: {
+    playlistImages: PLAYLISTS.map(() => ""),
+    playlistImageAlts: PLAYLISTS.map((p) => `${p.label} YouTube Music playlist cover`),
+    playlistLabels: PLAYLISTS.map(() => null as string | null),
+    playlistTitles: PLAYLISTS.map(() => null as string | null),
+    swipeInstruction: "Swipe the covers",
+  },
   footer: {
+    availability: "Open for collabs",
     line: "Versioned in public, tested on real hardware.",
     band: "art/footer-band-1280.webp",
     bandAlt: "Anime key visual: four bandmates carrying guitar cases across a sunlit crosswalk",
     bandKicker: "End of transmission",
     bandLine: "Thanks for scrolling. Go flash something.",
+    telegramLabel: "Telegram",
+    telegramUrl: "https://t.me/v3rsi0n",
+    githubLabel: "GitHub",
+    githubUrl: "https://github.com/4nx3b",
+    signature: "v3rsi0n.",
   },
   blocks: { hero: [], work: [], about: [], ask: [], links: [], footer: [] } as Record<SectionId, Block[]>,
 };
@@ -136,9 +249,10 @@ type PublicDoc = { json: Json; updatedAt: string | null; via: "api" | "firestore
  * works even before the siteContent rules are deployed (anonymous direct
  * reads get 403 until then). Falls back to a direct Firestore read.
  */
-export async function readPublished(): Promise<PublicDoc | null> {
+export async function readPublished(fresh = false): Promise<PublicDoc | null> {
   try {
-    const r = await fetch(`/api/site-content?t=${Date.now()}`, { cache: "no-store", headers: { Accept: "application/json" } });
+    const url = fresh ? `/api/site-content?t=${Date.now()}` : "/api/site-content";
+    const r = await fetch(url, { cache: fresh ? "no-store" : "default", headers: { Accept: "application/json" } });
     if (r.ok && (r.headers.get("content-type") || "").includes("json")) {
       const d = await r.json();
       if (typeof d?.json === "string") return { json: JSON.parse(d.json) as Json, updatedAt: d.updatedAt ?? null, via: "api" };
@@ -156,32 +270,43 @@ export async function readPublished(): Promise<PublicDoc | null> {
   return null;
 }
 
-/** Owner write: server endpoint (verifies the token at Google), else direct PATCH. Returns updatedAt. */
+/** Owner write: the authenticated server endpoint is the only write path. */
 async function writePublished(payload: unknown): Promise<string> {
   const token = await refreshTokenIfNeeded();
-  const text = JSON.stringify(payload);
+  let response: Response;
   try {
-    const r = await fetch("/api/site-content", {
+    response = await fetch("/api/site-content", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-      body: JSON.stringify({ json: text }),
+      body: JSON.stringify({ json: JSON.stringify(payload) }),
     });
-    const ct = r.headers.get("content-type") || "";
-    if (ct.includes("json")) {
-      const d = await r.json();
-      if (r.ok && d?.updatedAt) return d.updatedAt as string;
-      if (r.status !== 404 && r.status !== 503) throw new Error(d?.error || `Publish failed (${r.status})`);
-    }
-  } catch (e) {
-    if (!/Failed to fetch|NetworkError|Load failed/i.test((e as Error).message)) throw e;
+  } catch {
+    throw new Error("Could not reach the publishing API. Check your connection and try again.");
   }
-  const now = new Date().toISOString();
-  await jfetch(`${DOC_URL()}?updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-    body: JSON.stringify({ fields: { json: { stringValue: text }, updatedAt: { stringValue: now } } }),
-  });
-  return now;
+
+  const data = await response.json().catch(() => null);
+  const detail = String(data?.error || "");
+  if (!response.ok) {
+    if (response.status === 401) throw new Error("Your owner session is no longer valid. Sign in again, then publish.");
+    if (response.status === 404) throw new Error("The publishing API is missing from this deployment. Deploy the Vercel API functions, then try again.");
+    if (response.status === 503 || /FIREBASE_SERVICE_ACCOUNT_KEY/i.test(detail)) {
+      throw new Error("Publishing is not configured on Vercel. Add FIREBASE_SERVICE_ACCOUNT_KEY and redeploy the project.");
+    }
+    if (response.status === 403 || /PERMISSION_DENIED|permission denied/i.test(detail)) {
+      throw new Error("The Vercel service account cannot write to this Firestore project. Check its Firestore IAM access and project ID.");
+    }
+    throw new Error(detail || `Publish failed (${response.status})`);
+  }
+  if (typeof data?.updatedAt !== "string") throw new Error("The publishing API returned an invalid response. Please try again.");
+  return data.updatedAt;
+}
+
+function explainPublishError(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  if (/PERMISSION_DENIED|permission denied|403/i.test(message)) {
+    return "The Vercel service account cannot write to this Firestore project. Check its Firestore IAM access and project ID.";
+  }
+  return message || "Couldn’t publish. Please try again.";
 }
 
 /* ---------------- context ---------------- */
@@ -246,7 +371,9 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     const sync = () => {
       const o = isOwner();
       setOwner(o);
-      if (!o) {
+      if (o) {
+        setDraft((current) => current ?? read<SiteContent>(DRAFT_KEY));
+      } else {
         setEditingState(false);
         setDraft(null);
       }
@@ -260,12 +387,13 @@ export function ContentProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const base = useMemo(() => deepMerge(DEFAULTS, published), [published]);
-  const content = draft ?? base;
+  // Merge cached drafts over current defaults as the editor schema evolves.
+  const content = useMemo(() => (draft ? deepMerge(base, draft) : base), [base, draft]);
 
   const set = useCallback(
     (path: string, value: unknown) => {
       setDraft((d) => {
-        const next = setPath(d ?? base, path, value);
+        const next = setPath(d ? deepMerge(base, d) : base, path, value);
         write(DRAFT_KEY, next);
         return next;
       });
@@ -274,13 +402,13 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     [base]
   );
 
-  /** Write, then confirm what an anonymous visitor would read. */
+  /** Write, then confirm what a public visitor can read through the API. */
   const save = useCallback(async (payload: unknown): Promise<Status> => {
     const at = await writePublished(payload);
     setPublishedAt(at);
-    const check = await readPublished();
-    if (check && check.updatedAt === at) return { kind: "saved", msg: "Published, live for everyone" };
-    return { kind: "warn", msg: "Published, but visitors can't read it yet: deploy firestore.rules" };
+    const check = await readPublished(true);
+    if (check && check.updatedAt === at) return { kind: "saved", msg: "Published — live for everyone" };
+    return { kind: "warn", msg: "Saved to Firestore, but the public endpoint could not confirm it yet. Refresh to verify." };
   }, []);
 
   const publish = useCallback(async () => {
@@ -294,12 +422,8 @@ export function ContentProvider({ children }: { children: ReactNode }) {
       write(DRAFT_KEY, null);
       setDraft(null);
       setStatus(result);
-    } catch (e) {
-      const m = (e as Error).message || "";
-      setStatus({
-        kind: "error",
-        msg: /permission|PERMISSION_DENIED|403/i.test(m) ? "Permission denied: deploy firestore.rules first" : m || "Couldn't publish",
-      });
+    } catch (error) {
+      setStatus({ kind: "error", msg: explainPublishError(error) });
     }
   }, [save]);
 
@@ -318,8 +442,8 @@ export function ContentProvider({ children }: { children: ReactNode }) {
       write(DRAFT_KEY, null);
       setDraft(null);
       setStatus(result.kind === "saved" ? { kind: "saved", msg: "Reset to defaults" } : result);
-    } catch (e) {
-      setStatus({ kind: "error", msg: (e as Error).message || "Couldn't reset" });
+    } catch (error) {
+      setStatus({ kind: "error", msg: explainPublishError(error) });
     }
   }, [save]);
 
