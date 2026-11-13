@@ -75,7 +75,7 @@ Accessibility: skip link, one h1, header/main/footer landmarks, 2px
 
 ```txt
 api/
-├─ site-content.js       # public published-content/image reads; owner-verified writes
+├─ site-content.js       # public published-content/image reads; owner-authenticated writes
 ├─ telegram.js           # sends Telegram notification for new questions
 ├─ telegram-webhook.js   # Telegram bot reply-to-answer support
 └─ ama-vote.js            # vote sync to Firestore (service account)
@@ -188,7 +188,7 @@ The **Design system** controls the site-wide font and motion presets, while the 
 can be hidden without deleting its content. The Ask section stays visible for its public question
 feed and owner moderation console. Custom sections can add themselves to the navigation.
 
-Uploaded builder images use the owner-verified media API or the Firestore fallback on static hosts;
+Uploaded builder images use the owner-authenticated media API or the Firestore fallback on static hosts;
 they are compressed to WebP (maximum 1600px / 700 KB). **Edit mode** also keeps the inline text
 and image tools available on the live page. Drafts are stored locally for the owner; the published
 Firestore document is the shared source of truth, so publishing is required for all visitors to see
@@ -199,9 +199,10 @@ clears all published overrides.
 
 On Vercel and Cloudflare, `/api/site-content` reads and writes published content, uploaded images,
 and the shared owner profile with the service account (`FIREBASE_SERVICE_ACCOUNT_KEY`, the same
-variable `/api/ama-vote` uses). Owner writes are authenticated with a Firebase ID token; profile
-updates also require the owner email to be verified. If the function is missing or unavailable, the
-site falls back to direct Firestore REST, which is restricted by the verified-owner rules.
+variable `/api/ama-vote` uses). Writes are authenticated against the fixed owner Firebase account.
+If the function is missing or cannot write, the site falls back to direct Firestore REST; profile
+writes use a narrowly scoped owner-account rule, while site content and media keep the verified-owner
+rule.
 
 - **Vercel:** use the service-account environment variable configured for the project.
 - **Cloudflare:** add `FIREBASE_SERVICE_ACCOUNT_KEY` under Workers & Pages → project →
