@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Download, GitFork, LifeBuoy, Lightbulb, Star, TriangleAlert } from "lucide-react";
 import { cn } from "../utils/cn";
 import { ago, useGithubRepo } from "../hooks/useGithubRepo";
+import { usePointerVars } from "../hooks/usePointerVars";
 import { useContent } from "../content/store";
 import { Blocks, EField, EImage, EStringList, EText } from "../content/Editable";
 import { Reveal } from "./Reveal";
@@ -21,7 +22,7 @@ function RomPost() {
   );
 
   return (
-    <Reveal as="article" aria-labelledby="rom-title" className="mt-14 overflow-hidden rounded-[var(--radius-xl)] border border-panel-rule bg-panel-2">
+    <Reveal as="article" aria-labelledby="rom-title" className="overflow-hidden rounded-[var(--radius-xl)] border border-panel-rule bg-panel-2">
       <EImage srcPath="rom.thumbnail" altPath="rom.thumbnailAlt">
         {(src, alt) => (
           <img
@@ -175,6 +176,7 @@ function AppCard() {
   const { content, editing } = useContent();
   const app = content.app;
   const { stats, checkedAt } = useGithubRepo(app.repo, ref);
+  usePointerVars(ref);
   const [, force] = useState(0);
   useEffect(() => {
     const id = window.setInterval(() => force((n) => n + 1), 10_000);
@@ -183,7 +185,7 @@ function AppCard() {
   const lastCheck = checkedAt ?? stats?.ts ?? null;
 
   return (
-    <Reveal className="mt-10">
+    <Reveal>
       <div ref={ref} className="scroll-stack-layer grid gap-8 rounded-[var(--radius-xl)] border border-panel-rule p-5 sm:p-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:p-10">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-panel-err">

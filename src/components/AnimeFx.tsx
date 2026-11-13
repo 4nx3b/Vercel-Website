@@ -132,7 +132,7 @@ export function KanaMarquee() {
     </span>
   ));
   return (
-    <section ref={ref} aria-label={`Banner: ${text}`} className="kana-band relative overflow-clip border-y border-ink bg-ink text-paper">
+    <section id="ticker" ref={ref} aria-label={`Banner: ${text}`} className="kana-band relative overflow-clip border-y border-ink bg-ink text-paper">
       <div aria-hidden className="kana-scroll">
         <div className="kana-track">
           {row}
