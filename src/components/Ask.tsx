@@ -7,6 +7,7 @@ import {
 } from "../lib/data";
 import { ArrowRight, Check, ChevronUp, RefreshCw, X } from "lucide-react";
 import { MonoTag, SectionHead, StatusDot } from "./ui";
+import { announceOwner, jfetch, lsGet, lsSet, ownerAuth, refreshTokenIfNeeded, setOwnerAuth, type Owner } from "../lib/owner";
 import { Reveal } from "./Reveal";
 import { BurstLines, GiantType, Halftone } from "./AnimeFx";
 
@@ -23,7 +24,6 @@ type AmaQ = {
   answered: boolean; dismissed: boolean; votes: number;
   createdAt: string; answeredAt: string;
 };
-type Owner = { email: string; idToken: string; refreshToken: string; expiresAt: number };
 type Pending = AmaQ & { telegramNotified?: boolean; emailNotified?: boolean };
 
 const base = () => `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents`;
@@ -31,14 +31,6 @@ const docUrl = (id: string) => `${base()}/${AMA_COLLECTION}/${encodeURIComponent
 const colUrl = () => `${base()}/${AMA_COLLECTION}`;
 const queryUrl = () => `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents:runQuery`;
 
-async function jfetch(url: string, opts: RequestInit = {}): Promise<any> {
-  const res = await fetch(url, opts);
-  const txt = await res.text();
-  let data: any = null;
-  try { data = txt ? JSON.parse(txt) : null; } catch { data = { raw: txt }; }
-  if (!res.ok) throw new Error(data?.error?.message || `HTTP ${res.status}`);
-  return data;
-}
 const nowISO = () => new Date().toISOString();
 const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : "q_" + Date.now() + "_" + Math.random().toString(16).slice(2));
 function timeAgo(iso: string | number) {
@@ -47,11 +39,6 @@ function timeAgo(iso: string | number) {
   const m = Math.floor(d / 60000), h = Math.floor(m / 60), day = Math.floor(h / 24);
   return day ? day + "d ago" : h ? h + "h ago" : m ? m + "m ago" : "now";
 }
-function lsGet<T>(key: string, fallback: T): T {
-  try { const v = localStorage.getItem(key); return v ? (JSON.parse(v) as T) : fallback; } catch { return fallback; }
-}
-function lsSet(key: string, v: unknown) { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* private mode */ } }
-function lsDel(key: string) { try { localStorage.removeItem(key); } catch { /* */ } }
 
 function toFields(q: AmaQ) {
   return { fields: {
@@ -82,8 +69,6 @@ function fromDoc(doc: any): AmaQ {
 }
 
 /* ---------- auth ---------- */
-const ownerAuth = (): Owner | null => lsGet<Owner | null>(AMA_KEYS.ownerAuth, null);
-const setOwnerAuth = (a: Owner | null) => (a ? lsSet(AMA_KEYS.ownerAuth, a) : lsDel(AMA_KEYS.ownerAuth));
 
 async function publicToken(): Promise<string> {
   const stored = lsGet<{ idToken: string; refreshToken: string; expiresAt: number } | null>(AMA_KEYS.publicAuth, null);
@@ -94,17 +79,6 @@ async function publicToken(): Promise<string> {
   const next = { idToken: data.idToken, refreshToken: data.refreshToken, expiresAt: Date.now() + Number(data.expiresIn || 3600) * 1000 };
   lsSet(AMA_KEYS.publicAuth, next);
   return next.idToken;
-}
-async function refreshTokenIfNeeded(): Promise<string> {
-  const a = ownerAuth();
-  if (!a?.refreshToken) throw new Error("Login again.");
-  if (a.expiresAt && Date.now() < a.expiresAt - 60000) return a.idToken;
-  const data = await jfetch(`https://securetoken.googleapis.com/v1/token?key=${FIREBASE.apiKey}`, {
-    method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ grant_type: "refresh_token", refresh_token: a.refreshToken }).toString(),
-  });
-  setOwnerAuth({ ...a, idToken: data.id_token, refreshToken: data.refresh_token || a.refreshToken, expiresAt: Date.now() + Number(data.expires_in || 3600) * 1000 });
-  return data.id_token;
 }
 
 async function authHeaders(): Promise<Record<string, string>> {
@@ -252,7 +226,7 @@ function OwnerConsole({ onClose, onChanged, phase = "open" }: { onClose: () => v
       });
       if (data.email !== ADMIN_EMAIL) throw new Error("Wrong account.");
       const next = { email: data.email, idToken: data.idToken, refreshToken: data.refreshToken, expiresAt: Date.now() + Number(data.expiresIn || 3600) * 1000 };
-      setOwnerAuth(next); setAuth(next); setStatus(""); setErr(false);
+      setOwnerAuth(next); setAuth(next); setStatus(""); setErr(false); announceOwner();
     } catch (e2) {
       setStatus((e2 as Error).message || "Login failed."); setErr(true);
     } finally { setBusy(false); }
@@ -330,7 +304,7 @@ function OwnerConsole({ onClose, onChanged, phase = "open" }: { onClose: () => v
           </div>
           <div className="flex items-center gap-1">
             {isOwner && (
-              <button onClick={() => { setOwnerAuth(null); setAuth(null); setItems(null); }} className="min-h-11 rounded-full px-3 font-mono text-xs text-ink-soft transition-colors duration-[var(--dur-2)] hover:text-vermilion-ink">
+              <button onClick={() => { setOwnerAuth(null); setAuth(null); setItems(null); announceOwner(); }} className="min-h-11 rounded-full px-3 font-mono text-xs text-ink-soft transition-colors duration-[var(--dur-2)] hover:text-vermilion-ink">
                 Log out
               </button>
             )}
@@ -523,6 +497,18 @@ export function Ask() {
   const [status, setStatus] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
   const [page, setPage] = useState(1);
   const [ownerOpen, setOwnerOpen] = useState(false);
+  // #admin and the footer "Owner" link open the same sign-in sheet
+  useEffect(() => {
+    const openSheet = () => setOwnerOpen(true);
+    const fromHash = () => window.location.hash === "#admin" && openSheet();
+    fromHash();
+    window.addEventListener("hashchange", fromHash);
+    window.addEventListener("v3:open-owner", openSheet);
+    return () => {
+      window.removeEventListener("hashchange", fromHash);
+      window.removeEventListener("v3:open-owner", openSheet);
+    };
+  }, []);
   const [loading, setLoading] = useState(true);
   const PAGE = 4;
 

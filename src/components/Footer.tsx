@@ -4,6 +4,7 @@ import { useIstClock } from "../hooks/useInView";
 import { StatusDot } from "./ui";
 import { useScrollVar } from "../hooks/useScrollVar";
 import { FooterFlow } from "./AnimeFx";
+import { EText } from "../content/Editable";
 
 /** Decorative signature, one span per letter for the hover play (aria-hidden). */
 const SIGNATURE = Array.from("v3rsi0n.");
@@ -80,7 +81,16 @@ export function Footer() {
 
         <div className="relative mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-rule pt-6">
           <span className="font-mono text-xs text-graphite">© 2026 v3rsi0n</span>
-          <span className="font-mono text-xs text-graphite">Versioned in public, tested on real hardware.</span>
+          <span className="flex items-center gap-4">
+            <EText path="footer.line" className="font-mono text-xs text-graphite" label="Footer line" />
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event("v3:open-owner"))}
+              className="inline-flex min-h-11 items-center font-mono text-xs text-graphite underline decoration-rule-strong underline-offset-4 transition-colors duration-[var(--dur-2)] hover:text-ink"
+            >
+              Owner
+            </button>
+          </span>
         </div>
         {/* Giant clipped signature */}
         <p
