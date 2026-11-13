@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ElementType, type ReactNode } from "r
 import { ArrowDown, ArrowUp, ImagePlus, Plus, Trash2, Type } from "lucide-react";
 import { cn } from "../utils/cn";
 import { FIREBASE } from "../lib/data";
-import { refreshTokenIfNeeded } from "../lib/owner";
+import { apiErrorMessage, refreshTokenIfNeeded } from "../lib/owner";
 import { getPath, loadSiteImageData, useContent, useField, type Block, type SectionId } from "./store";
 
 /* ------------------------------------------------------------------ *
@@ -344,7 +344,7 @@ async function uploadImageDirect(dataUrl: string, token: string): Promise<string
   if (!response.ok) {
     if (response.status === 401) throw new Error("Your owner session has expired. Sign in again before uploading.");
     if (response.status === 403) throw new Error("Firestore denied direct image publishing. Deploy firestore.rules and confirm the verified owner account.");
-    throw new Error(result?.error?.message || `Firestore image upload failed (${response.status})`);
+    throw new Error(apiErrorMessage(result) || `Firestore image upload failed (${response.status})`);
   }
   return `fs:siteImages/${id}`;
 }
@@ -369,7 +369,7 @@ async function uploadImage(dataUrl: string): Promise<string> {
   const apiMissing = !response || response.status === 404 || response.status === 405 || response.status === 503 || response.status >= 500 ||
     !(response.headers.get("content-type") || "").includes("json") || (response.ok && typeof data?.id !== "string");
   if (apiMissing || response?.status === 403) return uploadImageDirect(dataUrl, token);
-  const detail = String(data?.error || "");
+  const detail = apiErrorMessage(data);
   if (response?.status === 400 || response?.status === 413) throw new Error(detail || "Image upload failed because the image is invalid or too large.");
   throw new Error(detail || `Image upload failed (${response?.status ?? "unknown"})`);
 }

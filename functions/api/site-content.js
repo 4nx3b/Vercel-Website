@@ -12,6 +12,7 @@ const PROFILE_AVATAR_DATA_URL = /^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+
 
 const json = (obj, status = 200, cache = "no-store", headOnly = false) =>
   new Response(headOnly ? null : JSON.stringify(obj), { status, headers: { "Content-Type": "application/json", "Cache-Control": cache } });
+const fail = (message, status) => json({ error: { message, code: `http_${status}` } }, status);
 
 function serviceAccount(env) {
   const raw = env.FIREBASE_SERVICE_ACCOUNT_KEY;
@@ -80,7 +81,7 @@ async function firestore(env, method, url, body) {
   return d;
 }
 
-async function requireOwner(request, requireVerifiedEmail = false) {
+async function requireOwner(request) {
   const idToken = (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
   if (!idToken) throw Object.assign(new Error("Sign in as the owner first"), { status: 401 });
   const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${WEB_API_KEY}`, {
@@ -91,10 +92,7 @@ async function requireOwner(request, requireVerifiedEmail = false) {
   const d = await r.json().catch(() => null);
   const user = d?.users?.[0];
   const email = String(user?.email || "").toLowerCase();
-  if (!r.ok || email !== ADMIN_EMAIL.toLowerCase()) throw Object.assign(new Error("Not the owner"), { status: 401 });
-  if (requireVerifiedEmail && user?.emailVerified !== true) {
-    throw Object.assign(new Error(`Verify the owner email ${ADMIN_EMAIL} before saving the shared profile icon`), { status: 403 });
-  }
+  if (!r.ok || email !== ADMIN_EMAIL.toLowerCase()) throw Object.assign(new Error("This Firebase account is not allowed to update site content"), { status: 401 });
 }
 
 async function handle({ request, env }) {
@@ -117,10 +115,10 @@ async function handle({ request, env }) {
         );
       }
       if (imageId) {
-        if (!/^[\w-]{4,80}$/.test(imageId)) return json({ error: { message: "bad image id", code: "error" } }, 400);
+        if (!/^[\w-]{4,80}$/.test(imageId)) return fail("Invalid image ID", 400);
         const doc = await firestore(env, "GET", docUrl(env, `siteImages/${imageId}`));
         const m = (doc?.fields?.data?.stringValue || "").match(IMAGE_DATA_URL);
-        if (!m) return json({ error: "no such image" }, 404);
+        if (!m) return fail("Image not found", 404);
         const bin = Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0));
         return new Response(request.method === "HEAD" ? null : bin, {
           headers: { "Content-Type": `image/${m[1]}`, "Cache-Control": "public, max-age=31536000, immutable" },
@@ -135,21 +133,21 @@ async function handle({ request, env }) {
       );
     }
     if (request.method === "POST") {
-      await requireOwner(request, ownerProfile);
+      await requireOwner(request);
       let body;
       try {
         body = await request.json();
       } catch {
-        return json({ error: "Request body must be valid JSON" }, 400);
+        return fail("Request body must be valid JSON", 400);
       }
       const now = new Date().toISOString();
       if (ownerProfile) {
         const avatar = typeof body?.avatar === "string" ? body.avatar : "";
         if (avatar && !PROFILE_AVATAR_DATA_URL.test(avatar)) {
-          return json({ error: "Expected a PNG, JPEG, or WebP profile image" }, 400);
+          return fail("Expected a PNG, JPEG, or WebP profile image", 400);
         }
         if (enc.encode(avatar).length > MAX_PROFILE_AVATAR_BYTES) {
-          return json({ error: "Profile image is too large" }, 413);
+          return fail("Profile image is too large", 413);
         }
         await firestore(env, "PATCH", `${docUrl(env, "siteOwner/profile")}?updateMask.fieldPaths=avatar&updateMask.fieldPaths=updatedAt`, {
           fields: { avatar: { stringValue: avatar }, updatedAt: { stringValue: now } },
@@ -158,27 +156,27 @@ async function handle({ request, env }) {
       }
       if (imageId) {
         const data = String(body?.data || "");
-        if (!IMAGE_DATA_URL.test(data)) return json({ error: "Expected a WebP, PNG, or JPEG image data URL" }, 400);
-        if (enc.encode(data).length > MAX_IMAGE_BYTES) return json({ error: "Image is too large" }, 413);
+        if (!IMAGE_DATA_URL.test(data)) return fail("Expected a WebP, PNG, or JPEG image data URL", 400);
+        if (enc.encode(data).length > MAX_IMAGE_BYTES) return fail("Image is too large", 413);
         const id = crypto.randomUUID().replace(/-/g, "");
         await firestore(env, "PATCH", docUrl(env, `siteImages/${id}`), { fields: { data: { stringValue: data }, createdAt: { stringValue: now } } });
         return json({ ok: true, id });
       }
       const text = typeof body?.json === "string" ? body.json : JSON.stringify(body?.json ?? {});
-      if (enc.encode(text).length > MAX_JSON_BYTES) return json({ error: "Site content is too large" }, 413);
+      if (enc.encode(text).length > MAX_JSON_BYTES) return fail("Site content is too large", 413);
       let parsed;
       try {
         parsed = JSON.parse(text);
       } catch {
-        return json({ error: "Published content must be valid JSON" }, 400);
+        return fail("Published content must be valid JSON", 400);
       }
-      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return json({ error: "Published content must be a JSON object" }, 400);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return fail("Published content must be a JSON object", 400);
       await firestore(env, "PATCH", `${docUrl(env, "siteContent/live")}?updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt`, {
         fields: { json: { stringValue: text }, updatedAt: { stringValue: now } },
       });
       return json({ ok: true, updatedAt: now });
     }
-    return json({ error: { message: "method not allowed", code: "error" } }, 405);
+    return fail("Method not allowed", 405);
   } catch (e) {
     return json({ error: { message: e.message || "error", code: e.code || `http_${e.status || 500}` } }, e.status || 500);
   }

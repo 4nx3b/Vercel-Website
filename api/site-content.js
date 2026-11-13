@@ -111,7 +111,7 @@ async function firestore(method, url, body) {
 }
 
 /** Trust the identity returned by Firebase, never an email supplied in a body. */
-async function requireOwner(req, requireVerifiedEmail = false) {
+async function requireOwner(req) {
   const authorization = req.headers?.authorization || req.headers?.Authorization || "";
   const idToken = String(authorization).replace(/^Bearer\s+/i, "").trim();
   if (!idToken) throw httpError("Sign in as the site owner first", 401);
@@ -125,10 +125,7 @@ async function requireOwner(req, requireVerifiedEmail = false) {
   const user = data?.users?.[0];
   const email = String(user?.email || "").toLowerCase();
   if (!response.ok || email !== ADMIN_EMAIL.toLowerCase()) {
-    throw httpError("This Firebase account is not allowed to publish site content", 401);
-  }
-  if (requireVerifiedEmail && user?.emailVerified !== true) {
-    throw httpError(`Verify the owner email ${ADMIN_EMAIL} before saving the shared profile icon`, 403);
+    throw httpError("This Firebase account is not allowed to update site content", 401);
   }
 }
 
@@ -160,9 +157,13 @@ function send(res, status, obj, cache = "no-store", headOnly = false) {
   res.end(headOnly ? undefined : JSON.stringify(obj));
 }
 
+function sendFailure(res, status, message) {
+  return send(res, status, { error: { message, code: `http_${status}` } });
+}
+
 function sendError(res, error) {
   const status = Number.isInteger(error?.status) ? error.status : 500;
-  return send(res, status, { error: error?.message || "Site content request failed" });
+  return sendFailure(res, status, error?.message || "Site content request failed");
 }
 
 export default async function handler(req, res) {
@@ -188,11 +189,11 @@ export default async function handler(req, res) {
       }
 
       if (imageId) {
-        if (!/^[\w-]{4,80}$/.test(imageId)) return send(res, 400, { error: "Invalid image ID" });
+        if (!/^[\w-]{4,80}$/.test(imageId)) return sendFailure(res, 400, "Invalid image ID");
         const doc = await firestore("GET", docUrl(`siteImages/${imageId}`));
         const dataUrl = doc?.fields?.data?.stringValue || "";
         const match = dataUrl.match(IMAGE_DATA_URL);
-        if (!match) return send(res, 404, { error: "Image not found" });
+        if (!match) return sendFailure(res, 404, "Image not found");
 
         res.statusCode = 200;
         res.setHeader("Content-Type", `image/${match[1]}`);
@@ -214,17 +215,17 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "POST") {
-      await requireOwner(req, ownerProfile);
+      await requireOwner(req);
       const body = await readBody(req);
       const now = new Date().toISOString();
 
       if (ownerProfile) {
         const avatar = typeof body?.avatar === "string" ? body.avatar : "";
         if (avatar && !PROFILE_AVATAR_DATA_URL.test(avatar)) {
-          return send(res, 400, { error: "Expected a PNG, JPEG, or WebP profile image" });
+          return sendFailure(res, 400, "Expected a PNG, JPEG, or WebP profile image");
         }
         if (Buffer.byteLength(avatar, "utf8") > MAX_PROFILE_AVATAR_BYTES) {
-          return send(res, 413, { error: "Profile image is too large" });
+          return sendFailure(res, 413, "Profile image is too large");
         }
 
         await firestore("PATCH", `${docUrl("siteOwner/profile")}?updateMask.fieldPaths=avatar&updateMask.fieldPaths=updatedAt`, {
@@ -239,8 +240,8 @@ export default async function handler(req, res) {
       if (imageId) {
         const dataUrl = String(body?.data || "");
         const match = dataUrl.match(IMAGE_DATA_URL);
-        if (!match) return send(res, 400, { error: "Expected a WebP, PNG, or JPEG image data URL" });
-        if (Buffer.byteLength(dataUrl) > MAX_IMAGE_BYTES) return send(res, 413, { error: "Image is too large" });
+        if (!match) return sendFailure(res, 400, "Expected a WebP, PNG, or JPEG image data URL");
+        if (Buffer.byteLength(dataUrl) > MAX_IMAGE_BYTES) return sendFailure(res, 413, "Image is too large");
 
         const id = randomUUID().replace(/-/g, "");
         await firestore("PATCH", docUrl(`siteImages/${id}`), {
@@ -253,15 +254,15 @@ export default async function handler(req, res) {
       }
 
       const json = typeof body?.json === "string" ? body.json : JSON.stringify(body?.json ?? {});
-      if (Buffer.byteLength(json, "utf8") > MAX_JSON_BYTES) return send(res, 413, { error: "Site content is too large" });
+      if (Buffer.byteLength(json, "utf8") > MAX_JSON_BYTES) return sendFailure(res, 413, "Site content is too large");
       let parsed;
       try {
         parsed = JSON.parse(json);
       } catch {
-        return send(res, 400, { error: "Published content must be valid JSON" });
+        return sendFailure(res, 400, "Published content must be valid JSON");
       }
       if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-        return send(res, 400, { error: "Published content must be a JSON object" });
+        return sendFailure(res, 400, "Published content must be a JSON object");
       }
 
       await firestore("PATCH", `${docUrl("siteContent/live")}?updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt`, {
@@ -274,7 +275,7 @@ export default async function handler(req, res) {
     }
 
     res.setHeader("Allow", "GET, HEAD, POST");
-    return send(res, 405, { error: "Method not allowed" });
+    return sendFailure(res, 405, "Method not allowed");
   } catch (error) {
     return sendError(res, error);
   }

@@ -2,10 +2,16 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAdmin() {
-      // Same policy as /api/site-content: the signed-in admin account.
-      // (Password accounts are unverified unless a verification link was clicked.)
+      // Verified owner for site content, media, and private AMA administration.
       return request.auth != null
         && request.auth.token.email_verified == true
+        && request.auth.token.email == "asaxxhiii@gmail.com";
+    }
+
+    function isProfileOwner() {
+      // The profile API verifies this same account; allow its direct Firestore
+      // fallback even when the owner's Firebase email is not yet verified.
+      return request.auth != null
         && request.auth.token.email == "asaxxhiii@gmail.com";
     }
 
@@ -56,12 +62,12 @@ service cloud.firestore {
     }
 
     // The profile is public so the same owner icon appears on every host.
-    // Writes remain limited to the verified owner; the small allow-list keeps
-    // the public document free of auth/session data.
+    // Writes are limited to the owner's fixed Firebase account; the small
+    // allow-list keeps the public document free of auth/session data.
     match /siteOwner/{doc} {
       allow read: if doc == "profile";
       allow create, update: if doc == "profile"
-        && isAdmin()
+        && isProfileOwner()
         && request.resource.data.keys().hasOnly(["avatar", "updatedAt"])
         && request.resource.data.avatar is string
         && request.resource.data.avatar.size() <= 220000
