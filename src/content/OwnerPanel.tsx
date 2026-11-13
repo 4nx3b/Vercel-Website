@@ -177,7 +177,7 @@ export function OwnerPanel() {
           </button>
         )}
       </div>
-      <p className={cn("min-h-4 font-mono text-[10px] leading-relaxed", profileStatus && /could not|choose|denied|failed|error|reject|permission|403/i.test(profileStatus) ? "text-vermilion-ink" : "text-graphite")} role="status" aria-live="polite">
+      <p className={cn("min-h-4 font-mono text-[10px] leading-relaxed", profileStatus && /could not|choose|denied|failed|error|reject|permission|verify|expired|unauthor|forbidden|not allowed|403/i.test(profileStatus) ? "text-vermilion-ink" : "text-graphite")} role="status" aria-live="polite">
         {profileStatus || "Your profile icon is shared across the published site domains."}
       </p>
 

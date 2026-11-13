@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { usePresence, type PresenceState } from "../hooks/usePresence";
 import { cn } from "../utils/cn";
 import type { Game } from "../lib/data";
 import { useContent } from "../content/store";
 import { EText } from "../content/Editable";
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Gauge, Gamepad2, HelpCircle, Play as PlayIcon, Timer, X, type LucideIcon } from "lucide-react";
+import { Gauge, Gamepad2, HelpCircle, Play as PlayIcon, Timer, X, type LucideIcon } from "lucide-react";
 import { MonoTag, StatusDot } from "./ui";
 
 /** Canvas colours come from the theme tokens, so the games follow light/dark. */
@@ -66,6 +66,26 @@ function SnakeGame() {
     if (s.dir.x === -dx && s.dir.y === -dy) return;
     s.next = { x: dx, y: dy };
   }, [start]);
+  const swipeStart = useRef<{ x: number; y: number; pointerId: number } | null>(null);
+  const onSwipeStart = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+    if (event.target instanceof Element && event.target.closest("button")) return;
+    swipeStart.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const onSwipeEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const origin = swipeStart.current;
+    if (!origin || origin.pointerId !== event.pointerId) return;
+    swipeStart.current = null;
+    const dx = event.clientX - origin.x;
+    const dy = event.clientY - origin.y;
+    if (Math.hypot(dx, dy) < 18) return;
+    if (Math.abs(dx) > Math.abs(dy)) turn(dx > 0 ? 1 : -1, 0);
+    else turn(0, dy > 0 ? 1 : -1);
+  };
+  const onSwipeCancel = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (swipeStart.current?.pointerId === event.pointerId) swipeStart.current = null;
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -145,7 +165,12 @@ function SnakeGame() {
         <MonoTag className="text-ink-soft tabular">Score {String(score).padStart(2, "0")}</MonoTag>
         <MonoTag className="text-graphite tabular">Best {String(best).padStart(2, "0")}</MonoTag>
       </div>
-      <div className="relative">
+      <div
+        className="relative touch-none select-none"
+        onPointerDown={onSwipeStart}
+        onPointerUp={onSwipeEnd}
+        onPointerCancel={onSwipeCancel}
+      >
         <canvas ref={canvasRef} width={SNAKE_N * SNAKE_CELL} height={SNAKE_N * SNAKE_CELL} className="block h-auto max-w-full rounded-[var(--radius-sm)] border border-rule-strong" />
         {!started && !dead && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-composer/90 px-4 text-center">
@@ -157,7 +182,7 @@ function SnakeGame() {
             >
               <PlayIcon aria-hidden className="h-5 w-5 translate-x-px fill-current" strokeWidth={1.5} />
             </button>
-            <MonoTag className="text-ink-soft">Tap Play, or use arrows / WASD / the pad</MonoTag>
+            <MonoTag className="text-ink-soft">Tap Play or swipe the board to steer</MonoTag>
           </div>
         )}
         {dead && (
@@ -169,21 +194,16 @@ function SnakeGame() {
           </div>
         )}
       </div>
-      {/* D-pad for touch */}
-      <div className="mt-4 grid grid-cols-3 gap-1.5 sm:hidden">
-        <span />
-        <button aria-label="Up" onClick={() => turn(0, -1)} className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-sm)] border border-rule-strong font-mono text-xs text-ink"><ChevronUp aria-hidden className="h-4 w-4" /></button>
-        <span />
-        <button aria-label="Left" onClick={() => turn(-1, 0)} className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-sm)] border border-rule-strong font-mono text-xs text-ink"><ChevronLeft aria-hidden className="h-4 w-4" /></button>
-        <button aria-label="Down" onClick={() => turn(0, 1)} className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-sm)] border border-rule-strong font-mono text-xs text-ink"><ChevronDown aria-hidden className="h-4 w-4" /></button>
-        <button aria-label="Right" onClick={() => turn(1, 0)} className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-sm)] border border-rule-strong font-mono text-xs text-ink"><ChevronRight aria-hidden className="h-4 w-4" /></button>
-      </div>
-      <MonoTag className="mt-4 hidden text-graphite sm:block">Arrows / WASD to steer</MonoTag>
+      <MonoTag className="mt-4 text-graphite">Swipe to steer · Arrows / WASD also work</MonoTag>
     </div>
   );
 }
 
 /* ================= Ping Pong ================= */
+
+// Each serve starts deliberately slow; rallies build speed gradually on paddle hits.
+const PONG_SERVE_X_SPEED = 0.55;
+const PONG_SERVE_Y_MAX = 0.3;
 
 function PongGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -196,7 +216,7 @@ function PongGame() {
   const breakTimer = useRef<number>(0);
   const winnerRef = useRef<null | "you" | "ai">(null);
   winnerRef.current = winner;
-  const s = useRef({ py: 80, ay: 80, bx: 150, by: 110, vx: 3.2, vy: 2.1, pyTarget: 80, you: 0, ai: 0, paused: true });
+  const s = useRef({ py: 80, ay: 80, bx: 150, by: 110, vx: PONG_SERVE_X_SPEED, vy: (Math.random() * 2 - 1) * PONG_SERVE_Y_MAX, pyTarget: 80, you: 0, ai: 0, paused: true });
   const start = useCallback(() => {
     if (!s.current.paused || winnerRef.current || pointBreakRef.current) return;
     s.current.paused = false;
@@ -207,8 +227,8 @@ function PongGame() {
     const st = s.current;
     st.bx = 150;
     st.by = 110;
-    st.vx = (Math.random() > 0.5 ? 1 : -1) * 3.2;
-    st.vy = (Math.random() - 0.5) * 4;
+    st.vx = (Math.random() > 0.5 ? 1 : -1) * PONG_SERVE_X_SPEED;
+    st.vy = (Math.random() * 2 - 1) * PONG_SERVE_Y_MAX;
     if (full) {
       window.clearTimeout(breakTimer.current);
       pointBreakRef.current = false;

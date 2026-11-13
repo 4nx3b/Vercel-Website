@@ -197,20 +197,22 @@ changes.
 **Publish** saves to Firestore (`siteContent/live`), **Discard** drops the local draft, and **Reset**
 clears all published overrides.
 
-On Vercel and Cloudflare, `/api/site-content` reads and writes with the service account
-(`FIREBASE_SERVICE_ACCOUNT_KEY`, the same variable `/api/ama-vote` uses). Writes are accepted only
-when Google's token lookup confirms the owner's email. If the function is missing or unavailable,
-the editor falls back to direct Firestore REST, still restricted by the verified-owner rules.
+On Vercel and Cloudflare, `/api/site-content` reads and writes published content, uploaded images,
+and the shared owner profile with the service account (`FIREBASE_SERVICE_ACCOUNT_KEY`, the same
+variable `/api/ama-vote` uses). Owner writes are authenticated with a Firebase ID token; profile
+updates also require the owner email to be verified. If the function is missing or unavailable, the
+site falls back to direct Firestore REST, which is restricted by the verified-owner rules.
 
 - **Vercel:** use the service-account environment variable configured for the project.
 - **Cloudflare:** add `FIREBASE_SERVICE_ACCOUNT_KEY` under Workers & Pages → project →
   Settings → Variables and Secrets (same JSON value), then redeploy.
-- **Wasmer:** no service-account function is required; direct Firestore publishing and image reads
-  work after the rules below are deployed.
+- **Wasmer:** no service-account function is required; direct Firestore publishing, image access,
+  and the shared owner icon work after the rules below are deployed.
 
-Deploy the rules (required for Wasmer direct reads/writes, shared owner profiles, and the
-Firestore fallback). They also keep the AMA queue private until answered. The CLI command publishes
-the rules and the composite index used by the public answered-question query:
+Deploy the rules (required for Wasmer direct reads/writes and any direct-Firestore fallback). They
+also make shared owner profiles and images readable from static hosts and keep the AMA queue private
+until answered. The CLI command publishes the rules and the composite index used by the public
+answered-question query:
 
 ```sh
 firebase deploy --project therealreze-2a3bf --only firestore:rules,firestore:indexes
@@ -218,4 +220,4 @@ firebase deploy --project therealreze-2a3bf --only firestore:rules,firestore:ind
 
 Or paste `firestore.rules` in Firebase Console → **Firestore Database** → **Rules** and publish it, then create the `amaQuestions` composite index from `firestore.indexes.json` in the **Indexes** tab.
 
-The Vercel and Cloudflare content APIs use their service account and do not rely on client rules for those API writes. If an API returns `PERMISSION_DENIED`, grant its service account Firestore write access and confirm `FIREBASE_PROJECT_ID` points at this same database. Direct fallback publishing and the profile icon do rely on deployed rules. After Publish, the editor reports **"live for everyone"** only once the shared Firestore document can be read back; otherwise it reports the missing access or API setup.
+The Vercel and Cloudflare content APIs use their service account and do not rely on client rules for those API reads and writes. If an API returns `PERMISSION_DENIED`, grant its service account Firestore access and confirm `FIREBASE_PROJECT_ID` points at this same database. Wasmer and any direct-Firestore fallback still require the deployed rules. After Publish, the editor reports **"live for everyone"** only once the shared Firestore document can be read back; otherwise it reports the missing access or API setup.

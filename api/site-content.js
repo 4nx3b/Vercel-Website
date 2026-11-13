@@ -15,7 +15,9 @@ const WEB_API_KEY = "AIzaSyCUG-oxLlGWKulnV8E0PwSEmr_s0EyCRUk";
 const ADMIN_EMAIL = "asaxxhiii@gmail.com";
 const MAX_JSON_BYTES = 900 * 1024;
 const MAX_IMAGE_BYTES = 1000 * 1000;
+const MAX_PROFILE_AVATAR_BYTES = 220_000;
 const IMAGE_DATA_URL = /^data:image\/(webp|png|jpeg);base64,([A-Za-z0-9+/]+={0,2})$/;
+const PROFILE_AVATAR_DATA_URL = /^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/;
 
 export const config = { api: { bodyParser: { sizeLimit: "3mb" } } };
 
@@ -109,7 +111,7 @@ async function firestore(method, url, body) {
 }
 
 /** Trust the identity returned by Firebase, never an email supplied in a body. */
-async function requireOwner(req) {
+async function requireOwner(req, requireVerifiedEmail = false) {
   const authorization = req.headers?.authorization || req.headers?.Authorization || "";
   const idToken = String(authorization).replace(/^Bearer\s+/i, "").trim();
   if (!idToken) throw httpError("Sign in as the site owner first", 401);
@@ -120,9 +122,13 @@ async function requireOwner(req) {
     body: JSON.stringify({ idToken }),
   });
   const data = await response.json().catch(() => null);
-  const email = String(data?.users?.[0]?.email || "").toLowerCase();
+  const user = data?.users?.[0];
+  const email = String(user?.email || "").toLowerCase();
   if (!response.ok || email !== ADMIN_EMAIL.toLowerCase()) {
     throw httpError("This Firebase account is not allowed to publish site content", 401);
+  }
+  if (requireVerifiedEmail && user?.emailVerified !== true) {
+    throw httpError(`Verify the owner email ${ADMIN_EMAIL} before saving the shared profile icon`, 403);
   }
 }
 
@@ -162,9 +168,25 @@ function sendError(res, error) {
 export default async function handler(req, res) {
   const url = new URL(req.url || "/", "http://localhost");
   const imageId = url.searchParams.get("image");
+  const ownerProfile = url.searchParams.get("profile") === "1";
 
   try {
     if (req.method === "GET" || req.method === "HEAD") {
+      if (ownerProfile) {
+        const doc = await firestore("GET", docUrl("siteOwner/profile"));
+        return send(
+          res,
+          200,
+          {
+            resource: "siteOwner/profile",
+            avatar: doc?.fields?.avatar?.stringValue || "",
+            updatedAt: doc?.fields?.updatedAt?.stringValue || null,
+          },
+          "no-store",
+          req.method === "HEAD"
+        );
+      }
+
       if (imageId) {
         if (!/^[\w-]{4,80}$/.test(imageId)) return send(res, 400, { error: "Invalid image ID" });
         const doc = await firestore("GET", docUrl(`siteImages/${imageId}`));
@@ -192,9 +214,27 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "POST") {
-      await requireOwner(req);
+      await requireOwner(req, ownerProfile);
       const body = await readBody(req);
       const now = new Date().toISOString();
+
+      if (ownerProfile) {
+        const avatar = typeof body?.avatar === "string" ? body.avatar : "";
+        if (avatar && !PROFILE_AVATAR_DATA_URL.test(avatar)) {
+          return send(res, 400, { error: "Expected a PNG, JPEG, or WebP profile image" });
+        }
+        if (Buffer.byteLength(avatar, "utf8") > MAX_PROFILE_AVATAR_BYTES) {
+          return send(res, 413, { error: "Profile image is too large" });
+        }
+
+        await firestore("PATCH", `${docUrl("siteOwner/profile")}?updateMask.fieldPaths=avatar&updateMask.fieldPaths=updatedAt`, {
+          fields: {
+            avatar: { stringValue: avatar },
+            updatedAt: { stringValue: now },
+          },
+        });
+        return send(res, 200, { resource: "siteOwner/profile", ok: true, updatedAt: now });
+      }
 
       if (imageId) {
         const dataUrl = String(body?.data || "");
