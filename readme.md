@@ -1,80 +1,226 @@
-# therealreze.vercel.app — SIGNAL design system
+# v3rsi0n.vercel.app — editorial field-notes system
 
-A single-page personal portfolio for an Android root specialist & custom ROM
-developer. Complete UI rebuild (SIGNAL system): dark-first, technical-editorial
-layout, acid-lime accent, mono data labels, numbered sections, mobile bottom
-dock navigation.
+A single-page portfolio for an Android root specialist and custom ROM
+developer, laid out like a ROM developer's field notebook: warm drafting
+paper, ink, one vermilion mark, §-numbered sections, figure captions and
+margin notes.
+
+> The visual system (tokens, type, layout patterns and motion) is modelled on
+> [curialy.tech](https://curialy.tech/). All copy and artwork, including the
+> FIG. 1 exploded-phone drawing, are original and written from this
+> portfolio's own content.
 
 ## Tech stack
 
-Simple static site — no build step, no framework:
-
-- `index.html` — full page structure
-- `style.css` — SIGNAL design system (tokens, components, responsive rules)
-- `script.js` — modular UI + data layer (17 isolated init steps)
-- `assets/img/` — optimized photos + ROM poster (lazy-loaded)
+- React 19 + TypeScript, Vite 7, Tailwind CSS v4 (`@tailwindcss/vite`)
+- `vite-plugin-singlefile`: the build inlines everything into one `index.html`
+- `lucide-react` icons
 - Vercel for hosting, `/api/*` serverless functions
-- Firebase/Firestore for AMA questions
-- Optional Telegram/Formspree notifications
+- Firebase/Firestore for AMA questions, Telegram + Formspree notifications
+
+```txt
+src/
+├─ index.css            # tokens (@theme), motion keyframes, reveal + reduced motion
+├─ App.tsx              # skip link · Nav · main sections · Footer
+├─ components/          # Hero, FigPhone, ToolStrip, Skills, Process, Work,
+│                       # Now (+ Play games), Principles, Ask, Links, Footer, ui
+├─ hooks/useInView.ts   # IntersectionObserver reveal, IST clock, count-up
+└─ lib/data.ts          # all content + AMA/Firebase/radio config
+```
+
+`npm run dev` · `npm run build` · `npm run preview`
 
 ## Design system
 
 | Token group | Values |
 |---|---|
-| Fonts | Space Grotesk (display) · Inter (body) · JetBrains Mono (data) |
-| Dark colors | bg `#0a0b0d` · surface `#141519` · text `#f2f3f0` · accent `#c9f73a` |
-| Light colors | bg `#f2f2ee` · surface `#ffffff` · accent-text `#5a7200` |
-| Radius | 8 / 12 / 18 px, pill |
-| Motion | 150 / 240 / 420 ms · `cubic-bezier(.22,1,.36,1)` |
-| Layout | 1100px max width, numbered sections 00–09 |
+| Fonts | Instrument Serif (display, one italic vermilion word per headline) · Geist 300–700 (text/UI) · Geist Mono 400/500 (labels, chips, code) |
+| Paper + ink | paper `#f3efe6` · paper-deep `#e9e3d5` · card `#f8f5ee` · ink `#14130f` · ink-soft `#3a372f` · graphite `#6f6a5d` · rule `#d8d0bf` / `#8a8475` |
+| Accent | vermilion `#ff4a1c` (fills, always with ink text) · vermilion-ink `#b8300c` (text on paper) · wash `#fbe3d9` · moss `#4f7a3a` |
+| Dark panel (§ 03) | panel `#1b1a15` / `#211f19` / `#141310` · text `#f3efe6` · ok `#9bd17b` · err `#ff8a6b` |
+| Type scale | micro 10.5 · 12 · 13 · 14 · 16 body · lede 18–20 · title 24 · page clamp 30–40 · display clamp 36–60 · hero clamp 44–96 px |
+| Radius / elevation | 4 / 8 / 10 / 14 / 18 px, pill · hard ink offset shadow `6px 6px 0 #14130f` on the init card and AMA composer only |
+| Motion | `--dur-enter .56s` · `--dur-reveal .75s` · `--dur-hero .9s` · `--dur-figure 1.2s` · `--dur-swap .4s` · ease-out `cubic-bezier(.22,1,.36,1)` · 70 ms stagger |
+| Layout | 1240px max width, 32px gutter (20px on phones) |
 
-Accessibility: semantic landmarks, `:focus-visible` rings, aria labels,
-`prefers-reduced-motion` support, WCAG-passing contrast in both themes.
+Motion: keyframes `rise`, `settle`, `draw`, `marquee`, `grow-y`, `grow-x`,
+`spark`, `step-slide`, `caret-blink`. The one orchestrated moment is the
+hero on load (headline lines rise 70 ms apart, FIG. 1 strokes draw, the init
+card settles, all done by about 1.6 s). Elsewhere: `[data-reveal]` scroll
+reveals (gated on `html.js`, so content shows without JS), the timeline
+spine, and the tab swap. The marquee pauses on hover and focus. Under
+`prefers-reduced-motion: reduce` everything is shown, strokes are drawn,
+count-ups land on their final values and nothing moves.
 
-## Features
+Accessibility: skip link, one h1, header/main/footer landmarks, 2px
+`:focus-visible` rings on paper and on the dark panel, labelled fields,
+44px touch targets, no sideways scroll at 320px, and text contrast of
+4.5:1 or better.
 
-1. **Boot overlay** — fast terminal-style intro, tap to skip
-2. **Hero** — live IST clock, status line, CTAs
-3. **About** — photo strip (manual nav + dots + 7s auto-advance), live stats
-4. **Skills** — 12 skills, 5 category tabs
-5. **Work** — Lunaris OS featured card + live GitHub repos (filter + search)
-6. **Music** — Last.fm dashboard (stats, top tracks/artists, recent with
-   now-playing) + site music player (audio engine, seek, volume)
-7. **Anime** — AniList integration (stats, status tabs, pagination)
-8. **Now** — quote card, time-link card, interest cards
-9. **Play** — 7 canvas games (Snake, Pong, Roast Quiz, Flappy, Minesweeper,
-   Reaction, Dodge) in modal shells
-10. **Ask** — AMA with Firestore persistence, upvotes, sorting, pagination,
-    owner dashboard (answer/dismiss/delete), Telegram + Formspree notify
-11. **Links** — 12 social links, credits, changelog modal
-12. **Theming** — dark/light toggle, persisted
+## Sections
 
-## API routes (serverless, unchanged)
+| § | Section | Contents |
+|---|---|---|
+| 00 | Hero | headline, FIG. 1 exploded phone + partition stack, init card with Magisk/KernelSU toggle and copy command, margin note |
+| — | Tool strip | tool marquee |
+| 01 | Skills | sticky intro, five hairline rows (Core, Root, ROM, Tools, Dev) |
+| 02 | Process | five-stage timeline with build logs |
+| 03 | Work | dark panel: Lunaris OS build window, projects, live GitHub repo table (cached fallback) |
+| 04 | Now & Play | tabs: Anime (AniList stats), Music (signal radio, no autoplay), Gaming, Play (Snake, Pong, Roast Quiz, Reaction Test) |
+| 05 | Principles | count-up stats, pull quote, about, two principles |
+| 06 | Ask | AMA composer + answered questions (Firestore, votes, owner console) |
+| — | Links, Footer | 12 channels, site map, IST clock |
+
+## API routes (serverless)
 
 ```txt
 api/
+├─ site-content.js       # public published-content/image reads; owner-authenticated writes
 ├─ telegram.js           # sends Telegram notification for new questions
 ├─ telegram-webhook.js   # Telegram bot reply-to-answer support
-└─ ama-vote.js           # vote sync to Firestore (service account)
+└─ ama-vote.js            # vote sync to Firestore (service account)
 ```
 
-Environment variables required by the API routes: `TELEGRAM_BOT_TOKEN`,
+`functions/api/site-content.js` mirrors the published-content and image API for Cloudflare Pages.
+
+Environment variables used by the API routes: `TELEGRAM_BOT_TOKEN`,
 `TELEGRAM_CHAT_ID`, `FIREBASE_SERVICE_ACCOUNT_KEY` (+ optional
-`FIREBASE_PROJECT_ID`).
+`FIREBASE_PROJECT_ID`). All three public hosts use the same Firestore project
+(`therealreze-2a3bf`) as the source of truth. The canonical Vercel `/api/site-content`
+function handles reads, publishes, profile changes, and image uploads; it is called
+same-origin on Vercel and through allowlisted CORS from miuka and Wasmer. The Cloudflare
+function mirrors this API. If the canonical API is unavailable, clients fall back to
+owner-authenticated Firestore REST; deploy `firestore.rules` for those direct paths.
 
 ## Deployment on Vercel
 
 1. Push to GitHub.
-2. Import the repository on Vercel (framework preset: Other/static).
+2. Import the repository on Vercel (framework preset: Vite; build `npm run build`, output `dist`).
 3. Set the environment variables above.
 4. Deploy. `/api/*` files become serverless functions automatically.
 
 ## Maintenance tips
 
-- All JS lives in isolated modules (`Theme`, `Boot`, … `AMA`); init is
-  fault-isolated — one failing module never breaks the page.
-- Keep game implementations inside the `Games` module; each returns a cleanup
-  function that the modal close handler invokes.
+- Components use the tokens in `src/index.css`; avoid literal colours and
+  `transition: all`.
+- Game implementations live in `src/components/Play.tsx`; each cleans up its
+  loop when its modal closes.
 - AMA keys in localStorage: `ama_owner_auth_v4`, `ama_pending_questions_v4`,
   `ama_voted_question_ids_v6`, `ama_public_sort_v6`.
 - Test mobile Chrome after every change; check 320px for overflow.
+
+## Cloudflare Pages
+
+The site also deploys to Cloudflare Pages (`v3rsi0n.miuka.moe`). Cloudflare must serve the
+**built** output, not the repo root — serving the root makes the browser load the source
+`/src/main.tsx` as `application/octet-stream`, which leaves a blank page.
+
+In the Cloudflare dashboard (Pages → project → Settings → Build):
+
+| Setting | Value |
+| --- | --- |
+| Build command | `npm run build` |
+| Build output directory | `dist` (also set in `wrangler.toml`) |
+| Environment variable | `NODE_VERSION = 22.12.0` |
+
+`functions/` holds Cloudflare Pages Functions for the routes that need a host API, including shared site content and images. Vercel ignores this folder and keeps using `/api`.
+
+### If the live Cloudflare site looks old or blank
+
+When `v3rsi0n.miuka.moe` still serves a tiny page that loads `/src/main.tsx` (stale anime
+stats, blank playlist covers, `/api/*` returning HTML), Cloudflare is serving an **old
+deployment** because newer builds are failing. Check, in order:
+
+1. **Workers & Pages → project → Deployments**: the latest build must be green. If it is
+   red, open it and copy the build log.
+2. **Settings → Build**: command `npm run build`, output directory `dist`. Node comes from
+   `.node-version` (22.12.0 — Vite 7 needs Node ≥ 20.19); or set `NODE_VERSION = 22.12.0`.
+3. **Speed → Optimization → Rocket Loader: Off.** Every script also carries
+   `data-cfasync="false"` so Rocket Loader skips them, but turning it off is safest.
+4. Functions in `functions/` are picked up automatically; after a green build,
+   `/api/yt-cover?id=…` answers with a 302 and `/api/yt-playlists` with JSON.
+
+`public/_headers` is copied into `dist` and only read by Cloudflare. Routes implemented in
+`functions/` work there; unmirrored API routes such as Telegram notifications still fall back to
+cached or local behavior. Vercel deploys are unaffected by these files.
+
+## Shared published content across the three hosts
+
+The live document is `siteContent/live` in the shared Firebase project `therealreze-2a3bf`.
+Build the same repository for `v3rsi0n.vercel.app`, `v3rsi0n.wasmer.app`, and
+`v3rsi0n.miuka.moe`; each host reads that same Firestore document rather than keeping its own
+published copy. The content functions reject a `FIREBASE_PROJECT_ID` override that differs from
+the client project, rather than silently creating separate copies. All three hosts use the canonical
+Vercel site-content API; the Cloudflare function mirrors that contract. Wasmer is static, so the
+client calls the Vercel API cross-origin instead of depending on a local `/api` route. Uploaded
+images use `siteImages/{id}` in the same project. Direct Firestore remains the fallback and is
+gated by `firestore.rules`.
+
+There is no Wasmer deployment manifest in this repository. Configure its project to build this
+repository with `npm ci && npm run build` and serve the generated `dist` directory. Deploy the
+Firestore rules below to enable direct Firestore fallback paths. Keep Firebase project ID / web API
+key and the Vercel service-account configuration pointed at the same Firebase project. If the
+Firebase web API key has HTTP-referrer restrictions, allow `v3rsi0n.vercel.app`,
+`v3rsi0n.wasmer.app`, and `v3rsi0n.miuka.moe`.
+
+Published content, uploaded images, and the owner profile are shared. Owner login sessions and
+unpublished drafts remain browser-origin-local, so sign in separately on each domain and publish
+the draft to make it live everywhere.
+
+## Owner editor and page builder
+
+Open the site menu (hamburger) and choose **Owner login**; the login entry is only in the sidebar.
+After signing in, the same sidebar shows the owner profile icon. Choose **Set profile icon** or
+**Change icon** to upload a PNG, JPEG, or WebP image; it is resized and saved in
+`siteOwner/profile` so it appears on later logins and all three hosts.
+
+From the sidebar, choose **Open page builder**. The workshop is owner-only and previews the
+private draft behind its panel; visitors continue to see the last published version until you
+choose **Publish to everyone**.
+
+Use **Page order** to move, hide, restore, duplicate, or remove sections. **Start a new section**
+offers a blank canvas, field-note, quote-band, and feature-grid templates. Compose custom sections
+from headings, paragraphs, pull quotes, link buttons, optimized images, cards, callouts, lists,
+metrics, existing ROM/app project tiles, dividers, and spacing blocks; reorder or remove individual
+blocks in their settings. Every section can use an editorial, split, card-grid, or banner
+composition; paper, ink, or vermilion surfaces; optional grid/dot/hatch textures; and reveal,
+stagger, scroll-stack, drift, or still motion.
+The **Design system** controls the site-wide font and motion presets, while the closing band/footer
+can be hidden without deleting its content. The Ask section stays visible for its public question
+feed and owner moderation console. Custom sections can add themselves to the navigation.
+
+Uploaded builder images use the owner-authenticated media API or the Firestore fallback on static hosts;
+they are compressed to WebP (maximum 1600px / 700 KB). **Edit mode** also keeps the inline text
+and image tools available on the live page. Drafts are stored locally for the owner; the published
+Firestore document is the shared source of truth, so publishing is required for all visitors to see
+changes.
+
+**Publish** saves to Firestore (`siteContent/live`), **Discard** drops the local draft, and **Reset**
+clears all published overrides.
+
+The canonical Vercel `/api/site-content` reads and writes published content, uploaded images,
+and the shared owner profile with the service account (`FIREBASE_SERVICE_ACCOUNT_KEY`, the same
+variable `/api/ama-vote` uses). Writes verify the fixed owner Firebase account. The browser uses
+this API same-origin on Vercel and cross-origin from `v3rsi0n.miuka.moe` and `v3rsi0n.wasmer.app`;
+CORS is restricted to those public site origins. The Cloudflare function remains an API mirror.
+If the shared API is unavailable, clients fall back to direct Firestore REST; profile writes use a
+narrow owner-account rule, while site content and media keep the verified-owner rule.
+
+- **Vercel:** keep the service-account environment variable configured for the project.
+- **Cloudflare:** if using its mirror independently, add `FIREBASE_SERVICE_ACCOUNT_KEY` under
+  Workers & Pages → project → Settings → Variables and Secrets (same JSON value), then redeploy.
+- **Wasmer:** no service-account function is required; it uses the shared Vercel API, with direct
+  Firestore writes as a fallback after the rules below are deployed.
+
+Deploy the rules (required for Wasmer direct reads/writes and any direct-Firestore fallback). They
+also make shared owner profiles and images readable from static hosts and keep the AMA queue private
+until answered. The CLI command publishes the rules and the composite index used by the public
+answered-question query:
+
+```sh
+firebase deploy --project therealreze-2a3bf --only firestore:rules,firestore:indexes
+```
+
+Or paste `firestore.rules` in Firebase Console → **Firestore Database** → **Rules** and publish it, then create the `amaQuestions` composite index from `firestore.indexes.json` in the **Indexes** tab.
+
+The Vercel and Cloudflare content APIs use their service account and do not rely on client rules for those API reads and writes. If an API returns `PERMISSION_DENIED`, grant its service account Firestore access and confirm `FIREBASE_PROJECT_ID` points at this same database. Wasmer and any direct-Firestore fallback still require the deployed rules. After Publish, the editor reports **"live for everyone"** only once the shared Firestore document can be read back; otherwise it reports the missing access or API setup.

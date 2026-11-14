@@ -1,31 +1,51 @@
-import { SOCIALS } from "../lib/data";
-import { ArrowUpRight } from "./icons";
-import { MonoTag, SectionHead } from "./ui";
+import { ArrowUpRight } from "lucide-react";
+import { useContent } from "../content/store";
+import { Blocks, EField, EText } from "../content/Editable";
 import { Reveal } from "./Reveal";
+import { Kicker } from "./ui";
 
 export function Links() {
+  const { content, editing } = useContent();
+  const socials = content.socials;
   return (
-    <section id="links" className="mx-auto max-w-[1200px] px-6 pb-24 lg:pb-28">
-      <SectionHead index="07" title="Links" note="12 channels · all monitored" />
+    <section id="links" aria-labelledby="links-title" className="sunk-scope border-t border-rule">
+      <div className="page grid gap-10 py-20 lg:grid-cols-[minmax(0,380px)_1fr] lg:gap-16 lg:py-24">
+        <Reveal>
+          <Kicker className="text-ink-soft">
+            <EText path="links.sectionLabel" label="Links section label" />
+          </Kicker>
+          <EText path="links.title" as="h2" className="mt-4 block font-display text-page font-normal text-ink" label="Links heading" />
+          <EText path="links.description" as="p" multiline className="mt-4 block max-w-[44ch] text-lg text-ink-soft" label="Links description" />
+        </Reveal>
 
-      <div className="mt-12 grid gap-px border border-carbon-lift bg-carbon-lift sm:grid-cols-2 lg:grid-cols-3">
-        {SOCIALS.map((s, i) => (
-          <Reveal key={s.name} delay={i * 30} className="bg-obsidian-canvas">
-            <a
-              href={s.url}
-              target={s.url.startsWith("#") ? undefined : "_blank"}
-              rel="noreferrer"
-              className="group flex h-full items-center justify-between gap-4 bg-obsidian-canvas p-5 transition-colors duration-150 hover:bg-carbon-lift/40"
-            >
-              <div>
-                <p className="font-geist text-body-sm uppercase text-bone transition-colors duration-150 group-hover:text-chalk">{s.name}</p>
-                <MonoTag className="mt-1 block text-graphite-mid">{s.handle}</MonoTag>
-              </div>
-              <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-graphite-mid transition-all duration-150 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-pale-stone" />
-            </a>
-          </Reveal>
-        ))}
+        <Reveal delay={80}>
+          <ul className="scroll-stagger grid border-t border-ink sm:grid-cols-2 sm:gap-x-10">
+            {socials.map((social, index) => (
+              <li key={`${social.name}-${index}`} className="border-b border-rule">
+                <a
+                  href={social.url}
+                  target={social.url.startsWith("#") ? undefined : "_blank"}
+                  rel="noreferrer"
+                  onClick={(event) => editing && event.preventDefault()}
+                  className="group flex min-h-14 items-center justify-between gap-4 py-3 transition-colors duration-[var(--dur-2)]"
+                >
+                  <span className="text-lg text-ink group-hover:text-vermilion-ink">
+                    <EText path={`socials.${index}.name`} label={`Social link ${index + 1} name`} />
+                  </span>
+                  <span className="flex min-w-0 items-center gap-3">
+                    <span className="truncate font-mono text-xs text-ink-soft">
+                      <EText path={`socials.${index}.handle`} label={`Social link ${index + 1} handle`} />
+                    </span>
+                    <ArrowUpRight aria-hidden className="h-4 w-4 shrink-0 text-ink-soft group-hover:text-ink" strokeWidth={1.75} />
+                  </span>
+                </a>
+                <EField path={`socials.${index}.url`} label={`${social.name} URL`} type="url" />
+              </li>
+            ))}
+          </ul>
+        </Reveal>
       </div>
+      <div className="page pb-16"><Blocks section="links" /></div>
     </section>
   );
 }

@@ -1,123 +1,370 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowUpRight, Menu, Moon, Sun, X } from "lucide-react";
 import { cn } from "../utils/cn";
-import { NAV_LINKS } from "../lib/data";
-import { ArrowRight } from "./icons";
-import { useIstClock } from "../hooks/useInView";
+import { IstClock } from "./IstClock";
+import { EAnchor } from "../content/EAnchor";
+import { supportsViewTimeline } from "../hooks/useScrollVar";
+import { Wordmark } from "./Wordmark";
+import { buttonClass } from "./ui";
+import { HeaderPlayer } from "./MusicPlayer";
+import { useTheme, type Theme } from "../hooks/useTheme";
+import { useContent, useField } from "../content/store";
+import { EditingBanner, OwnerPanel } from "../content/OwnerPanel";
+import { EText } from "../content/Editable";
+
+/** Two-option Sun / Moon switch for the sidebar. */
+function ThemeSwitch() {
+  const { theme, setTheme } = useTheme();
+  const opts: { v: Theme; label: string; Icon: typeof Sun }[] = [
+    { v: "light", label: "Light", Icon: Sun },
+    { v: "dark", label: "Dark", Icon: Moon },
+  ];
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="kicker text-ink-soft">Theme</span>
+      <div role="group" aria-label="Colour theme" className="flex rounded-full border border-rule-strong p-1">
+        {opts.map(({ v, label, Icon }) => (
+          <button
+            key={v}
+            type="button"
+            data-ripple
+            aria-pressed={theme === v}
+            onClick={(e) => setTheme(v, e.currentTarget)}
+            className={cn(
+              "inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm transition-colors duration-[var(--dur-2)]",
+              theme === v ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"
+            )}
+          >
+            <Icon aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Compact icon toggle for the desktop header. */
+function ThemeIconButton() {
+  const { theme, setTheme } = useTheme();
+  const dark = theme === "dark";
+  return (
+    <button
+      type="button"
+      data-ripple
+      onClick={(e) => setTheme(dark ? "light" : "dark", e.currentTarget)}
+      aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
+      aria-pressed={dark}
+      className="nav-menu-btn flex h-10 w-10 items-center justify-center rounded-full border border-rule-strong text-[var(--text)] transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)]"
+    >
+      {dark ? <Sun aria-hidden className="h-4 w-4" strokeWidth={1.75} /> : <Moon aria-hidden className="h-4 w-4" strokeWidth={1.75} />}
+    </button>
+  );
+}
 
 export function Nav() {
+  const { owner, dirty, editing, content } = useContent();
+  const pageSections = Array.isArray(content.layout?.sections) ? content.layout.sections : [];
+  const visibleBuiltins = new Set(pageSections.flatMap((section) => section.kind === "builtin" && section.visible !== false ? [section.component] : []));
+  const builtinTargets: Record<string, string> = { work: "work", about: "about", play: "about", ask: "ask" };
+  const customNavLinks = pageSections.flatMap((section, index) => section.kind === "custom" && section.visible !== false && section.showInNav
+    ? [{ key: `custom-${section.id}`, href: `#site-${section.id.replace(/[^a-z0-9_-]/gi, "-")}`, path: `layout.sections.${index}.${section.navLabel.trim() ? "navLabel" : "title"}`, fallback: section.navLabel || section.title, custom: true }]
+    : []);
+  const navLinks = [
+    ...content.nav.links.flatMap((link, index) => {
+      const target = link.href.startsWith("#") ? builtinTargets[link.href.slice(1)] : undefined;
+      if (target && !visibleBuiltins.has(target as "work" | "about" | "ask")) return [];
+      return [{ key: `site-${index}`, href: link.href, path: `nav.links.${index}`, fallback: link.label, custom: false }];
+    }),
+    ...customNavLinks,
+  ];
+  const brandHref = visibleBuiltins.has("hero") ? "#top" : "#main";
+  const ctaHref = visibleBuiltins.has("ask") ? "#ask" : customNavLinks[0]?.href || "#main";
+  const setNavLinks = useField<{ label: string; href: string }[]>("nav.links")[1];
+  const addNavLink = () => setNavLinks([...content.nav.links, { label: "New link", href: "#main" }]);
+  const removeNavLink = (i: number) => setNavLinks(content.nav.links.filter((_, k) => k !== i));
+  const moveNavLink = (i: number, d: number) => {
+    const j = i + d;
+    if (j < 0 || j >= content.nav.links.length) return;
+    const next = [...content.nav.links];
+    [next[i], next[j]] = [next[j], next[i]];
+    setNavLinks(next);
+  };
+  const ownerRef = useRef(owner);
+  ownerRef.current = owner;
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const clock = useIstClock();
+  const menuBtn = useRef<HTMLButtonElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
 
+  // Frost state with hysteresis, rAF-coalesced; setState only on change.
+  // --sp is only written when CSS scroll timelines are missing, because a
+  // per-frame custom property on <html> restyles the whole document.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
+    const needsVar = !supportsViewTimeline();
+    let raf = 0;
+    let on = false;
+    const root = document.documentElement;
+    const apply = () => {
+      raf = 0;
+      const y = window.scrollY;
+      const next = on ? y > 4 : y > 12;
+      if (next !== on) {
+        on = next;
+        setScrolled(next);
+      }
+      if (needsVar) {
+        const max = Math.max(1, root.scrollHeight - window.innerHeight);
+        root.style.setProperty("--sp", Math.min(1, y / max).toFixed(4));
+      }
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(apply);
+    };
+    apply();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, []);
 
+  // Close on desktop resize
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const onChange = () => mq.matches && !ownerRef.current && setOpen(false);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const first = sheetRef.current?.querySelector<HTMLElement>("a, button");
+    first?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (document.querySelector('[role="dialog"][aria-label="Page builder"]')) return;
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        setOpen(false);
+        menuBtn.current?.focus();
+      }
+      if (e.key === "Tab" && sheetRef.current) {
+        const items = Array.from(sheetRef.current.querySelectorAll<HTMLElement>("a, button"));
+        if (!items.length) return;
+        const firstEl = items[0];
+        const lastEl = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === firstEl) {
+          e.preventDefault();
+          lastEl.focus();
+        } else if (!e.shiftKey && document.activeElement === lastEl) {
+          e.preventDefault();
+          firstEl.focus();
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  // Header tone: dark frost + light text while a dark (.panel-scope) section sits
+  // under the 64px header band. One IntersectionObserver, rebuilt on resize.
+  const [tone, setTone] = useState<"light" | "dark">("light");
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    let io: IntersectionObserver | null = null;
+    const under = new Set<Element>();
+    const build = () => {
+      io?.disconnect();
+      under.clear();
+      io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) under.add(e.target);
+            else under.delete(e.target);
+          }
+          setTone(under.size ? "dark" : "light");
+        },
+        { rootMargin: `0px 0px -${Math.max(0, window.innerHeight - 64)}px 0px` }
+      );
+      document.querySelectorAll(".panel-scope").forEach((el) => io!.observe(el));
+    };
+    build();
+    let t = 0;
+    const onResize = () => {
+      window.clearTimeout(t);
+      t = window.setTimeout(build, 150);
+    };
+    window.addEventListener("resize", onResize, { passive: true });
+    return () => {
+      io?.disconnect();
+      window.clearTimeout(t);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+
+  const close = () => setOpen(false);
+
   return (
+    <>
     <header
-      className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-        scrolled || open
-          ? "border-b border-carbon-lift bg-obsidian-canvas/80 backdrop-blur-md"
-          : "border-b border-transparent bg-transparent"
-      )}
+      data-scrolled={scrolled || undefined}
+      data-tone={tone}
+      className={cn("site-header sticky top-0 z-50 border-b", scrolled ? "border-rule" : "border-transparent")}
     >
-      <nav className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">
-        {/* Wordmark */}
-        <a href="#top" className="group flex items-center gap-2.5" aria-label="therealreze home">
-          <span
-            aria-hidden
-            className="h-2 w-2 bg-signal-orange transition-transform duration-150 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:rotate-45"
-          />
-          <span className="font-geist-mono text-caption uppercase tracking-[0.18em] text-bone">therealreze</span>
-          <span className="hidden font-geist-mono text-caption uppercase tracking-[-0.02em] text-graphite-mid md:inline">
-            v3.11
-          </span>
+      {/* Permanently mounted: only its opacity changes, so the backdrop never pops in */}
+      <div aria-hidden className="nav-frost" />
+      <div aria-hidden className="nav-progress" />
+      <nav aria-label="Primary" className="page flex h-16 items-center justify-between gap-6">
+        <a href={brandHref} onClick={(event) => editing && event.preventDefault()} aria-label={`${content.brand.name}, back to top`} className="flex min-h-11 items-center rounded-[var(--radius-sm)]">
+          <Wordmark />
         </a>
 
-        {/* Links */}
-        <div className="hidden items-center gap-7 lg:flex">
-          {NAV_LINKS.map((l) => (
-            <a
-              key={l.label}
-              href={l.href}
-              className="group relative font-geist text-body-sm uppercase text-bone transition-colors duration-150 hover:text-chalk"
-            >
-              <span
-                aria-hidden
-                className="absolute -left-3 top-1/2 h-1 w-1 -translate-y-1/2 bg-signal-orange opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-              />
-              {l.label}
-            </a>
+        <ul className="hidden items-center gap-8 lg:flex">
+          {navLinks.map((link, index) => (
+            <li key={link.key}>
+              {link.custom ? (
+                <a href={link.href} onClick={(event) => editing && event.preventDefault()} className="text-[15px] text-[var(--text-2)] transition-colors duration-[var(--dur-2)] hover:text-[var(--text)]">
+                  <EText path={link.path} fallback={link.fallback} label={`Navigation link ${index + 1}`} />
+                </a>
+              ) : (
+                <EAnchor path={link.path} fallbackHref="#main" className="text-[15px] text-[var(--text-2)] transition-colors duration-[var(--dur-2)] hover:text-[var(--text)]" />
+              )}
+            </li>
           ))}
+          {editing && (
+            <li>
+              <button type="button" className="edit-add !mt-0" onClick={addNavLink}>
+                + Link
+              </button>
+            </li>
+          )}
+        </ul>
+
+        <div className="hidden items-center gap-5 lg:flex">
+          <HeaderPlayer />
+          <IstClock className="hidden font-mono text-xs text-[var(--text-3)] tabular 2xl:inline" />
+          <ThemeIconButton />
+          <EAnchor path="nav.cta" fallbackHref={ctaHref} allowHide={false} className={buttonClass("ink", "nav-cta min-h-10 px-5 text-[15px]")}>
+            {(label) => (
+              <>
+                {label}
+                <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+              </>
+            )}
+          </EAnchor>
         </div>
 
-        {/* Actions */}
-        <div className="hidden items-center gap-3 lg:flex">
-          <span className="hidden font-geist-mono text-caption uppercase tracking-[-0.02em] text-graphite-mid tabular xl:inline">
-            IST {clock}
+        <div className="ml-auto flex items-center gap-3 lg:hidden">
+          <span className="hidden sm:block">
+            <HeaderPlayer />
           </span>
-          <a
-            href="#ask"
-            className="inline-flex h-8 items-center rounded-sm bg-chalk px-3.5 text-body-sm text-obsidian-canvas transition-colors duration-150 hover:bg-bone"
-          >
-            AMA
-          </a>
-          <a
-            href="https://t.me/therealreze"
-            target="_blank"
-            rel="noreferrer"
-            className="group inline-flex h-8 items-center gap-2 border border-ash-stroke px-3.5 text-body-sm text-bone transition-colors duration-150 hover:border-pale-stone hover:text-chalk"
-          >
-            Telegram
-            <ArrowRight className="h-3 w-3 transition-transform duration-150 group-hover:translate-x-0.5" />
-          </a>
+          <span className="sm:hidden">
+            <HeaderPlayer compact />
+          </span>
         </div>
-
-        {/* Mobile toggle */}
         <button
+          ref={menuBtn}
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          aria-label="Toggle menu"
-          className="flex h-8 w-8 flex-col items-center justify-center gap-1.5 lg:hidden"
+          aria-controls="mobile-sheet"
+          aria-label={open ? "Close menu" : "Open menu"}
+          className="nav-menu-btn relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-rule-strong text-[var(--text)] transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)]"
         >
-          <span className={cn("h-px w-5 bg-bone transition-transform duration-150", open && "translate-y-[3.5px] rotate-45")} />
-          <span className={cn("h-px w-5 bg-bone transition-transform duration-150", open && "-translate-y-[3.5px] -rotate-45")} />
+          <Menu aria-hidden className="h-5 w-5" strokeWidth={1.75} />
+          {owner && dirty && <span aria-label="Unsaved changes" className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-vermilion" />}
         </button>
       </nav>
 
-      {/* Mobile panel */}
+    </header>
+      <EditingBanner onOpenMenu={() => setOpen(true)} />
+
+      {/* Mobile sheet: outside the header, whose backdrop-filter would trap fixed children */}
       <div
-        className={cn(
-          "overflow-hidden bg-obsidian-canvas transition-[max-height] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] lg:hidden",
-          open ? "max-h-[420px] border-t border-carbon-lift" : "max-h-0"
-        )}
+        aria-hidden
+        data-open={open}
+        onClick={close}
+        className="scrim fixed inset-0 z-[60] bg-[color-mix(in_srgb,var(--color-ink)_35%,transparent)]"
+      />
+      <div
+        id="mobile-sheet"
+        ref={sheetRef}
+        data-open={open}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Site menu"
+        className="sheet fixed inset-y-0 right-0 z-[70] flex w-[min(340px,88vw)] flex-col overflow-y-auto border-l border-ink bg-paper"
       >
-        <div className="flex flex-col px-6 py-4">
-          {NAV_LINKS.map((l) => (
-            <a
-              key={l.label}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              className="border-b border-carbon-lift py-3 font-geist text-body-sm uppercase text-bone last:border-b-0"
-            >
-              {l.label}
-            </a>
+        <div className="flex h-16 items-center justify-between border-b border-rule px-5">
+          <span className="kicker">Menu</span>
+          <button
+            type="button"
+            onClick={() => {
+              close();
+              menuBtn.current?.focus();
+            }}
+            aria-label="Close menu"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-rule-strong text-ink transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)]"
+          >
+            <X aria-hidden className="h-5 w-5" strokeWidth={1.75} />
+          </button>
+        </div>
+        <ul className="flex flex-col px-5 py-4">
+          {navLinks.map((link, index) => (
+            <li key={link.key} className="flex items-center gap-1 border-b border-rule">
+              {link.custom ? (
+                <a href={link.href} onClick={(event) => (editing ? event.preventDefault() : close())} className="flex min-h-14 flex-1 items-baseline gap-4 py-3 font-display text-page text-ink transition-colors duration-[var(--dur-2)] hover:text-vermilion-ink">
+                  <span className="font-mono text-xs text-graphite tabular">{String(index + 1).padStart(2, "0")}</span>
+                  <EText path={link.path} fallback={link.fallback} label={`Navigation link ${index + 1}`} />
+                </a>
+              ) : (
+                <EAnchor path={link.path} fallbackHref="#main" onNavigate={close} className="flex min-h-14 flex-1 items-baseline gap-4 py-3 font-display text-page text-ink transition-colors duration-[var(--dur-2)] hover:text-vermilion-ink">
+                  {(label) => (
+                    <>
+                      <span className="font-mono text-xs text-graphite tabular">{String(index + 1).padStart(2, "0")}</span>
+                      {label}
+                    </>
+                  )}
+                </EAnchor>
+              )}
+              {editing && !link.custom && (
+                <span className="edit-tools" role="group" aria-label={`Navigation link ${index + 1} controls`}>
+                  <button type="button" aria-label="Move link up" disabled={index === 0} onClick={() => moveNavLink(index, -1)}>↑</button>
+                  <button type="button" aria-label="Move link down" disabled={index >= content.nav.links.length - 1} onClick={() => moveNavLink(index, 1)}>↓</button>
+                  <button type="button" aria-label="Remove link" onClick={() => removeNavLink(index)}>×</button>
+                </span>
+              )}
+            </li>
           ))}
-          <div className="flex gap-3 pt-4 pb-2">
-            <a href="#ask" onClick={() => setOpen(false)} className="inline-flex h-9 flex-1 items-center justify-center rounded-sm bg-chalk px-4 text-body-sm text-obsidian-canvas">
-              AMA
-            </a>
-            <a href="https://t.me/therealreze" target="_blank" rel="noreferrer" className="inline-flex h-9 flex-1 items-center justify-center border border-ash-stroke px-4 text-body-sm text-bone">
-              Telegram
-            </a>
-          </div>
+          {editing && (
+            <li className="pt-3">
+              <button type="button" className="edit-add !mt-0" onClick={addNavLink}>
+                + Add navigation link
+              </button>
+            </li>
+          )}
+        </ul>
+        <div className="mt-auto flex flex-col gap-4 border-t border-rule p-5">
+          <OwnerPanel />
+          <ThemeSwitch />
+          <IstClock className="font-mono text-xs text-graphite tabular" />
+          <EAnchor path="nav.cta" fallbackHref={ctaHref} allowHide={false} onNavigate={close} className={buttonClass("ink", "w-full")}>
+            {(label) => (
+              <>
+                {label}
+                <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+              </>
+            )}
+          </EAnchor>
         </div>
       </div>
-    </header>
+    </>
   );
 }

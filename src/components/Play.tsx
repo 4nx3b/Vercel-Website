@@ -1,20 +1,38 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { createPortal } from "react-dom";
+import { usePresence, type PresenceState } from "../hooks/usePresence";
 import { cn } from "../utils/cn";
-import { GAMES, QUIZ, type Game } from "../lib/data";
-import { CloseIcon } from "./icons";
-import { MonoTag, SectionHead, StatusDot } from "./ui";
-import { Reveal } from "./Reveal";
+import type { Game } from "../lib/data";
+import { useContent } from "../content/store";
+import { EText } from "../content/Editable";
+import { Gauge, Gamepad2, HelpCircle, Play as PlayIcon, Timer, X, type LucideIcon } from "lucide-react";
+import { MonoTag, StatusDot } from "./ui";
+
+/** Canvas colours come from the theme tokens, so the games follow light/dark. */
+function tok(name: string, fallback: string) {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || fallback;
+}
 
 /* ================= Snake ================= */
 
 const SNAKE_N = 15;
 const SNAKE_CELL = 20;
+const SNAKE_TICK_MS = 170;
 
 function SnakeGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [score, setScore] = useState(0);
   const [best, setBest] = useState(() => Number(localStorage.getItem("reze_snake_best") ?? 0));
   const [dead, setDead] = useState(false);
+  // Still board until the visitor presses Play or uses a control
+  const [started, setStarted] = useState(false);
+  const startedRef = useRef(false);
+  const start = useCallback(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    setStarted(true);
+  }, []);
   const state = useRef({
     snake: [{ x: 7, y: 7 }, { x: 6, y: 7 }, { x: 5, y: 7 }],
     dir: { x: 1, y: 0 },
@@ -43,10 +61,31 @@ function SnakeGame() {
   };
 
   const turn = useCallback((dx: number, dy: number) => {
+    start();
     const s = state.current;
     if (s.dir.x === -dx && s.dir.y === -dy) return;
     s.next = { x: dx, y: dy };
-  }, []);
+  }, [start]);
+  const swipeStart = useRef<{ x: number; y: number; pointerId: number } | null>(null);
+  const onSwipeStart = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+    if (event.target instanceof Element && event.target.closest("button")) return;
+    swipeStart.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const onSwipeEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const origin = swipeStart.current;
+    if (!origin || origin.pointerId !== event.pointerId) return;
+    swipeStart.current = null;
+    const dx = event.clientX - origin.x;
+    const dy = event.clientY - origin.y;
+    if (Math.hypot(dx, dy) < 18) return;
+    if (Math.abs(dx) > Math.abs(dy)) turn(dx > 0 ? 1 : -1, 0);
+    else turn(0, dy > 0 ? 1 : -1);
+  };
+  const onSwipeCancel = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (swipeStart.current?.pointerId === event.pointerId) swipeStart.current = null;
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -69,9 +108,9 @@ function SnakeGame() {
 
     const draw = () => {
       const s = state.current;
-      ctx.fillStyle = "#0d0d0d";
+      ctx.fillStyle = tok("--color-composer", "#fbf9f4");
       ctx.fillRect(0, 0, cv.width, cv.height);
-      ctx.strokeStyle = "#1d1a18";
+      ctx.strokeStyle = tok("--color-paper-deep", "#e9e3d5");
       ctx.lineWidth = 1;
       for (let i = 1; i < SNAKE_N; i++) {
         ctx.beginPath();
@@ -83,17 +122,17 @@ function SnakeGame() {
         ctx.lineTo(cv.width, i * SNAKE_CELL + 0.5);
         ctx.stroke();
       }
-      ctx.fillStyle = "#ee6018";
+      ctx.fillStyle = tok("--color-vermilion", "#ff4a1c");
       ctx.fillRect(s.food.x * SNAKE_CELL + 5, s.food.y * SNAKE_CELL + 5, SNAKE_CELL - 10, SNAKE_CELL - 10);
       s.snake.forEach((c, i) => {
-        ctx.fillStyle = i === 0 ? "#fafafa" : "#eeeeee";
+        ctx.fillStyle = i === 0 ? tok("--color-ink", "#14130f") : tok("--color-ink-soft", "#3a372f");
         ctx.fillRect(c.x * SNAKE_CELL + 2, c.y * SNAKE_CELL + 2, SNAKE_CELL - 4, SNAKE_CELL - 4);
       });
     };
 
     const iv = setInterval(() => {
       const s = state.current;
-      if (s.over) return;
+      if (s.over || !startedRef.current) return;
       s.dir = s.next;
       const head = { x: s.snake[0].x + s.dir.x, y: s.snake[0].y + s.dir.y };
       if (head.x < 0 || head.y < 0 || head.x >= SNAKE_N || head.y >= SNAKE_N || s.snake.some((c) => c.x === head.x && c.y === head.y)) {
@@ -114,7 +153,7 @@ function SnakeGame() {
         s.snake.pop();
       }
       draw();
-    }, 110);
+    }, SNAKE_TICK_MS);
 
     draw();
     return () => clearInterval(iv);
@@ -123,49 +162,77 @@ function SnakeGame() {
   return (
     <div className="flex flex-col items-center">
       <div className="flex w-full items-center justify-between pb-4">
-        <MonoTag className="text-pale-stone tabular">Score {String(score).padStart(2, "0")}</MonoTag>
-        <MonoTag className="text-graphite-mid tabular">Best {String(best).padStart(2, "0")}</MonoTag>
+        <MonoTag className="text-ink-soft tabular">Score {String(score).padStart(2, "0")}</MonoTag>
+        <MonoTag className="text-graphite tabular">Best {String(best).padStart(2, "0")}</MonoTag>
       </div>
-      <div className="relative">
-        <canvas ref={canvasRef} width={SNAKE_N * SNAKE_CELL} height={SNAKE_N * SNAKE_CELL} className="border border-carbon-lift" />
+      <div
+        className="relative touch-none select-none"
+        onPointerDown={onSwipeStart}
+        onPointerUp={onSwipeEnd}
+        onPointerCancel={onSwipeCancel}
+      >
+        <canvas ref={canvasRef} width={SNAKE_N * SNAKE_CELL} height={SNAKE_N * SNAKE_CELL} className="block h-auto max-w-full rounded-[var(--radius-sm)] border border-rule-strong" />
+        {!started && !dead && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-composer/90 px-4 text-center">
+            <button
+              type="button"
+              onClick={start}
+              aria-label="Start Snake"
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-vermilion text-on-accent transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep"
+            >
+              <PlayIcon aria-hidden className="h-5 w-5 translate-x-px fill-current" strokeWidth={1.5} />
+            </button>
+            <MonoTag className="text-ink-soft">Tap Play or swipe the board to steer</MonoTag>
+          </div>
+        )}
         {dead && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-obsidian-canvas/85">
-            <MonoTag className="text-signal-orange">Signal lost — self-sabotage confirmed</MonoTag>
-            <button onClick={reset} className="rounded-sm bg-chalk px-4 py-2 text-body-sm text-obsidian-canvas transition-colors duration-150 hover:bg-bone">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-composer/90">
+            <MonoTag className="text-vermilion-ink">Signal lost — self-sabotage confirmed</MonoTag>
+            <button onClick={reset} className="inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-[15px] font-medium text-paper transition-colors duration-[var(--dur-2)] hover:bg-ink-soft">
               Restart
             </button>
           </div>
         )}
       </div>
-      {/* D-pad for touch */}
-      <div className="mt-4 grid grid-cols-3 gap-1.5 sm:hidden">
-        <span />
-        <button aria-label="Up" onClick={() => turn(0, -1)} className="border border-carbon-lift px-4 py-2 font-geist-mono text-caption text-bone">▲</button>
-        <span />
-        <button aria-label="Left" onClick={() => turn(-1, 0)} className="border border-carbon-lift px-4 py-2 font-geist-mono text-caption text-bone">◀</button>
-        <button aria-label="Down" onClick={() => turn(0, 1)} className="border border-carbon-lift px-4 py-2 font-geist-mono text-caption text-bone">▼</button>
-        <button aria-label="Right" onClick={() => turn(1, 0)} className="border border-carbon-lift px-4 py-2 font-geist-mono text-caption text-bone">▶</button>
-      </div>
-      <MonoTag className="mt-4 hidden text-graphite-mid sm:block">Arrows / WASD to steer</MonoTag>
+      <MonoTag className="mt-4 text-graphite">Swipe to steer · Arrows / WASD also work</MonoTag>
     </div>
   );
 }
 
 /* ================= Ping Pong ================= */
 
+// Each serve starts deliberately slow; rallies build speed gradually on paddle hits.
+const PONG_SERVE_X_SPEED = 0.55;
+const PONG_SERVE_Y_MAX = 0.3;
+
 function PongGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scores, setScores] = useState({ you: 0, ai: 0 });
   const [winner, setWinner] = useState<null | "you" | "ai">(null);
-  const s = useRef({ py: 80, ay: 80, bx: 150, by: 110, vx: 3.2, vy: 2.1, pyTarget: 80, you: 0, ai: 0, paused: false });
+  // Frozen court until Play or a tap on it (hovering never starts it)
+  const [started, setStarted] = useState(false);
+  const [pointBreak, setPointBreak] = useState(false);
+  const pointBreakRef = useRef(false);
+  const breakTimer = useRef<number>(0);
+  const winnerRef = useRef<null | "you" | "ai">(null);
+  winnerRef.current = winner;
+  const s = useRef({ py: 80, ay: 80, bx: 150, by: 110, vx: PONG_SERVE_X_SPEED, vy: (Math.random() * 2 - 1) * PONG_SERVE_Y_MAX, pyTarget: 80, you: 0, ai: 0, paused: true });
+  const start = useCallback(() => {
+    if (!s.current.paused || winnerRef.current || pointBreakRef.current) return;
+    s.current.paused = false;
+    setStarted(true);
+  }, []);
 
   const reset = (full: boolean) => {
     const st = s.current;
     st.bx = 150;
     st.by = 110;
-    st.vx = (Math.random() > 0.5 ? 1 : -1) * 3.2;
-    st.vy = (Math.random() - 0.5) * 4;
+    st.vx = (Math.random() > 0.5 ? 1 : -1) * PONG_SERVE_X_SPEED;
+    st.vy = (Math.random() * 2 - 1) * PONG_SERVE_Y_MAX;
     if (full) {
+      window.clearTimeout(breakTimer.current);
+      pointBreakRef.current = false;
+      setPointBreak(false);
       st.you = 0;
       st.ai = 0;
       st.paused = false;
@@ -185,6 +252,8 @@ function PongGame() {
       s.current.pyTarget = ((e.clientY - r.top) / r.height) * 220 - 30;
     };
     cv.addEventListener("pointermove", onMove);
+    const onDown = () => start();
+    cv.addEventListener("pointerdown", onDown);
 
     let raf = 0;
     const loop = () => {
@@ -202,7 +271,21 @@ function PongGame() {
         if (st.bx < -8) {
           st.ai += 1;
           setScores({ you: st.you, ai: st.ai });
-          if (st.ai >= 5) { st.paused = true; setWinner("ai"); } else reset(false);
+          if (st.ai >= 5) {
+            st.paused = true;
+            setWinner("ai");
+          } else {
+            reset(false);
+            st.paused = true;
+            pointBreakRef.current = true;
+            setPointBreak(true);
+            window.clearTimeout(breakTimer.current);
+            breakTimer.current = window.setTimeout(() => {
+              pointBreakRef.current = false;
+              setPointBreak(false);
+              if (!winnerRef.current) s.current.paused = false;
+            }, 3000);
+          }
         }
         if (st.bx > 308) {
           st.you += 1;
@@ -211,50 +294,71 @@ function PongGame() {
         }
       }
 
-      ctx.fillStyle = "#0d0d0d";
+      ctx.fillStyle = tok("--color-composer", "#fbf9f4");
       ctx.fillRect(0, 0, 300, 220);
-      ctx.strokeStyle = "#1d1a18";
+      ctx.strokeStyle = tok("--color-rule", "#d8d0bf");
       ctx.setLineDash([4, 6]);
       ctx.beginPath();
       ctx.moveTo(150.5, 0);
       ctx.lineTo(150.5, 220);
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = "#eeeeee";
+      ctx.fillStyle = tok("--color-ink", "#14130f");
       ctx.fillRect(10, st.py, 5, 60);
       ctx.fillRect(285, st.ay, 5, 60);
-      ctx.fillStyle = "#ee6018";
+      ctx.fillStyle = tok("--color-vermilion", "#ff4a1c");
       ctx.fillRect(st.bx - 3, st.by - 3, 6, 6);
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
+      window.clearTimeout(breakTimer.current);
       cv.removeEventListener("pointermove", onMove);
+      cv.removeEventListener("pointerdown", onDown);
     };
   }, []);
 
   return (
     <div className="flex flex-col items-center">
       <div className="flex w-full items-center justify-between pb-4">
-        <MonoTag className="text-pale-stone tabular">You {scores.you}</MonoTag>
-        <MonoTag className="text-graphite-mid">First to 5</MonoTag>
-        <MonoTag className="text-signal-orange tabular">AI {scores.ai}</MonoTag>
+        <MonoTag className="text-ink-soft tabular">You {scores.you}</MonoTag>
+        <MonoTag className="text-graphite">First to 5</MonoTag>
+        <MonoTag className="text-vermilion-ink tabular">AI {scores.ai}</MonoTag>
       </div>
       <div className="relative">
-        <canvas ref={canvasRef} width={300} height={220} className="cursor-none border border-carbon-lift touch-none" />
+        <canvas ref={canvasRef} width={300} height={220} className="block h-auto max-w-full cursor-none touch-none rounded-[var(--radius-sm)] border border-rule-strong" />
+        {!started && !winner && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-composer/90 px-4 text-center">
+            <button
+              type="button"
+              onClick={start}
+              aria-label="Start Ping Pong"
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-vermilion text-on-accent transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep"
+            >
+              <PlayIcon aria-hidden className="h-5 w-5 translate-x-px fill-current" strokeWidth={1.5} />
+            </button>
+            <MonoTag className="text-ink-soft">Tap Play or tap the court, then steer with the pointer</MonoTag>
+          </div>
+        )}
+        {pointBreak && !winner && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-composer/90 px-4 text-center">
+            <MonoTag className="text-vermilion-ink">Point to the AI</MonoTag>
+            <MonoTag className="text-ink-soft">Next point in 3 seconds — get ready</MonoTag>
+          </div>
+        )}
         {winner && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-obsidian-canvas/85">
-            <MonoTag className={winner === "you" ? "text-metric-green" : "text-signal-orange"}>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-composer/90">
+            <MonoTag className={winner === "you" ? "text-moss-ink" : "text-vermilion-ink"}>
               {winner === "you" ? "Match — you win" : "Match — the machine wins"}
             </MonoTag>
-            <button onClick={() => reset(true)} className="rounded-sm bg-chalk px-4 py-2 text-body-sm text-obsidian-canvas transition-colors duration-150 hover:bg-bone">
+            <button onClick={() => reset(true)} className="inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-[15px] font-medium text-paper transition-colors duration-[var(--dur-2)] hover:bg-ink-soft">
               Rematch
             </button>
           </div>
         )}
       </div>
-      <MonoTag className="mt-4 text-graphite-mid">Move pointer over the court to steer</MonoTag>
+      <MonoTag className="mt-4 text-graphite">Move pointer over the court to steer</MonoTag>
     </div>
   );
 }
@@ -303,27 +407,27 @@ function ReactionGame() {
       <button
         onClick={click}
         className={cn(
-          "flex h-56 w-full flex-col items-center justify-center gap-3 border transition-colors duration-150",
-          phase === "go" ? "border-metric-green bg-metric-green/15" : phase === "armed" ? "border-signal-orange bg-obsidian-canvas" : "border-carbon-lift bg-carbon-lift/30 hover:border-ash-stroke"
+          "flex h-56 w-full flex-col items-center justify-center gap-3 rounded-[var(--radius-md)] border transition-colors duration-[var(--dur-2)]",
+          phase === "go" ? "border-moss bg-[#4f7a3a26]" : phase === "armed" ? "border-vermilion bg-vermilion-wash" : "border-rule-strong bg-card hover:border-ink"
         )}
       >
-        {phase === "idle" && <MonoTag className="text-pale-stone">Click to arm</MonoTag>}
-        {phase === "armed" && <MonoTag className="animate-pulse-ring rounded-full px-2 py-1 text-signal-orange">Wait for green…</MonoTag>}
-        {phase === "go" && <span className="font-geist text-heading-lg tracking-[-0.025em] text-metric-green">CLICK</span>}
+        {phase === "idle" && <MonoTag className="text-ink-soft">Click to arm</MonoTag>}
+        {phase === "armed" && <MonoTag className="rounded-full px-2 py-1 text-vermilion-ink">Wait for green…</MonoTag>}
+        {phase === "go" && <span className="font-display text-display text-moss-ink">Click</span>}
         {phase === "result" && ms === -1 && (
           <>
-            <MonoTag className="text-signal-orange">False start — too eager</MonoTag>
-            <MonoTag className="text-graphite-mid">Click to re-arm</MonoTag>
+            <MonoTag className="text-vermilion-ink">False start — too eager</MonoTag>
+            <MonoTag className="text-graphite">Click to re-arm</MonoTag>
           </>
         )}
         {phase === "result" && ms > 0 && (
           <>
-            <span className="font-geist text-heading-lg tracking-[-0.025em] text-bone tabular">{ms} ms</span>
-            <MonoTag className="text-graphite-mid">Click to run again</MonoTag>
+            <span className="font-display text-display text-ink tabular">{ms}&nbsp;ms</span>
+            <MonoTag className="text-graphite">Click to run again</MonoTag>
           </>
         )}
       </button>
-      <MonoTag className="mt-4 text-center text-graphite-mid tabular">
+      <MonoTag className="mt-4 text-center text-graphite tabular">
         Personal best: {best > 0 ? `${best} ms` : "—"}
       </MonoTag>
     </div>
@@ -332,103 +436,174 @@ function ReactionGame() {
 
 /* ================= Roast Quiz ================= */
 
+const QUIZ_QUESTIONS_PER_RUN = 10;
+function randomQuizOrder(length: number): number[] {
+  const indices = Array.from({ length }, (_, index) => index);
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  return indices.slice(0, Math.min(QUIZ_QUESTIONS_PER_RUN, indices.length));
+}
+
 function QuizGame() {
+  const { content, editing } = useContent();
+  const quiz = content.play.quiz;
   const [step, setStep] = useState(0);
   const [roasts, setRoasts] = useState<string[]>([]);
   const [picked, setPicked] = useState<number | null>(null);
+  const [runQuestions, setRunQuestions] = useState(() => randomQuizOrder(quiz.length));
+  const advanceTimer = useRef<number>(0);
+
+  useEffect(() => () => window.clearTimeout(advanceTimer.current), []);
 
   const pick = (i: number) => {
     if (picked !== null) return;
     setPicked(i);
-    const r = QUIZ[step].roasts[i];
-    setTimeout(() => {
-      setRoasts((prev) => [...prev, r]);
+    const questionIndex = runQuestions[step];
+    const roast = quiz[questionIndex]?.roasts[i] ?? "The diagnostic result escaped into the logs.";
+    window.clearTimeout(advanceTimer.current);
+    advanceTimer.current = window.setTimeout(() => {
+      setRoasts((previous) => [...previous, roast]);
       setPicked(null);
-      setStep((s) => s + 1);
+      setStep((current) => current + 1);
     }, 1100);
   };
 
-  if (step >= QUIZ.length) {
+  if (editing) {
+    return (
+      <div className="flex flex-col gap-6">
+        <MonoTag className="text-vermilion-ink">Quiz copy · {quiz.length} questions</MonoTag>
+        {quiz.map((question, questionIndex) => (
+          <section key={questionIndex} className="border-t border-rule pt-4">
+            <MonoTag className="text-graphite">Question {questionIndex + 1}</MonoTag>
+            <EText path={`play.quiz.${questionIndex}.q`} as="p" className="mt-2 block font-display text-title text-ink" label={`Quiz question ${questionIndex + 1}`} />
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {question.opts.map((_, optionIndex) => (
+                <div key={optionIndex} className="rounded-[var(--radius-sm)] border border-rule p-3">
+                  <EText path={`play.quiz.${questionIndex}.opts.${optionIndex}`} as="p" multiline className="block text-sm text-ink" label={`Quiz question ${questionIndex + 1}, option ${optionIndex + 1}`} />
+                  {question.roasts[optionIndex] !== undefined && (
+                    <EText path={`play.quiz.${questionIndex}.roasts.${optionIndex}`} as="p" multiline className="mt-2 block text-sm text-vermilion-ink" label={`Quiz response ${questionIndex + 1}, option ${optionIndex + 1}`} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    );
+  }
+
+  if (step >= runQuestions.length) {
     return (
       <div className="flex flex-col gap-4">
-        <MonoTag className="text-metric-green">Diagnosis complete</MonoTag>
-        <ul className="space-y-2 border-y border-carbon-lift py-4">
+        <MonoTag className="text-moss-ink">Diagnosis complete</MonoTag>
+        <ul className="space-y-2 border-y border-rule py-4">
           {roasts.map((r, i) => (
-            <li key={i} className="font-geist-mono text-caption tracking-[-0.02em] text-warm-granite">
-              <span className="mr-2 text-signal-orange">▸</span>
+            <li key={i} className="font-mono text-sm text-ink-soft">
+              <span aria-hidden className="mr-2 text-vermilion-ink">›</span>
               {r}
             </li>
           ))}
         </ul>
+        <p className="font-mono text-xs text-graphite">Every run draws a fresh set of questions from the {quiz.length}-question bank.</p>
         <button
-          onClick={() => { setStep(0); setRoasts([]); }}
-          className="self-start rounded-sm bg-chalk px-4 py-2 text-body-sm text-obsidian-canvas transition-colors duration-150 hover:bg-bone"
+          onClick={() => {
+            setStep(0);
+            setRoasts([]);
+            setPicked(null);
+            setRunQuestions(randomQuizOrder(quiz.length));
+          }}
+          className="self-start inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-[15px] font-medium text-paper transition-colors duration-[var(--dur-2)] hover:bg-ink-soft"
         >
-          Run it back
+          Run a new remix
         </button>
       </div>
     );
   }
 
-  const q = QUIZ[step];
+  const questionIndex = runQuestions[step] ?? 0;
+  const q = quiz[questionIndex] ?? quiz[0];
+  if (!q) return <MonoTag className="text-graphite">No quiz questions are available yet.</MonoTag>;
+  const selectedRoast = picked === null ? "" : q.roasts[picked] ?? "The diagnostic result escaped into the logs.";
   return (
     <div>
       <div className="flex items-center justify-between pb-4">
-        <MonoTag className="text-graphite-mid tabular">Question {step + 1} / {QUIZ.length}</MonoTag>
-        <MonoTag className="text-signal-orange">Roast mode</MonoTag>
+        <MonoTag className="text-graphite tabular">Question {step + 1} / {runQuestions.length}</MonoTag>
+        <MonoTag className="text-vermilion-ink">Random remix · {quiz.length} in bank</MonoTag>
       </div>
-      <p className="font-geist text-[20px] tracking-[-0.02em] text-bone">{q.q}</p>
+      <EText path={`play.quiz.${questionIndex}.q`} as="p" className="block font-display text-title text-ink" label={`Quiz question ${step + 1}`} />
       <div className="mt-5 flex flex-col gap-2.5">
-        {q.opts.map((opt, i) => (
+        {q.opts.map((_, i) => (
           <button
-            key={opt}
-            onClick={() => pick(i)}
+            key={i}
+            onClick={(event) => (editing ? event.preventDefault() : pick(i))}
             className={cn(
-              "border px-4 py-3 text-left text-body-sm transition-colors duration-150",
-              picked === i ? "border-signal-orange bg-signal-orange/10 text-bone" : "border-carbon-lift text-warm-granite hover:border-ash-stroke hover:text-bone"
+              "min-h-11 rounded-[var(--radius-sm)] border px-4 py-3 text-left text-md transition-colors duration-[var(--dur-2)]",
+              picked === i ? "border-vermilion bg-vermilion-wash text-ink" : "border-rule-strong text-ink-soft hover:border-ink hover:text-ink"
             )}
           >
-            {opt}
+            <EText path={`play.quiz.${questionIndex}.opts.${i}`} label={`Quiz question ${step + 1}, option ${i + 1}`} />
           </button>
         ))}
       </div>
-      {picked !== null && <MonoTag className="mt-4 block animate-log-in text-signal-orange">{q.roasts[picked]}</MonoTag>}
+      {editing && (
+        <div className="mt-4 flex flex-col gap-2 border-t border-rule pt-4">
+          {q.roasts.map((_, index) => <EText key={index} path={`play.quiz.${questionIndex}.roasts.${index}`} as="p" className="block text-sm text-ink-soft" label={`Quiz response ${step + 1}, option ${index + 1}`} />)}
+        </div>
+      )}
+      {picked !== null && <MonoTag className="m-swap mt-4 block text-vermilion-ink">{selectedRoast}</MonoTag>}
     </div>
   );
 }
 
 /* ================= Modal shell + grid ================= */
 
-function GameShell({ game, onClose }: { game: Game; onClose: () => void }) {
+function GameShell({ game, onClose, state = "open" }: { game: Game; onClose: () => void; state?: PresenceState }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
+    // Lock the page without shifting it: compensate for the scrollbar we hide.
+    const root = document.documentElement;
+    const gap = window.innerWidth - root.clientWidth;
+    const prevOverflow = root.style.overflow;
+    const prevPad = root.style.paddingRight;
+    root.style.overflow = "hidden";
+    if (gap > 0) root.style.paddingRight = `${gap}px`;
+    cardRef.current?.focus();
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
+      root.style.overflow = prevOverflow;
+      root.style.paddingRight = prevPad;
     };
   }, [onClose]);
 
-  return (
+  // Portalled to <body>: inside the tab panel a transformed ancestor would make
+  // position: fixed relative to it, so the dialog landed off-centre.
+  return createPortal(
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-obsidian-canvas/80 p-4 backdrop-blur-md sm:p-6"
+      data-state={state}
+      className="game-scrim fixed inset-0 z-[90] grid place-items-center p-4 sm:p-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={`${game.name} game`}
     >
       <div
-        className="w-full max-w-lg animate-frame-in rounded-lg border border-ash-stroke bg-panel"
+        ref={cardRef}
+        tabIndex={-1}
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-[var(--radius-lg)] border border-ink bg-composer shadow-[var(--shadow-ink-sm)] outline-none"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-carbon-lift bg-carbon-lift/40 px-5 py-3">
-          <div className="flex items-center gap-2.5">
-            <StatusDot tone="orange" pulse />
-            <MonoTag className="text-pale-stone">{game.name.toLowerCase().replace(/\s/g, "-")} — play.exe</MonoTag>
+        <div className="flex items-center justify-between border-b border-rule px-5 py-2">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <StatusDot tone="graphite" label="Ready" className="shrink-0" />
+            <MonoTag className="truncate text-graphite">{game.name.toLowerCase().replace(/\s/g, "-")} — play.exe</MonoTag>
           </div>
-          <button onClick={onClose} aria-label="Close game" className="text-warm-granite transition-colors duration-150 hover:text-chalk">
-            <CloseIcon className="h-4 w-4" />
+          <button onClick={onClose} aria-label="Close game" className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)] hover:text-ink">
+            <X aria-hidden className="h-5 w-5" strokeWidth={1.75} />
           </button>
         </div>
         <div className="p-5 sm:p-6">
@@ -437,54 +612,82 @@ function GameShell({ game, onClose }: { game: Game; onClose: () => void }) {
           {game.id === "reaction" && <ReactionGame />}
           {game.id === "quiz" && <QuizGame />}
         </div>
-        <div className="border-t border-carbon-lift px-5 py-3">
-          <MonoTag className="text-graphite-mid">ESC to eject · scores persist locally</MonoTag>
+        <div className="border-t border-rule px-5 py-3">
+          <MonoTag className="text-graphite"><EText path="play.modalFooter" label="Game modal footer" /></MonoTag>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
+const GAME_ICONS: Record<Game["icon"], LucideIcon> = {
+  snake: Gamepad2,
+  pong: Gauge,
+  quiz: HelpCircle,
+  reaction: Timer,
+};
+
+/** The playground — game rows inside the § 04 "Play" tab. Game logic is unchanged. */
 export function Play() {
+  const { content, editing } = useContent();
+  const games = content.play.games;
   const [active, setActive] = useState<Game | null>(null);
+  // keep the last game mounted while the dialog animates closed
+  const presence = usePresence(!!active, 180);
+  const shownGame = useRef<Game | null>(null);
+  if (active) shownGame.current = active;
+  const opener = useRef<HTMLButtonElement | null>(null);
+
+  const close = useCallback(() => {
+    setActive(null);
+    opener.current?.focus();
+  }, []);
 
   return (
-    <section id="play" className="mx-auto max-w-[1200px] px-6 pb-24 lg:pb-28">
-      <SectionHead index="05" title="Play" note="04 units online" />
+    <div>
+      <ul className="scroll-stagger grid gap-px overflow-hidden rounded-[var(--radius-md)] border border-rule bg-rule sm:grid-cols-2">
+        {games.map((game, index) => {
+          const Icon = GAME_ICONS[game.icon];
+          return (
+            <li key={game.id} className="bg-card">
+              <button
+                type="button"
+                disabled={!game.playable}
+                onClick={(event) => {
+                  if (editing && (event.target as HTMLElement).closest('[role="textbox"]')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return;
+                  }
+                  opener.current = event.currentTarget;
+                  setActive(game);
+                }}
+                className="group flex h-full min-h-[88px] w-full items-start gap-4 p-4 text-left transition-colors duration-[var(--dur-2)] enabled:hover:bg-composer disabled:cursor-not-allowed"
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors duration-[var(--dur-2)]",
+                    game.playable ? "border-ink text-ink group-hover:bg-vermilion group-hover:text-on-accent" : "border-rule-strong text-graphite"
+                  )}
+                >
+                  <Icon className="h-4 w-4" strokeWidth={1.75} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className={cn("text-md font-semibold", game.playable ? "text-ink" : "text-ink-soft")}><EText path={`play.games.${index}.name`} label={`Game ${index + 1} name`} /></span>
+                  </span>
+                  <EText path={`play.games.${index}.desc`} as="span" multiline className="mt-1 block text-sm text-ink-soft" label={`Game ${index + 1} description`} />
+                </span>
+                {game.playable && <MonoTag className="hidden shrink-0 pt-0.5 text-vermilion-ink sm:inline">Play</MonoTag>}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
 
-      <div className="mt-10 flex flex-wrap items-end justify-between gap-6">
-        <Reveal>
-          <h2 className="max-w-xl font-geist text-heading tracking-[-0.031em] text-bone">
-            The playground<span className="text-signal-orange">.</span>
-          </h2>
-        </Reveal>
-        <Reveal delay={80}>
-          <p className="max-w-sm text-body-sm text-warm-granite">
-            Four canvas games, modal shells, zero stakes. High scores persist locally.
-          </p>
-        </Reveal>
-      </div>
-
-      <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {GAMES.filter((g) => g.playable).map((game, i) => (
-          <Reveal key={game.id} delay={i * 45} className="h-full">
-            <button
-              onClick={() => setActive(game)}
-              className="lift group flex h-full w-full flex-col rounded-md border border-carbon-lift bg-carbon-lift/15 p-4 text-left backdrop-blur-sm hover:border-ash-stroke"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-geist-mono text-[18px] leading-none text-pale-stone transition-colors duration-150 group-hover:text-signal-orange">{game.mark}</span>
-                <StatusDot tone="green" />
-              </div>
-              <span className="mt-4 font-geist text-body-sm uppercase tracking-[0.02em] text-bone transition-colors duration-150 group-hover:text-chalk">{game.name}</span>
-              <span className="mt-1 text-[13px] leading-snug text-warm-granite">{game.desc}</span>
-              <MonoTag className="mt-3 border-t border-carbon-lift pt-3 text-metric-green">Insert coin</MonoTag>
-            </button>
-          </Reveal>
-        ))}
-      </div>
-
-      {active && <GameShell game={active} onClose={() => setActive(null)} />}
-    </section>
+      {presence.mounted && shownGame.current && <GameShell game={shownGame.current} onClose={close} state={presence.state} />}
+    </div>
   );
 }

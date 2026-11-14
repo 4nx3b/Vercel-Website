@@ -1,11 +1,17 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
+import { usePresence, type PresenceState } from "../hooks/usePresence";
 import { cn } from "../utils/cn";
 import {
   ADMIN_EMAIL, AMA_COLLECTION, AMA_KEYS, FIREBASE, FORMSPREE_ENDPOINT, SEED_QUESTIONS,
 } from "../lib/data";
-import { CheckIcon, CloseIcon, RefreshIcon } from "./icons";
+import { ArrowRight, Check, ChevronUp, RefreshCw, X } from "lucide-react";
 import { MonoTag, SectionHead, StatusDot } from "./ui";
+import { announceOwner, jfetch, lsGet, lsSet, ownerAuth, refreshTokenIfNeeded, setOwnerAuth, type Owner } from "../lib/owner";
 import { Reveal } from "./Reveal";
+import { BurstLines, GiantType, Halftone } from "./AnimeFx";
+import { useContent } from "../content/store";
+import { Blocks, EField, EText } from "../content/Editable";
 
 /* ══════════════════════════════════════════════════════════════════════
    ASK / AMA — ported 1:1 from the previous build:
@@ -20,7 +26,6 @@ type AmaQ = {
   answered: boolean; dismissed: boolean; votes: number;
   createdAt: string; answeredAt: string;
 };
-type Owner = { email: string; idToken: string; refreshToken: string; expiresAt: number };
 type Pending = AmaQ & { telegramNotified?: boolean; emailNotified?: boolean };
 
 const base = () => `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents`;
@@ -28,14 +33,6 @@ const docUrl = (id: string) => `${base()}/${AMA_COLLECTION}/${encodeURIComponent
 const colUrl = () => `${base()}/${AMA_COLLECTION}`;
 const queryUrl = () => `https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents:runQuery`;
 
-async function jfetch(url: string, opts: RequestInit = {}): Promise<any> {
-  const res = await fetch(url, opts);
-  const txt = await res.text();
-  let data: any = null;
-  try { data = txt ? JSON.parse(txt) : null; } catch { data = { raw: txt }; }
-  if (!res.ok) throw new Error(data?.error?.message || `HTTP ${res.status}`);
-  return data;
-}
 const nowISO = () => new Date().toISOString();
 const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : "q_" + Date.now() + "_" + Math.random().toString(16).slice(2));
 function timeAgo(iso: string | number) {
@@ -44,11 +41,6 @@ function timeAgo(iso: string | number) {
   const m = Math.floor(d / 60000), h = Math.floor(m / 60), day = Math.floor(h / 24);
   return day ? day + "d ago" : h ? h + "h ago" : m ? m + "m ago" : "now";
 }
-function lsGet<T>(key: string, fallback: T): T {
-  try { const v = localStorage.getItem(key); return v ? (JSON.parse(v) as T) : fallback; } catch { return fallback; }
-}
-function lsSet(key: string, v: unknown) { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* private mode */ } }
-function lsDel(key: string) { try { localStorage.removeItem(key); } catch { /* */ } }
 
 function toFields(q: AmaQ) {
   return { fields: {
@@ -79,8 +71,6 @@ function fromDoc(doc: any): AmaQ {
 }
 
 /* ---------- auth ---------- */
-const ownerAuth = (): Owner | null => lsGet<Owner | null>(AMA_KEYS.ownerAuth, null);
-const setOwnerAuth = (a: Owner | null) => (a ? lsSet(AMA_KEYS.ownerAuth, a) : lsDel(AMA_KEYS.ownerAuth));
 
 async function publicToken(): Promise<string> {
   const stored = lsGet<{ idToken: string; refreshToken: string; expiresAt: number } | null>(AMA_KEYS.publicAuth, null);
@@ -91,17 +81,6 @@ async function publicToken(): Promise<string> {
   const next = { idToken: data.idToken, refreshToken: data.refreshToken, expiresAt: Date.now() + Number(data.expiresIn || 3600) * 1000 };
   lsSet(AMA_KEYS.publicAuth, next);
   return next.idToken;
-}
-async function refreshTokenIfNeeded(): Promise<string> {
-  const a = ownerAuth();
-  if (!a?.refreshToken) throw new Error("Login again.");
-  if (a.expiresAt && Date.now() < a.expiresAt - 60000) return a.idToken;
-  const data = await jfetch(`https://securetoken.googleapis.com/v1/token?key=${FIREBASE.apiKey}`, {
-    method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ grant_type: "refresh_token", refresh_token: a.refreshToken }).toString(),
-  });
-  setOwnerAuth({ ...a, idToken: data.id_token, refreshToken: data.refresh_token || a.refreshToken, expiresAt: Date.now() + Number(data.expires_in || 3600) * 1000 });
-  return data.id_token;
 }
 
 async function authHeaders(): Promise<Record<string, string>> {
@@ -200,7 +179,7 @@ const getUsed = () => { try { return Number(localStorage.getItem(todayKey()) || 
 
 /* ================= Owner console ================= */
 
-function OwnerConsole({ onClose, onChanged }: { onClose: () => void; onChanged: () => void }) {
+function OwnerConsole({ onClose, onChanged, phase = "open" }: { onClose: () => void; onChanged: () => void; phase?: PresenceState }) {
   const [auth, setAuth] = useState<Owner | null>(() => ownerAuth());
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
@@ -249,7 +228,7 @@ function OwnerConsole({ onClose, onChanged }: { onClose: () => void; onChanged: 
       });
       if (data.email !== ADMIN_EMAIL) throw new Error("Wrong account.");
       const next = { email: data.email, idToken: data.idToken, refreshToken: data.refreshToken, expiresAt: Date.now() + Number(data.expiresIn || 3600) * 1000 };
-      setOwnerAuth(next); setAuth(next); setStatus(""); setErr(false);
+      setOwnerAuth(next); setAuth(next); setStatus(""); setErr(false); announceOwner();
     } catch (e2) {
       setStatus((e2 as Error).message || "Login failed."); setErr(true);
     } finally { setBusy(false); }
@@ -299,134 +278,155 @@ function OwnerConsole({ onClose, onChanged }: { onClose: () => void; onChanged: 
   }
 
   useEffect(() => { if (isOwner) void load(); }, [isOwner, load]);
+  const sheetRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+    const root = document.documentElement;
+    const opener = document.activeElement as HTMLElement | null;
+    const gap = window.innerWidth - root.clientWidth;
+    const prev = { o: root.style.overflow, p: root.style.paddingRight };
+    root.style.overflow = "hidden";
+    if (gap > 0) root.style.paddingRight = `${gap}px`;
+    requestAnimationFrame(() => sheetRef.current?.querySelector<HTMLElement>("input, button")?.focus());
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      root.style.overflow = prev.o;
+      root.style.paddingRight = prev.p;
+      opener?.focus?.();
+    };
   }, [onClose]);
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-obsidian-canvas/85 p-0 backdrop-blur-md sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label="AMA owner console">
-      <div className="flex max-h-[92vh] w-full max-w-2xl animate-frame-in flex-col rounded-t-lg border border-ash-stroke bg-panel sm:rounded-lg">
-        <div className="flex items-center justify-between border-b border-carbon-lift bg-carbon-lift/40 px-5 py-4 sm:px-7">
-          <div className="flex items-center gap-2.5">
-            <StatusDot tone="orange" pulse />
-            <MonoTag className="text-pale-stone"><span className="text-signal-orange">$</span> ama — owner console</MonoTag>
+  return createPortal(
+    <div data-state={phase} className="owner-overlay fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label="AMA owner console">
+      <div ref={sheetRef} className="owner-sheet flex w-full min-w-0 max-w-2xl flex-col rounded-t-[var(--radius-lg)] border border-ink bg-composer shadow-[var(--shadow-ink-sm)] sm:rounded-[var(--radius-lg)]">
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-rule px-4 py-2 sm:px-7">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <StatusDot tone="vermilion" label={<><span className="text-vermilion-ink">$</span> ama, owner console</>} />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
             {isOwner && (
-              <button onClick={() => { setOwnerAuth(null); setAuth(null); setItems(null); }} className="font-geist-mono text-caption uppercase tracking-[-0.02em] text-warm-granite transition-colors duration-150 hover:text-signal-orange">
-                Logout
+              <button onClick={() => { setOwnerAuth(null); setAuth(null); setItems(null); announceOwner(); }} className="min-h-11 rounded-full px-3 font-mono text-xs text-ink-soft transition-colors duration-[var(--dur-2)] hover:text-vermilion-ink">
+                Log out
               </button>
             )}
-            <button type="button" onClick={onClose} aria-label="Close owner console" className="text-warm-granite transition-colors duration-150 hover:text-chalk">
-              <CloseIcon className="h-4 w-4" />
+            <button type="button" onClick={onClose} aria-label="Close owner console" className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition-colors duration-[var(--dur-2)] hover:bg-[color-mix(in_srgb,var(--color-ink)_6%,transparent)] hover:text-ink">
+              <X aria-hidden className="h-5 w-5" strokeWidth={1.75} />
             </button>
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-7">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-7">
           {!isOwner ? (
-            <form onSubmit={login} className="mx-auto flex max-w-sm flex-col gap-3 py-6">
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="owner email"
-                className="rounded-sm border border-carbon-lift bg-carbon-lift/30 px-4 py-3 font-geist-mono text-caption text-bone placeholder:text-graphite-mid focus:border-ash-stroke focus:outline-none" />
-              <input type="password" value={pass} onChange={(e) => setPass(e.target.value)} autoComplete="current-password" placeholder="password"
-                className="rounded-sm border border-carbon-lift bg-carbon-lift/30 px-4 py-3 font-geist-mono text-caption text-bone placeholder:text-graphite-mid focus:border-ash-stroke focus:outline-none" />
+            <form onSubmit={login} className="mx-auto flex max-w-sm flex-col gap-4 py-6">
+              <div>
+                <label htmlFor="owner-email" className="mb-1.5 block text-sm font-medium text-ink">Owner email</label>
+                <input id="owner-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="you@example.com"
+                  className="min-h-11 w-full rounded-[var(--radius-sm)] border border-rule-strong bg-paper px-4 py-2.5 font-mono text-[16px] text-ink placeholder:text-graphite focus:border-ink" />
+              </div>
+              <div>
+                <label htmlFor="owner-pass" className="mb-1.5 block text-sm font-medium text-ink">Password</label>
+                <input id="owner-pass" type="password" value={pass} onChange={(e) => setPass(e.target.value)} autoComplete="current-password"
+                  className="min-h-11 w-full rounded-[var(--radius-sm)] border border-rule-strong bg-paper px-4 py-2.5 font-mono text-[16px] text-ink focus:border-ink" />
+              </div>
               <button type="submit" disabled={busy}
-                className="mt-1 inline-flex h-10 items-center justify-center rounded-sm bg-chalk px-6 font-geist text-body-sm text-obsidian-canvas transition-colors duration-150 hover:bg-bone disabled:opacity-50">
-                {busy ? "…" : "Login"}
+                className="mt-1 inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-6 text-[15px] font-medium text-paper transition-colors duration-[var(--dur-2)] hover:bg-ink-soft disabled:opacity-50">
+                {busy ? "…" : "Log in"}
               </button>
-              {status && <MonoTag className={cn("text-center", err ? "text-signal-orange" : "text-pale-stone")}>{status}</MonoTag>}
-              <MonoTag className="text-center text-graphite-mid">reze only · answer / edit / dismiss / delete</MonoTag>
+              {status && <MonoTag className={cn("text-center", err ? "text-vermilion-ink" : "text-ink-soft")}>{status}</MonoTag>}
+              <MonoTag className="text-center text-graphite">Reze only · answer, edit, dismiss, delete</MonoTag>
             </form>
           ) : (
             <>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
                 {(["unanswered", "dismissed", "answered"] as const).map((k) => (
-                  <button key={k} type="button" onClick={() => setFilter(k)}
+                  <button key={k} type="button" onClick={() => setFilter(k)} aria-pressed={filter === k}
                     className={cn(
-                      "rounded-sm border px-3 py-1.5 font-geist-mono text-caption uppercase tracking-[-0.02em] transition-colors duration-150",
-                      filter === k ? "border-signal-orange/60 bg-signal-orange/10 text-signal-orange" : "border-carbon-lift text-warm-granite hover:border-ash-stroke hover:text-bone"
+                      "min-h-11 shrink-0 whitespace-nowrap rounded-full border px-3.5 font-mono text-xs capitalize transition-colors duration-[var(--dur-2)]",
+                      filter === k ? "border-ink bg-ink text-paper" : "border-rule-strong text-ink-soft hover:border-ink hover:text-ink"
                     )}>
-                    {k} <span className="opacity-60 tabular">{counts[k]}</span>
+                    {k} <span className="tabular opacity-70">{counts[k]}</span>
                   </button>
                 ))}
+                </div>
                 <button type="button" onClick={() => void load()} aria-label="Refresh"
-                  className="ml-auto flex h-8 w-8 items-center justify-center rounded-sm border border-carbon-lift text-warm-granite transition-colors duration-150 hover:border-ash-stroke hover:text-bone">
-                  <RefreshIcon className="h-3.5 w-3.5" />
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-rule-strong text-ink-soft transition-colors duration-[var(--dur-2)] hover:border-ink hover:text-ink">
+                  <RefreshCw aria-hidden className="h-4 w-4" strokeWidth={1.75} />
                 </button>
               </div>
 
-              {status && <MonoTag className={cn("mt-3 block", err ? "text-signal-orange" : "text-pale-stone")}>{status}</MonoTag>}
+              {status && <MonoTag className={cn("mt-3 block", err ? "text-vermilion-ink" : "text-ink-soft")}>{status}</MonoTag>}
 
               <ul className="mt-4 space-y-4">
-                {items === null && <li className="py-8 text-center"><MonoTag className="text-graphite-mid">decrypting wire…</MonoTag></li>}
+                {items === null && <li className="py-8 text-center"><MonoTag className="text-graphite">Loading the queue…</MonoTag></li>}
                 {items !== null && visible.length === 0 && (
-                  <li className="py-8 text-center"><MonoTag className="text-graphite-mid">nothing in “{filter}”</MonoTag></li>
+                  <li className="py-8 text-center"><MonoTag className="text-graphite">Nothing in “{filter}”</MonoTag></li>
                 )}
                 {visible.map((q) => (
-                  <li key={q.id} className="rounded-md border border-carbon-lift bg-carbon-lift/15 p-4">
+                  <li key={q.id} className="min-w-0 rounded-[var(--radius-md)] border border-rule bg-card p-4 [overflow-wrap:anywhere]">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <MonoTag className="text-pale-stone">from: {q.name}</MonoTag>
-                      <MonoTag className="ml-auto text-graphite-mid tabular">▲ {q.votes} · {timeAgo(q.createdAt)}</MonoTag>
+                      <MonoTag className="text-ink-soft">from: {q.name}</MonoTag>
+                      <MonoTag className="ml-auto text-graphite tabular">{q.votes} votes · {timeAgo(q.createdAt)}</MonoTag>
                     </div>
-                    <p className="mt-2 break-words text-body-sm text-bone">{q.question}</p>
+                    <p className="mt-2 break-words text-md text-ink">{q.question}</p>
                     {q.answer && (
-                      <p className="mt-1.5 break-words text-body-sm text-warm-granite">
-                        <span className="mr-1.5 font-geist-mono text-[11px] text-metric-green">A</span>{q.answer}
+                      <p className="mt-1.5 break-words text-md text-ink-soft">
+                        <span className="mr-1.5 font-mono text-xs text-moss-ink">A</span>{q.answer}
                       </p>
                     )}
 
                     {/* Actions */}
-                    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-carbon-lift pt-3">
+                    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-rule pt-3">
                       {filter !== "answered" && editing !== q.id && (
                         <button onClick={() => { setEditing(q.id); setDrafts((d) => ({ ...d, [q.id]: q.answer || "" })); }}
-                          className="rounded-sm bg-carbon-lift px-3 py-1.5 font-geist-mono text-caption uppercase tracking-[-0.02em] text-bone transition-colors duration-150 hover:bg-graphite-mid">
+                          className="min-h-11 rounded-full bg-ink px-3.5 font-mono text-xs text-paper transition-colors duration-[var(--dur-2)] hover:bg-ink-soft">
                           {q.answer ? "Edit answer" : "Answer"}
                         </button>
                       )}
                       {confirm?.id === q.id ? (
                         <>
-                          <MonoTag className="text-signal-orange">{confirm.kind === "delete" ? "delete for real?" : "dismiss?"}</MonoTag>
+                          <MonoTag className="text-vermilion-ink">{confirm.kind === "delete" ? "Delete for real?" : "Dismiss?"}</MonoTag>
                           <button onClick={() => (confirm.kind === "delete" ? remove(q) : dismiss(q))} disabled={busy}
-                            className="rounded-sm bg-signal-orange px-3 py-1.5 font-geist-mono text-caption uppercase tracking-[-0.02em] text-obsidian-canvas transition-colors duration-150 hover:bg-signal-orange/80">
-                            yes
+                            className="min-h-11 rounded-full bg-vermilion px-3.5 font-mono text-xs text-on-accent transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep">
+                            Yes
                           </button>
-                          <button onClick={() => setConfirm(null)} className="rounded-sm border border-carbon-lift px-3 py-1.5 font-geist-mono text-caption uppercase tracking-[-0.02em] text-warm-granite hover:border-ash-stroke hover:text-bone">
-                            no
+                          <button onClick={() => setConfirm(null)} className="min-h-11 rounded-full border border-rule-strong px-3.5 font-mono text-xs text-ink-soft hover:border-ink hover:text-ink">
+                            No
                           </button>
                         </>
                       ) : (
                         <>
                           {filter !== "dismissed" && (
                             <button onClick={() => setConfirm({ id: q.id, kind: "dismiss" })}
-                              className="rounded-sm border border-carbon-lift px-3 py-1.5 font-geist-mono text-caption uppercase tracking-[-0.02em] text-warm-granite transition-colors duration-150 hover:border-ash-stroke hover:text-bone">
-                              dismiss
+                              className="min-h-11 rounded-full border border-rule-strong px-3.5 font-mono text-xs text-ink-soft transition-colors duration-[var(--dur-2)] hover:border-ink hover:text-ink">
+                              Dismiss
                             </button>
                           )}
                           <button onClick={() => setConfirm({ id: q.id, kind: "delete" })}
-                            className="rounded-sm border border-signal-orange/40 px-3 py-1.5 font-geist-mono text-caption uppercase tracking-[-0.02em] text-signal-orange transition-colors duration-150 hover:bg-signal-orange/10">
-                            del
+                            className="min-h-11 rounded-full border border-vermilion-ink px-3.5 font-mono text-xs text-vermilion-ink transition-colors duration-[var(--dur-2)] hover:bg-vermilion-wash">
+                            Delete
                           </button>
                         </>
                       )}
                     </div>
 
                     {editing === q.id && (
-                      <div className="mt-3 animate-log-in">
+                      <div className="m-swap mt-3">
+                        <label htmlFor={`answer-${q.id}`} className="mb-1.5 block text-sm font-medium text-ink">Your answer</label>
                         <textarea
+                          id={`answer-${q.id}`}
                           value={drafts[q.id] ?? ""}
                           onChange={(e) => setDrafts((d) => ({ ...d, [q.id]: e.target.value }))}
                           rows={3} maxLength={1000} placeholder="Write the reply…"
-                          className="w-full resize-none rounded-sm border border-carbon-lift bg-obsidian-canvas px-3 py-2.5 text-body-sm text-bone placeholder:text-graphite-mid focus:border-ash-stroke focus:outline-none"
+                          className="w-full max-w-full resize-none rounded-[var(--radius-sm)] border border-rule-strong bg-paper px-3 py-2.5 text-[16px] text-ink placeholder:text-graphite focus:border-ink"
                         />
                         <div className="mt-2 flex gap-2">
                           <button onClick={() => saveAnswer(q, drafts[q.id] ?? "")} disabled={busy}
-                            className="rounded-sm bg-chalk px-3 py-1.5 font-geist-mono text-caption uppercase tracking-[-0.02em] text-obsidian-canvas transition-colors duration-150 hover:bg-bone disabled:opacity-50">
+                            className="min-h-11 rounded-full bg-ink px-3.5 font-mono text-xs text-paper transition-colors duration-[var(--dur-2)] hover:bg-ink-soft disabled:opacity-50">
                             Save answer
                           </button>
-                          <button onClick={() => setEditing(null)} className="rounded-sm border border-carbon-lift px-3 py-1.5 font-geist-mono text-caption uppercase tracking-[-0.02em] text-warm-granite hover:border-ash-stroke hover:text-bone">
+                          <button onClick={() => setEditing(null)} className="min-h-11 rounded-full border border-rule-strong px-3.5 font-mono text-xs text-ink-soft hover:border-ink hover:text-ink">
                             Cancel
                           </button>
                         </div>
@@ -439,13 +439,59 @@ function OwnerConsole({ onClose, onChanged }: { onClose: () => void; onChanged: 
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
+}
+
+/* Fixed-height question list: scrolls inside itself with no visible scrollbar,
+   fades at the edges that have more, and glides to the first new item after
+   "Load more" so the page never grows. View-only; no data logic here. */
+function QuestionScroller({ count, children }: { count: number; children: React.ReactNode }) {
+  const box = useRef<HTMLUListElement>(null);
+  const prev = useRef(count);
+  const [edges, setEdges] = useState({ top: false, bottom: false });
+  const sync = useCallback(() => {
+    const el = box.current;
+    if (!el) return;
+    setEdges({ top: el.scrollTop > 4, bottom: el.scrollTop + el.clientHeight < el.scrollHeight - 4 });
+  }, []);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    if (count > prev.current) {
+      const first = el.children[prev.current] as HTMLElement | undefined;
+      if (first) el.scrollTo({ top: first.offsetTop - 8, behavior: "smooth" });
+    }
+    prev.current = count;
+    sync();
+  }, [count, sync]);
+  return (
+    <ul
+      ref={box}
+      onScroll={sync}
+      tabIndex={0}
+      aria-label="Questions"
+      data-fade-top={edges.top || undefined}
+      data-fade-bottom={edges.bottom || undefined}
+      className="q-scroll no-scrollbar relative max-h-[min(560px,65dvh)] overflow-y-auto overscroll-contain"
+    >
+      {children}
+    </ul>
+  );
+}
+
+/* Keeps the console mounted while it animates closed. View-only. */
+function OwnerConsolePresence({ open, onClose, onChanged }: { open: boolean; onClose: () => void; onChanged: () => void }) {
+  const { mounted, state } = usePresence(open, 220);
+  return mounted ? <OwnerConsole onClose={onClose} onChanged={onChanged} phase={state} /> : null;
 }
 
 /* ================= Public section ================= */
 
 export function Ask() {
+  const { content, editing } = useContent();
+  const copy = content.ask;
   const [items, setItems] = useState<AmaQ[]>([]);
   const [pending, setPending] = useState<AmaQ[]>(() => lsGet<Pending[]>(AMA_KEYS.queue, []).map((q) => ({ ...q, answered: false, dismissed: false })));
   const [voted, setVoted] = useState<string[]>(() => lsGet<string[]>(AMA_KEYS.voted, []));
@@ -455,6 +501,12 @@ export function Ask() {
   const [status, setStatus] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
   const [page, setPage] = useState(1);
   const [ownerOpen, setOwnerOpen] = useState(false);
+  // The sidebar's Owner login entry is the sole way to open this console.
+  useEffect(() => {
+    const openSheet = () => setOwnerOpen(true);
+    window.addEventListener("v3:open-owner", openSheet);
+    return () => window.removeEventListener("v3:open-owner", openSheet);
+  }, []);
   const [loading, setLoading] = useState(true);
   const PAGE = 4;
 
@@ -463,7 +515,12 @@ export function Ask() {
       const headers = await authHeaders();
       const data = await jfetch(queryUrl(), {
         method: "POST", headers,
-        body: JSON.stringify({ structuredQuery: { from: [{ collectionId: AMA_COLLECTION }], orderBy: { field: { fieldPath: "createdAt" }, direction: "DESCENDING" }, limit: 100 } }),
+        body: JSON.stringify({ structuredQuery: {
+          from: [{ collectionId: AMA_COLLECTION }],
+          where: { fieldFilter: { field: { fieldPath: "answered" }, op: "EQUAL", value: { booleanValue: true } } },
+          orderBy: { field: { fieldPath: "createdAt" }, direction: "DESCENDING" },
+          limit: 100,
+        } }),
       });
       const list = (Array.isArray(data) ? data : []).filter((d: any) => d.document).map((d: any) => fromDoc(d.document));
       setItems(list.filter((q: AmaQ) => q.question && q.answered && !q.dismissed));
@@ -486,6 +543,7 @@ export function Ask() {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    if (editing) return;
     const q = text.trim();
     if (!q) return;
     if (getUsed() >= 10) { setStatus({ kind: "err", msg: "Daily limit reached (10). Come back tomorrow." }); return; }
@@ -511,134 +569,142 @@ export function Ask() {
   };
 
   return (
-    <section id="ask" className="mx-auto max-w-[1200px] px-6 pb-24 lg:pb-28">
-      <SectionHead index="06" title="Ask" note="AMA · firestore wire" />
+    <section id="ask" aria-labelledby="ask-title" className="relative overflow-clip border-t border-rule">
+      <GiantType text="ROOT" reverse className="bottom-0" />
+      <BurstLines className="bottom-10" />
+      <div className="page relative py-24 lg:py-32">
+        <Halftone className="top-16 right-0 left-0 h-44" />
+        <div className="grid gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-20">
+          {/* Composer */}
+          <div>
+            <SectionHead
+              num="06"
+              label={<EText path="ask.sectionLabel" label="Ask section label" />}
+              title={<span id="ask-title"><EText path="ask.titleLead" label="Ask heading" /> <em className="ital"><EText path="ask.titleEmphasis" label="Ask heading emphasis" /></em>.</span>}
+              lede={<EText path="ask.lede" multiline label="Ask section description" />}
+            />
 
-      <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_1.25fr] lg:gap-16">
-        {/* Transmit */}
-        <div>
-          <Reveal>
-            <div className="flex items-start justify-between gap-4">
-              <h2 className="font-geist text-heading-lg tracking-[-0.025em] text-bone">
-                Ask me anything<span className="text-signal-orange">.</span>
-              </h2>
-              <button
-                onClick={() => setOwnerOpen(true)}
-                className="shrink-0 rounded-sm border border-carbon-lift px-3 py-2 font-geist-mono text-caption uppercase tracking-[-0.02em] text-warm-granite backdrop-blur-sm transition-colors duration-150 hover:border-ash-stroke hover:text-bone"
-              >
-                Owner
-              </button>
-            </div>
-            <p className="mt-5 max-w-md text-body text-warm-granite">
-              Root, ROMs, anime, anything. Questions hit Firestore and ping my Telegram — answers
-              show up here once I've replied. 10 questions per visitor per day.
-            </p>
-          </Reveal>
-
-          <Reveal delay={80}>
-            <form onSubmit={submit} className="mt-8 flex flex-col gap-3">
-              <label htmlFor="ama-name" className="sr-only">Name (optional)</label>
-              <input
-                id="ama-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={40}
-                placeholder="name (optional)"
-                className="h-10 rounded-sm border border-carbon-lift bg-carbon-lift/20 px-4 font-geist-mono text-caption text-bone placeholder:text-graphite-mid backdrop-blur-sm focus:border-ash-stroke focus:outline-none"
-              />
-              <label htmlFor="ama-text" className="sr-only">Your question</label>
-              <textarea
-                id="ama-text" value={text} onChange={(e) => setText(e.target.value)} rows={4} required maxLength={280}
-                placeholder="Type the question… 280 chars, no mercy."
-                className="w-full resize-none rounded-sm border border-carbon-lift bg-carbon-lift/20 p-4 text-body text-bone placeholder:text-graphite-mid backdrop-blur-sm transition-colors duration-150 focus:border-ash-stroke focus:outline-none"
-              />
-              <div className="flex items-center justify-between gap-4">
-                <MonoTag className="text-graphite-mid tabular">{280 - text.length} left</MonoTag>
-                <button type="submit"
-                  className="inline-flex h-10 items-center gap-2 rounded-sm bg-carbon-lift px-4 font-geist text-body-sm text-bone transition-all duration-150 hover:bg-graphite-mid hover:text-chalk active:scale-[0.98]">
-                  {status?.kind === "ok" ? (<><CheckIcon className="h-3.5 w-3.5 text-metric-green" />Transmitted</>) : "Transmit"}
-                </button>
-              </div>
-              {status?.kind === "err" && <MonoTag className="text-signal-orange">{status.msg}</MonoTag>}
-            </form>
-          </Reveal>
-        </div>
-
-        {/* The wire */}
-        <Reveal delay={120}>
-          <div className="flex items-center justify-between border-t border-carbon-lift pt-5">
-            <MonoTag className="text-pale-stone">The wire — {String(sorted.length + pending.length).padStart(2, "0")} signals</MonoTag>
-            <div className="flex gap-2">
-              {SORTS.map((s) => (
-                <button key={s.key} onClick={() => setSort(s.key)}
-                  className={cn(
-                    "rounded-sm px-2.5 py-1.5 font-geist-mono text-caption uppercase tracking-[-0.02em] transition-colors duration-150",
-                    sort === s.key ? "bg-chalk text-obsidian-canvas" : "border border-carbon-lift text-warm-granite hover:border-ash-stroke hover:text-bone"
-                  )}>
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <ul className="mt-5">
-            {loading && <li className="py-8 text-center"><MonoTag className="text-graphite-mid">tapping the wire…</MonoTag></li>}
-
-            {pending.map((q) => (
-              <li key={q.id} className="flex gap-5 border-b border-carbon-lift py-5 opacity-70">
-                <span className="flex h-fit shrink-0 flex-col items-center gap-1 border border-carbon-lift px-3 py-2">
-                  <span className="text-body-sm leading-none text-graphite-mid">▲</span>
-                  <span className="font-geist-mono text-caption tabular text-graphite-m">{q.votes}</span>
-                </span>
-                <div>
-                  <p className="text-body text-bone">{q.question}</p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <StatusDot tone="orange" pulse />
-                    <MonoTag className="text-signal-orange">queued — awaiting reply · {q.name}</MonoTag>
+            <Reveal delay={80}>
+              <form onSubmit={submit} className="mt-10 rounded-[var(--radius-lg)] border border-ink bg-composer shadow-[var(--shadow-ink)]">
+                <div className="flex items-center gap-2.5 border-b border-rule px-5 py-3">
+                  <span aria-hidden className="h-2 w-2 rounded-full bg-vermilion" />
+                  <span className="kicker text-ink-soft"><EText path="ask.composerTitle" label="Question form heading" /></span>
+                </div>
+                <div className="flex flex-col gap-5 px-5 py-5">
+                  <div>
+                    <label htmlFor="ama-text" className="mb-2 block text-sm font-medium text-ink"><EText path="ask.questionLabel" label="Question input label" /></label>
+                    <textarea
+                      id="ama-text" value={text} onChange={(e) => setText(e.target.value)} rows={4} required maxLength={280} disabled={editing}
+                      placeholder={copy.questionPlaceholder}
+                      className="w-full resize-none rounded-[var(--radius-sm)] border border-rule-strong bg-paper p-4 text-[16px] text-ink placeholder:text-graphite transition-colors duration-[var(--dur-2)] focus:border-ink"
+                    />
+                    <EField path="ask.questionPlaceholder" label="Question placeholder" />
+                  </div>
+                  <div>
+                    <label htmlFor="ama-name" className="mb-2 block text-sm font-medium text-ink">
+                      <EText path="ask.nameLabel" label="Name input label" /> <span className="font-normal text-graphite"><EText path="ask.nameOptional" label="Name optional note" /></span>
+                    </label>
+                    <input
+                      id="ama-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} disabled={editing}
+                      placeholder={copy.namePlaceholder}
+                      className="min-h-11 w-full rounded-[var(--radius-sm)] border border-rule-strong bg-paper px-4 font-mono text-[16px] text-ink placeholder:text-graphite focus:border-ink"
+                    />
+                    <EField path="ask.namePlaceholder" label="Name placeholder" />
                   </div>
                 </div>
-              </li>
-            ))}
-
-            {!loading && shown.map((q) => {
-              const isVoted = voted.includes(q.id);
-              return (
-                <li key={q.id} className="group flex gap-5 border-b border-carbon-lift py-5 transition-colors duration-150 hover:bg-carbon-lift/20">
-                  <button
-                    onClick={() => vote(q.id, q.votes)}
-                    aria-label={`Upvote: ${q.question}`} aria-pressed={isVoted}
-                    className={cn(
-                      "flex h-fit shrink-0 flex-col items-center gap-1 border px-3 py-2 transition-all duration-150 active:scale-95",
-                      isVoted ? "border-signal-orange/60 bg-signal-orange/10 text-signal-orange" : "border-carbon-lift text-warm-granite hover:border-ash-stroke hover:text-bone"
-                    )}>
-                    <span className="text-body-sm leading-none">▲</span>
-                    <span className="font-geist-mono text-caption tabular">{q.votes}</span>
+                <div className="flex flex-wrap items-center justify-between gap-4 border-t border-rule px-5 py-3">
+                  <MonoTag className="text-graphite tabular">{280 - text.length} characters left</MonoTag>
+                  <button type="submit" disabled={editing}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-full bg-vermilion px-6 text-[15px] font-medium text-on-accent transition-colors duration-[var(--dur-2)] hover:bg-vermilion-deep disabled:cursor-not-allowed disabled:opacity-50">
+                    {status?.kind === "ok" ? (<><Check aria-hidden className="h-4 w-4" strokeWidth={2} />Sent</>) : (<><EText path="ask.sendLabel" label="Send question button" /><ArrowRight aria-hidden className="h-4 w-4" strokeWidth={1.75} /></>)}
                   </button>
-                  <div>
-                    <p className="text-body text-bone">
-                      <span className="mr-2 font-geist-mono text-[11px] text-graphite-mid">Q</span>{q.question}
-                    </p>
-                    {q.answer && (
-                      <p className="mt-1.5 text-body-sm text-warm-granite">
-                        <span className="mr-2 font-geist-mono text-[11px] text-metric-green">A</span>{q.answer}
-                      </p>
-                    )}
-                    <MonoTag className="mt-2 block text-graphite-mid">{timeAgo(q.answeredAt || q.createdAt)} · {q.name}</MonoTag>
+                </div>
+                <div aria-live="polite" className="px-5 empty:hidden">
+                  {status && <p className={cn("pb-4 font-mono text-xs", status.kind === "err" ? "text-vermilion-ink" : "text-moss-ink")}>{status.msg}</p>}
+                </div>
+              </form>
+            </Reveal>
+          </div>
+
+          {/* The wire */}
+          <Reveal delay={120}>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink pb-4">
+              <h3 className="font-display text-title font-normal text-ink">
+                <EText path="ask.answeredLabel" label="Answered questions heading" /> <span className="font-mono text-xs text-graphite tabular">{String(sorted.length + pending.length).padStart(2, "0")}</span>
+              </h3>
+              <div className="flex gap-1.5" role="group" aria-label="Sort questions">
+                {SORTS.map((s, index) => (
+                  <button key={s.key} onClick={(event) => (editing ? event.preventDefault() : setSort(s.key))} aria-pressed={sort === s.key}
+                    className={cn(
+                      "min-h-11 rounded-full border px-3.5 font-mono text-xs transition-colors duration-[var(--dur-2)]",
+                      sort === s.key ? "border-ink bg-ink text-paper" : "border-rule-strong text-ink-soft hover:border-ink hover:text-ink"
+                    )}>
+                    <EText path={`ask.sortLabels.${index}`} label={`Question sort option ${index + 1}`} />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <QuestionScroller count={shown.length + pending.length}>
+              {loading && <li className="py-8 text-center"><MonoTag className="text-graphite">Loading questions…</MonoTag></li>}
+
+              {pending.map((q) => (
+                <li key={q.id} className="flex gap-5 border-b border-rule py-6">
+                  <span className="flex h-14 w-12 shrink-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] border border-dashed border-rule-strong text-graphite">
+                    <ChevronUp aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+                    <span className="font-mono text-xs tabular">{q.votes}</span>
+                  </span>
+                  <div className="min-w-0">
+                    <p className="break-words text-lg text-ink">{q.question}</p>
+                    <StatusDot className="mt-2" tone="vermilion" label={<>Queued, awaiting a reply · {q.name}</>} />
                   </div>
                 </li>
-              );
-            })}
+              ))}
 
+              {!loading && shown.map((q) => {
+                const isVoted = voted.includes(q.id);
+                return (
+                  <li key={q.id} className="flex gap-5 border-b border-rule py-6">
+                    <button
+                      onClick={() => vote(q.id, q.votes)}
+                      aria-label={`Upvote: ${q.question}`} aria-pressed={isVoted}
+                      className={cn(
+                        "flex h-14 w-12 shrink-0 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] border transition-colors duration-[var(--dur-2)]",
+                        isVoted ? "border-ink bg-ink text-paper" : "border-rule-strong text-ink-soft hover:border-ink hover:text-ink"
+                      )}>
+                      <ChevronUp aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+                      <span className="font-mono text-xs tabular">{q.votes}</span>
+                    </button>
+                    <div className="min-w-0">
+                      <p className="break-words text-lg text-ink">
+                        <span aria-hidden className="mr-2 font-mono text-xs text-graphite">Q</span>{q.question}
+                      </p>
+                      {q.answer && (
+                        <p className="mt-2 break-words text-md text-ink-soft">
+                          <span aria-hidden className="mr-2 font-mono text-xs text-moss-ink">A</span>{q.answer}
+                        </p>
+                      )}
+                      <MonoTag className="mt-2 block text-graphite">{timeAgo(q.answeredAt || q.createdAt)} · {q.name}</MonoTag>
+                    </div>
+                  </li>
+                );
+              })}
+
+            </QuestionScroller>
             {sorted.length > shown.length && (
-              <li className="pt-5">
+              <div className="pt-5">
                 <button onClick={() => setPage((p) => p + 1)}
-                  className="rounded-sm border border-carbon-lift px-4 py-2.5 font-geist-mono text-caption uppercase tracking-[-0.02em] text-warm-granite transition-colors duration-150 hover:border-ash-stroke hover:text-bone">
+                  className="min-h-11 rounded-full border border-rule-strong px-5 text-sm text-ink-soft transition-colors duration-[var(--dur-2)] hover:border-ink hover:text-ink">
                   Load more ({sorted.length - shown.length} older)
                 </button>
-              </li>
+              </div>
             )}
-          </ul>
-        </Reveal>
+          </Reveal>
+        </div>
+        <Blocks section="ask" />
       </div>
 
-      {ownerOpen && <OwnerConsole onClose={() => setOwnerOpen(false)} onChanged={reload} />}
+      <OwnerConsolePresence open={ownerOpen} onClose={() => setOwnerOpen(false)} onChanged={reload} />
     </section>
   );
 }

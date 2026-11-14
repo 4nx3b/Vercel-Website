@@ -1,253 +1,379 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { ArrowUpRight, Check } from "lucide-react";
 import { cn } from "../utils/cn";
-import { MUSIC, QUOTES, RADIO_TRACKS } from "../lib/data";
-import { ArrowRight, ArrowUpRight } from "./icons";
-import { MonoTag, SectionHead, StatusDot } from "./ui";
+import { useContent } from "../content/store";
+import { Blocks, EField, EStringList, EText } from "../content/Editable";
+import { PlaylistShelf } from "./Music";
+import { agoShort, useAniList, type AnimeStats as AnimeStatsT } from "../hooks/useAniList";
+import { Play } from "./Play";
 import { Reveal } from "./Reveal";
+import { Halftone, MotionVectors, OrbitRing } from "./AnimeFx";
+import { Kicker, SectionHead } from "./ui";
 
-const fmt = (s: number) => {
-  if (!Number.isFinite(s)) return "0:00";
-  const m = Math.floor(s / 60);
-  const ss = Math.floor(s % 60);
-  return `${m}:${String(ss).padStart(2, "0")}`;
-};
+/* ---------- Use-case panel layout ---------- */
 
-/** Real audio engine — play/pause, seek, volume, track switching. */
-function Radio() {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [idx, setIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [vol, setVol] = useState(72);
-  const [err, setErr] = useState(false);
-
-  useEffect(() => {
-    const a = new Audio();
-    a.preload = "none";
-    audioRef.current = a;
-    const onTime = () => setProgress(a.currentTime);
-    const onMeta = () => setDuration(a.duration);
-    const onEnd = () => setIdx((i) => (i + 1) % RADIO_TRACKS.length);
-    const onErr = () => { setErr(true); setPlaying(false); };
-    a.addEventListener("timeupdate", onTime);
-    a.addEventListener("loadedmetadata", onMeta);
-    a.addEventListener("ended", onEnd);
-    a.addEventListener("error", onErr);
-    return () => {
-      a.pause();
-      a.removeEventListener("timeupdate", onTime);
-      a.removeEventListener("loadedmetadata", onMeta);
-      a.removeEventListener("ended", onEnd);
-      a.removeEventListener("error", onErr);
-      a.src = "";
-    };
-  }, []);
-
-  useEffect(() => {
-    const a = audioRef.current;
-    if (!a) return;
-    a.volume = vol / 100;
-  }, [vol]);
-
-  useEffect(() => {
-    const a = audioRef.current;
-    if (!a) return;
-    setErr(false);
-    setProgress(0);
-    a.src = RADIO_TRACKS[idx].src;
-    if (playing) a.play().catch(() => setPlaying(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idx]);
-
-  const toggle = async () => {
-    const a = audioRef.current;
-    if (!a) return;
-    if (playing) {
-      a.pause();
-      setPlaying(false);
-    } else {
-      try {
-        if (!a.src || a.src !== RADIO_TRACKS[idx].src) a.src = RADIO_TRACKS[idx].src;
-        await a.play();
-        setErr(false);
-        setPlaying(true);
-      } catch {
-        setErr(true);
-        setPlaying(false);
-      }
-    }
-  };
-
-  const seek = (v: number) => {
-    const a = audioRef.current;
-    if (!a || !Number.isFinite(a.duration)) return;
-    a.currentTime = v;
-    setProgress(v);
-  };
-
-  const track = RADIO_TRACKS[idx];
-
+function UseCase({
+  title,
+  prompt,
+  checks,
+  get,
+  link,
+  aside,
+}: {
+  title: ReactNode;
+  prompt: ReactNode;
+  checks: ReactNode[];
+  get: ReactNode;
+  link?: { href: string; label: ReactNode; urlPath?: string };
+  aside?: ReactNode;
+}) {
+  const { editing } = useContent();
   return (
-    <div className="lift flex h-full flex-col rounded-lg border border-carbon-lift bg-carbon-lift/15 p-6 backdrop-blur-sm hover:border-ash-stroke sm:p-7">
-      <div className="flex items-center justify-between">
-        <MonoTag className="text-pale-stone">signal radio</MonoTag>
-        <span className="flex items-center gap-2">
-          <StatusDot tone={playing ? "green" : "orange"} pulse={playing} />
-          <MonoTag className={playing ? "text-metric-green" : "text-signal-orange"}>{playing ? "On air" : "Standby"}</MonoTag>
-        </span>
-      </div>
-
-      <div className="mt-6 flex items-center gap-4">
-        {/* Play / pause */}
-        <button
-          type="button"
-          onClick={toggle}
-          aria-label={playing ? "Pause" : "Play"}
-          className={cn(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
-            playing
-              ? "border-metric-green/60 bg-metric-green/15 text-metric-green"
-              : "border-ash-stroke bg-carbon-lift text-bone hover:border-pale-stone hover:text-chalk active:scale-95"
-          )}
-        >
-          {playing ? (
-            <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" /></svg>
-          ) : (
-            <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 translate-x-[1px]"><path d="M7 4.5v15L19.5 12 7 4.5Z" /></svg>
-          )}
-        </button>
-
-        {/* Eq + now playing */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-3">
-            <span className={cn("flex h-5 items-end gap-[3px]", !playing && "opacity-40")} aria-hidden>
-              {[70, 100, 55, 85, 40].map((h, i) => (
-                <span
-                  key={i}
-                  className="w-[3px] origin-bottom animate-eq bg-metric-green"
-                  style={{ height: `${h}%`, animationDelay: `${i * 130}ms`, animationPlayState: playing ? "running" : "paused" }}
-                />
-              ))}
-            </span>
-            <div className="min-w-0">
-              <p className="truncate font-geist text-[18px] leading-tight tracking-[-0.02em] text-bone">{track.title}</p>
-              <MonoTag className="block truncate text-warm-granite">{track.artist} · stream {track.id}</MonoTag>
-            </div>
-          </div>
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
+      <div>
+        <h3 className="font-display text-page font-normal text-ink">{title}</h3>
+        <div className="mt-6 rounded-[var(--radius-md)] border border-rule-strong bg-card p-4">
+          <Kicker>Example</Kicker>
+          <p className="mt-2 font-mono text-md text-ink">
+            <span aria-hidden className="mr-2 text-vermilion-ink">›</span>
+            {prompt}
+          </p>
         </div>
-      </div>
-
-      {/* Seek */}
-      <div className="mt-5">
-        <input
-          type="range"
-          min={0}
-          max={Math.max(1, Math.floor(duration))}
-          value={Math.floor(progress)}
-          onChange={(e) => seek(Number(e.target.value))}
-          aria-label="Seek"
-          className="h-1 w-full cursor-pointer appearance-none rounded-full bg-carbon-lift accent-[#a0ca92]"
-        />
-        <div className="mt-1.5 flex justify-between font-geist-mono text-[10px] uppercase tracking-[0.04em] text-graphite-mid tabular">
-          <span>{fmt(progress)}</span>
-          <span>{err ? "stream offline" : fmt(duration)}</span>
-        </div>
-      </div>
-
-      {/* Track switcher + volume */}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-carbon-lift pt-4">
-        <div className="flex gap-1.5">
-          {RADIO_TRACKS.map((t, i) => (
-            <button
-              key={t.id}
-              onClick={() => setIdx(i)}
-              aria-label={`Stream ${t.id}`}
-              className={cn(
-                "rounded-sm border px-2.5 py-1 font-geist-mono text-caption uppercase tracking-[-0.02em] transition-colors duration-150",
-                i === idx ? "border-signal-orange/60 text-signal-orange" : "border-carbon-lift text-graphite-mid hover:border-ash-stroke hover:text-bone"
-              )}
-            >
-              {t.id}
-            </button>
+        <ul className="mt-6 flex flex-col gap-3">
+          {checks.map((c, i) => (
+            <li key={i} className="flex gap-3 text-lg text-ink-soft">
+              <Check aria-hidden className="mt-1 h-4 w-4 shrink-0 text-moss-ink" strokeWidth={2} />
+              <span>{c}</span>
+            </li>
           ))}
+        </ul>
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-ink pt-4">
+          <div>
+            <Kicker>You get</Kicker>
+            <p className="mt-1 text-sm text-ink-soft">{get}</p>
+          </div>
+          {link && (
+            <a
+              href={link.href}
+              target={link.href.startsWith("#") ? undefined : "_blank"}
+              rel="noreferrer"
+              onClick={(event) => editing && event.preventDefault()}
+              className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-ink underline decoration-rule-strong underline-offset-4 transition-colors duration-[var(--dur-2)] hover:decoration-ink"
+            >
+              {link.label}
+              <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+            </a>
+          )}
+          {link?.urlPath && <EField path={link.urlPath} label="Profile link URL" type="url" />}
         </div>
-        <label className="flex items-center gap-2.5">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.25} className="h-3.5 w-3.5 text-graphite-mid"><path d="M4 9.5v5h3.5L13 19V5L7.5 9.5H4ZM16 9a4.5 4.5 0 0 1 0 6" /></svg>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={vol}
-            onChange={(e) => setVol(Number(e.target.value))}
-            aria-label="Volume"
-            className="h-1 w-24 cursor-pointer appearance-none rounded-full bg-carbon-lift accent-[#ee6018]"
-          />
-          <span className="w-8 text-right font-geist-mono text-[10px] text-warm-granite tabular">{vol}%</span>
-        </label>
       </div>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        {MUSIC.genres.map((g) => (
-          <span key={g} className="border border-carbon-lift px-2 py-1 font-geist-mono text-[10px] lowercase tracking-[-0.02em] text-graphite-mid">{g}</span>
-        ))}
-      </div>
-
-      <a href={MUSIC.url} target="_blank" rel="noreferrer" className="group mt-5 flex items-center gap-2 border-t border-carbon-lift pt-4">
-        <MonoTag className="text-pale-stone transition-colors duration-150 group-hover:text-chalk">zensxin on last.fm</MonoTag>
-        <ArrowUpRight className="h-3 w-3 text-pale-stone transition-transform duration-150 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-chalk" />
-      </a>
+      {aside && <div>{aside}</div>}
     </div>
   );
 }
 
-export function Now() {
-  const [i, setI] = useState(0);
-
+/** A number that counts from its previous value to the new one (600ms) and rises 6px. */
+function LiveCount({ value, decimals = 0 }: { value: number; decimals?: number }) {
+  const [shown, setShown] = useState(value);
+  const [bump, setBump] = useState(0);
+  const from = useRef(value);
   useEffect(() => {
-    const id = setInterval(() => setI((n) => (n + 1) % QUOTES.length), 6000);
-    return () => clearInterval(id);
+    const start = from.current;
+    if (start === value) return;
+    from.current = value;
+    setBump((n) => n + 1);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setShown(value);
+      return;
+    }
+    let raf = 0;
+    const t0 = performance.now();
+    const step = (t: number) => {
+      const k = Math.min(1, (t - t0) / 600);
+      const e = 1 - Math.pow(1 - k, 3);
+      setShown(start + (value - start) * e);
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  const text = decimals ? shown.toFixed(decimals) : Math.round(shown).toLocaleString("en-US");
+  return (
+    <span key={bump} className={cn("inline-block tabular", bump > 0 && "m-rise")} style={{ ["--rise-y" as string]: "6px", ["--m-dur" as string]: "var(--dur-swap)" }}>
+      {text}
+    </span>
+  );
+}
+
+function AnimeStats({ stats, gridRef }: { stats: AnimeStatsT; gridRef: React.RefObject<HTMLDListElement | null> }) {
+  const rows = [
+    { v: stats.count, d: 0, l: "titles completed" },
+    { v: stats.episodes, d: 0, l: "episodes logged" },
+    { v: stats.minutes, d: 0, l: "minutes watched" },
+    { v: stats.mean, d: 1, l: "mean score" },
+  ];
+  // "updated Xs ago" ticks every 15s
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => tick((n) => n + 1), 15_000);
+    return () => window.clearInterval(id);
+  }, []);
+  return (
+    <div>
+      <dl ref={gridRef} className="grid grid-cols-2 border-t border-ink">
+        {rows.map((r, i) => (
+          <div key={r.l} className={cn("flex flex-col-reverse border-b border-rule py-5", i % 2 === 1 && "border-l pl-5")}>
+            <dt className="mt-1 font-mono text-xs text-graphite">{r.l}</dt>
+            <dd className="font-display text-page text-ink">
+              <LiveCount value={r.v} decimals={r.d} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <p aria-live="polite" className="mt-3 flex items-center gap-2 font-mono text-xs text-graphite">
+        <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", stats.live ? "bg-moss" : "bg-rule-strong")} />
+        {stats.updatedAt ? `live · updated ${agoShort(Date.now() - stats.updatedAt)}` : "loading from AniList…"}
+      </p>
+    </div>
+  );
+}
+
+/** Anime tab: one AniList hook feeds both the checklist and the stat grid. */
+function AnimeTab() {
+  const { content } = useContent();
+  const about = content.about;
+  const gridRef = useRef<HTMLDListElement>(null);
+  const stats = useAniList(gridRef);
+  return (
+    <UseCase
+      title={<EText path="about.animeTitle" label="Anime tab title" />}
+      prompt={<EText path="about.animePrompt" label="Anime command example" />}
+      checks={[
+        `${stats.count.toLocaleString("en-US")} titles completed.`,
+        `${stats.episodes.toLocaleString("en-US")} episodes logged.`,
+        `Mean score ${stats.mean.toFixed(1)}.`,
+      ]}
+      get={<EText path="about.animeGet" label="AniList description" />}
+      link={{ href: about.anilistUrl, label: <EText path="about.anilistLinkLabel" label="AniList link label" />, urlPath: "about.anilistUrl" }}
+      aside={<AnimeStats stats={stats} gridRef={gridRef} />}
+    />
+  );
+}
+
+function MeTab() {
+  const { content } = useContent();
+  const about = content.about;
+  return (
+    <div className="grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16">
+      <div>
+        <EText path="about.shortTitle" as="h3" className="block font-display text-page font-normal text-ink" label="Short bio heading" />
+        <p className="mt-4 font-mono text-md text-ink-soft">
+          <EText path="about.age" label="About age" /> <span aria-hidden className="text-graphite">·</span> <EText path="about.gender" label="About gender" />{" "}
+          <span aria-hidden className="text-graphite">·</span>{" "}
+          <span role="img" aria-label={about.country}><EText path="about.flag" label="About country flag" /></span>
+        </p>
+        <EText path="about.line" as="p" multiline className="mt-3 block max-w-[48ch] text-lg text-ink-soft" label="About summary" />
+
+        <h4 className="mt-10 font-mono text-xs uppercase tracking-[0.14em] text-graphite"><EText path="about.intoLabel" label="Interests label" /></h4>
+        <ul className="scroll-stagger mt-3 border-t border-rule">
+          {about.interests.map((interest, index) => (
+            <li key={`${interest.title}-${index}`} className="border-b border-rule py-4">
+              <EText path={`about.interests.${index}.title`} as="p" className="block text-lg font-semibold text-ink" label={`Interest ${index + 1} title`} />
+              <EText path={`about.interests.${index}.desc`} as="p" multiline className="mt-1 block text-md text-ink-soft" label={`Interest ${index + 1} description`} />
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <h4 className="font-mono text-xs uppercase tracking-[0.14em] text-graphite"><EText path="about.devicesLabel" label="Devices label" /></h4>
+        <table className="mt-3 w-full border-t border-ink text-left">
+          <thead className="sr-only sm:not-sr-only">
+            <tr className="border-b border-rule font-mono text-xs uppercase tracking-[0.12em] text-graphite">
+              <th scope="col" className="py-3 pr-4 font-normal">Role</th>
+              <th scope="col" className="py-3 pr-4 font-normal">Device</th>
+              <th scope="col" className="py-3 font-normal">Detail</th>
+            </tr>
+          </thead>
+          <tbody className="scroll-stagger">
+            {about.devices.map((device, index) => (
+              <tr key={`${device.role}-${index}`} className="flex flex-col gap-1 border-b border-rule py-4 sm:table-row sm:py-0">
+                <th scope="row" className="font-mono text-xs font-normal uppercase tracking-[0.12em] text-vermilion-ink sm:py-4 sm:pr-4 sm:align-top">
+                  <EText path={`about.devices.${index}.role`} label={`Device ${index + 1} role`} />
+                </th>
+                <td className="text-lg font-medium text-ink sm:py-4 sm:pr-4 sm:align-top">
+                  <EText path={`about.devices.${index}.device`} label={`Device ${index + 1} name`} />
+                </td>
+                <td className="text-md text-ink-soft sm:py-4 sm:align-top">
+                  <span className="font-mono text-sm"><EText path={`about.devices.${index}.detail`} label={`Device ${index + 1} detail`} /></span>
+                  {device.aside && <span className="block text-sm italic text-graphite">(<EText path={`about.devices.${index}.aside`} label={`Device ${index + 1} aside`} />)</span>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <h4 className="mt-10 font-mono text-xs uppercase tracking-[0.14em] text-graphite">
+          <EText path="about.gamesLabel" label="Games label" /> · <EText path="about.gamesLead" label="Games introduction" />
+        </h4>
+        <EStringList
+          path="about.games"
+          as="ol"
+          className="scroll-stagger mt-3 border-t border-ink"
+          itemClassName="flex items-baseline gap-4 border-b border-rule py-3 text-lg text-ink"
+          textClassName="text-lg text-ink"
+          itemLabel="game"
+          numbered
+        />
+      </div>
+    </div>
+  );
+}
+
+function MusicTab() {
+  const { content } = useContent();
+  const about = content.about;
+  return (
+    <div className="flex flex-col gap-12">
+      <section aria-label={about.musicPlaylistsLabel}>
+        <Kicker className="text-ink-soft"><EText path="about.musicPlaylistsLabel" label="Playlist section label" /></Kicker>
+        <div className="mt-4">
+          <PlaylistShelf />
+        </div>
+      </section>
+      <UseCase
+        title={<EText path="about.musicTitle" label="Music tab title" />}
+        prompt={<EText path="about.musicPrompt" label="Music command example" />}
+        checks={about.musicChecks.map((_, index) => <EText key={index} path={`about.musicChecks.${index}`} label={`Music detail ${index + 1}`} />)}
+        get={<EText path="about.musicGet" label="Last.fm description" />}
+        link={{ href: about.lastfmUrl, label: <EText path="about.lastfmLinkLabel" label="Last.fm link label" />, urlPath: "about.lastfmUrl" }}
+      />
+    </div>
+  );
+}
+
+function PlayTab() {
+  return (
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
+      <div>
+        <EText path="about.playTitle" as="h3" className="block font-display text-page font-normal text-ink" label="Playground title" />
+        <EText path="about.playDescription" as="p" multiline className="mt-4 block max-w-[48ch] text-lg text-ink-soft" label="Playground description" />
+      </div>
+      <Play />
+    </div>
+  );
+}
+
+const TABS = [
+  { id: "me", render: () => <MeTab /> },
+  { id: "anime", render: () => <AnimeTab /> },
+  { id: "music", render: () => <MusicTab /> },
+  { id: "play", render: () => <PlayTab /> },
+] as const;
+
+/** Hashes that select a tab: #about → Me, #play → Play, #now-tab-<id> → that tab. */
+const HASH_TAB: Record<string, string> = { "#about": "me", "#play": "play" };
+
+export function Now() {
+  const { editing } = useContent();
+  const [active, setActive] = useState(0);
+  const tabs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const go = (i: number) => {
+    const n = (i + TABS.length) % TABS.length;
+    setActive(n);
+    tabs.current[n]?.focus();
+  };
+
+  const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (editing && (e.target as HTMLElement).closest('[role="textbox"]')) return;
+    if (e.key === "ArrowRight") { e.preventDefault(); go(active + 1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); go(active - 1); }
+    else if (e.key === "Home") { e.preventDefault(); go(0); }
+    else if (e.key === "End") { e.preventDefault(); go(TABS.length - 1); }
+  };
+
+  // "#now-tab-play" links switch to the Play tab
+  useEffect(() => {
+    const onHash = () => {
+      const h = window.location.hash;
+      const i = TABS.findIndex((t) => `#now-tab-${t.id}` === h || HASH_TAB[h] === t.id);
+      if (i >= 0) setActive(i);
+    };
+    onHash();
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  const q = QUOTES[i];
+  const tab = TABS[active];
 
   return (
-    <section id="now" className="mx-auto max-w-[1200px] px-6 pb-24 lg:pb-28">
-      <SectionHead index="04" title="Now" note="Currently orbiting" />
+    <section id="about" aria-labelledby="now-title" className="page relative overflow-clip py-24 lg:py-32">
+      <Halftone className="top-16 right-0 left-0 h-44" />
+      <OrbitRing className="fx-orbit -top-24 -right-40" />
+      <MotionVectors className="fx-mv top-24 left-[var(--gutter)]" flip count={4} />
+      <span id="play" aria-hidden className="absolute top-0" />
+      <SectionHead
+        num="02"
+        label={<EText path="about.sectionLabel" label="About section label" />}
+        title={
+          <span id="now-title">
+            <EText path="about.titleLead" label="About heading line one" />
+            <br />
+            <EText path="about.titleMiddle" label="About heading line two" />{" "}
+            <em className="ital"><EText path="about.titleEmphasis" label="About heading emphasis" /></em>.
+          </span>
+        }
+      />
 
-      <div className="mt-12 grid items-stretch gap-6 lg:grid-cols-2">
-        {/* Rotating quote — the bright object in the room */}
-        <Reveal>
-          <button
-            type="button"
-            onClick={() => setI((n) => (n + 1) % QUOTES.length)}
-            className="grain group block h-full w-full rounded-lg bg-bone p-8 text-left transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 sm:p-10"
-            aria-label="Next quote"
-          >
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2.5">
-                <StatusDot tone="orange" />
-                <MonoTag className="text-obsidian-canvas">Now playing — thought</MonoTag>
-              </span>
-              <MonoTag className="text-graphite-mid tabular">{String(i + 1).padStart(2, "0")} / {String(QUOTES.length).padStart(2, "0")}</MonoTag>
-            </div>
+      <Reveal delay={80} className="mt-12">
+        <div role="tablist" aria-label="Interests" onKeyDown={onKey} className="grid grid-cols-2 gap-x-4 border-b border-rule min-[360px]:flex min-[360px]:gap-x-4 sm:gap-x-8">
+          {TABS.map((t, i) => {
+            const on = i === active;
+            return (
+              <button
+                key={t.id}
+                ref={(el) => { tabs.current[i] = el; }}
+                id={`now-tab-${t.id}`}
+                role="tab"
+                type="button"
+                aria-selected={on}
+                aria-controls={`now-panel-${t.id}`}
+                tabIndex={on ? 0 : -1}
+                onClick={(event) => {
+                  const target = event.target as HTMLElement;
+                  if (editing && target.closest('[role="textbox"]')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return;
+                  }
+                  setActive(i);
+                }}
+                className={cn(
+                  "relative flex min-h-12 shrink-0 items-baseline gap-2.5 pb-3 pt-2 text-[17px] transition-colors duration-[var(--dur-2)]",
+                  on ? "text-ink" : "text-ink-soft hover:text-ink"
+                )}
+              >
+                <span className={cn("font-mono text-xs tabular", on ? "text-vermilion-ink" : "text-graphite")}>{String(i + 1).padStart(2, "0")}</span>
+                <span className={on ? "font-medium" : ""}><EText path={`about.tabLabels.${i}`} label={`About tab ${i + 1} label`} /></span>
+                {on && <span aria-hidden className="m-grow-x absolute inset-x-0 -bottom-px h-0.5 bg-ink" />}
+              </button>
+            );
+          })}
+        </div>
 
-            <blockquote key={i} className="animate-log-in mt-10 min-h-[110px] font-geist text-heading tracking-[-0.031em] text-obsidian-canvas">
-              “{q.text}”
-            </blockquote>
-            <MonoTag className="mt-5 block text-graphite-mid">— {q.author}</MonoTag>
-
-            <span className="mt-9 flex items-center gap-2 border-t border-obsidian-canvas/15 pt-5">
-              <MonoTag className="text-obsidian-canvas transition-colors duration-150 group-hover:text-carbon-lift">Next transmission</MonoTag>
-              <ArrowRight className="h-3 w-3 text-obsidian-canvas transition-transform duration-150 group-hover:translate-x-0.5" />
-            </span>
-          </button>
-        </Reveal>
-
-        <Reveal delay={100}>
-          <Radio />
-        </Reveal>
-      </div>
+        <div
+          key={tab.id}
+          id={`now-panel-${tab.id}`}
+          role="tabpanel"
+          aria-labelledby={`now-tab-${tab.id}`}
+          tabIndex={0}
+          className="m-swap rounded-[var(--radius-sm)] pt-10"
+        >
+          {tab.render()}
+        </div>
+      </Reveal>
+      <Blocks section="about" />
     </section>
   );
 }

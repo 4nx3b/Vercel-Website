@@ -3,21 +3,70 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#101010" />
+    <meta name="theme-color" content="#f3efe6" />
     <meta
       name="description"
-      content="therealreze — Android root specialist & custom ROM developer. Root modules, custom ROMs, Lunaris OS, ArchiveTune. The hardware answers to you."
+      content="v3rsi0n — custom ROMs, apps and, sometimes, root modules. LunarisOS 3.12 for the Realme GT Neo 3, and ArchiveTune."
+    />
+    <script data-cfasync="false">
+      (function () {
+        var d = document.documentElement, t;
+        d.classList.add("js");
+        try { t = localStorage.getItem("theme"); } catch (e) {}
+        if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        d.dataset.theme = t;
+        var seen = false;
+        try { seen = sessionStorage.getItem("booted") === "1"; } catch (e) {}
+        if (!seen) {
+          d.classList.add("booting");
+          var st = document.createElement("style");
+          st.textContent = " html.booting #boot { display: grid !important; position: fixed; inset: 0; z-index: 1000; place-items: center; background: #f3efe6; color: #14130f; font-family: \"Instrument Serif\", \"Iowan Old Style\", \"Times New Roman\", Georgia, serif; } html[data-theme=\"dark\"].booting #boot { background: #12110e; color: #f3efe6; } #boot .bt { display: flex; flex-direction: column; align-items: center; gap: 18px; } #boot .bw { display: flex; font-size: clamp(48px, 10vw, 96px); line-height: 1; letter-spacing: -0.02em; } #boot .bw span { display: inline-block; opacity: 0; transform: translateY(0.35em); filter: blur(6px); animation: bt-rise .7s cubic-bezier(.22,1,.36,1) forwards; animation-delay: calc(var(--i) * 60ms + 80ms); } #boot .bl { position: relative; width: min(220px, 50vw); height: 1px; background: rgba(138,132,117,.35); overflow: hidden; } #boot .bl::after { content: \"\"; position: absolute; inset: 0; background: #ff4a1c; transform-origin: left; transform: scaleX(0); animation: bt-draw 1.4s cubic-bezier(.22,1,.36,1) .25s forwards; } #boot .bc { font: 500 12px/1 \"Geist Mono\", ui-monospace, monospace; letter-spacing: .12em; opacity: .6; font-variant-numeric: tabular-nums; } #boot.boot-exit { animation: bt-exit .6s cubic-bezier(.22,1,.36,1) forwards; } @keyframes bt-rise { to { opacity: 1; transform: none; filter: none; } } @keyframes bt-draw { to { transform: scaleX(1); } } @keyframes bt-exit { to { clip-path: inset(0 0 100% 0); } } @media (prefers-reduced-motion: reduce) { #boot .bw span, #boot .bl::after { animation: none; opacity: 1; transform: none; filter: none; } #boot.boot-exit { animation: bt-fade .2s linear forwards; } @keyframes bt-fade { to { opacity: 0; } } }";
+          document.head.appendChild(st);
+          // never block the page, even if the app bundle fails to run
+          setTimeout(function () { var b = document.getElementById("boot"); if (b) b.remove(); d.classList.remove("booting"); }, 4000);
+        }
+        if (t === "dark") document.querySelector('meta[name="theme-color"]').setAttribute("content", "#12110e");
+      })();
+    </script>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="preconnect" href="https://i.ytimg.com" />
+    <link
+      rel="preload"
+      as="image"
+      type="image/webp"
+      href="art/hero-portrait-900.webp"
+      imagesrcset="art/hero-portrait-900.webp 900w, art/hero-portrait-1400.webp 1400w"
+      imagesizes="(min-width: 1024px) 34vw, 84vw"
+      fetchpriority="high"
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"
       rel="stylesheet"
     />
-    <title>therealreze — Android Root Specialist & Custom ROM Developer</title>
+    <title>v3rsi0n — Custom ROMs, apps and root modules</title>
   </head>
   <body>
+    <div id="boot" aria-hidden="true" style="display:none">
+      <div class="bt">
+        <div class="bw"><span style="--i:0">v</span><span style="--i:1">3</span><span style="--i:2">r</span><span style="--i:3">s</span><span style="--i:4">i</span><span style="--i:5">0</span><span style="--i:6">n</span></div>
+        <div class="bl"></div>
+        <div class="bc" id="boot-count">00</div>
+      </div>
+      <script data-cfasync="false">
+        (function () {
+          var el = document.getElementById("boot-count"), t0 = performance.now();
+          if (!el || !document.documentElement.classList.contains("booting")) return;
+          (function tick(now) {
+            var k = Math.min(1, (now - t0) / 1400);
+            el.textContent = String(Math.round((1 - Math.pow(1 - k, 3)) * 100)).padStart(2, "0");
+            if (k < 1 && document.getElementById("boot")) requestAnimationFrame(tick);
+          })(t0);
+        })();
+      </script>
+    </div>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script data-cfasync="false" type="module" src="/src/main.tsx"></script>
   </body>
 </html>

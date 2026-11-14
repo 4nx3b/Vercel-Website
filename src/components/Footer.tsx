@@ -1,95 +1,110 @@
-import { LIVE_SITE, NAV_LINKS, SOCIALS } from "../lib/data";
-import { GitHubIcon, TelegramIcon } from "./icons";
-import { MonoTag, StatusDot } from "./ui";
+import { useRef } from "react";
+import { ArrowUpRight } from "lucide-react";
 import { useIstClock } from "../hooks/useInView";
+import { StatusDot } from "./ui";
+import { useScrollVar } from "../hooks/useScrollVar";
+import { FooterFlow } from "./AnimeFx";
+import { useContent } from "../content/store";
+import { Blocks, EField, EImage, EText } from "../content/Editable";
+
+/** Responsive default key visual; owner uploads use the single optimized source. */
+const BAND = {
+  src1280: "art/footer-band-1280.webp",
+  src1920: "art/footer-band-1920.webp",
+  width: 1280,
+  height: 720,
+};
+
+function ArtBand() {
+  const ref = useRef<HTMLElement>(null);
+  const { content, editing } = useContent();
+  const footer = content.footer;
+  useScrollVar(ref);
+  return (
+    <figure ref={ref} className="art-band relative m-0 overflow-clip border-b border-ink bg-paper-deep">
+      <EImage srcPath="footer.band" altPath="footer.bandAlt">
+        {(src, alt) => (
+          <picture>
+            {src === BAND.src1280 && (
+              <source type="image/webp" srcSet={`${BAND.src1280} 1280w, ${BAND.src1920} 1920w`} sizes="100vw" />
+            )}
+            <img
+              src={src}
+              width={BAND.width}
+              height={BAND.height}
+              alt={alt}
+              loading="lazy"
+              decoding="async"
+              className="block aspect-video max-h-[70vh] min-h-[320px] w-full object-cover object-[right_bottom] sm:object-center"
+            />
+          </picture>
+        )}
+      </EImage>
+      <figcaption className="relative p-4 sm:absolute sm:p-0 sm:top-1/2 sm:left-[max(var(--gutter),calc((100vw-var(--page-max))/2+var(--gutter)))] sm:max-w-[380px] sm:-translate-y-1/2">
+        <div className="rounded-[var(--radius-xs)] border border-ink bg-paper p-5 shadow-[6px_6px_0_var(--color-ink)]">
+          <p className="kicker text-ink-soft"><EText path="footer.bandKicker" label="Footer image kicker" /></p>
+          <EText path="footer.bandLine" as="p" multiline className="mt-2 block font-display text-title text-ink sm:text-[30px] sm:leading-[1.1]" label="Footer image headline" />
+          <div className="mt-4 flex flex-wrap gap-x-5">
+            <a
+              href={footer.telegramUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(event) => editing && event.preventDefault()}
+              className="group inline-flex min-h-11 items-center gap-1.5 text-md font-medium text-ink underline decoration-rule-strong underline-offset-4 hover:decoration-ink"
+            >
+              <EText path="footer.telegramLabel" label="Telegram link label" />
+              <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+            </a>
+            <a
+              href={footer.githubUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(event) => editing && event.preventDefault()}
+              className="group inline-flex min-h-11 items-center gap-1.5 text-md font-medium text-ink underline decoration-rule-strong underline-offset-4 hover:decoration-ink"
+            >
+              <EText path="footer.githubLabel" label="GitHub link label" />
+              <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+            </a>
+          </div>
+          <div className="mt-2 flex flex-col gap-2">
+            <EField path="footer.telegramUrl" label="Telegram URL" type="url" />
+            <EField path="footer.githubUrl" label="GitHub URL" type="url" />
+          </div>
+        </div>
+      </figcaption>
+    </figure>
+  );
+}
 
 export function Footer() {
   const clock = useIstClock();
-  const topChannels = SOCIALS.filter((s) => ["GitHub", "Telegram", "Discord", "Email"].includes(s.name));
-
   return (
-    <footer id="company" className="relative overflow-hidden border-t border-carbon-lift">
-      <div className="mx-auto max-w-[1200px] px-6 pt-24">
-        <div className="grid gap-12 md:grid-cols-[1.4fr_repeat(2,1fr)] md:gap-9">
-          <div>
-            <a href="#top" className="flex items-center gap-2.5">
-              <span aria-hidden className="h-2 w-2 bg-signal-orange" />
-              <span className="font-geist-mono text-caption uppercase tracking-[0.18em] text-bone">therealreze</span>
-            </a>
-            <p className="mt-5 max-w-[260px] text-body-sm text-warm-granite">
-              Android root specialist & custom ROM developer. The hardware answers to you.
-            </p>
-            <div className="mt-6 flex items-center gap-2.5">
-              <StatusDot tone="green" />
-              <MonoTag className="text-pale-stone">Open for collabs</MonoTag>
+    <footer className="relative overflow-clip border-t border-ink bg-paper">
+      <ArtBand />
+      <div className="relative">
+        <FooterFlow />
+        <div className="page relative pt-16">
+          <div className="relative flex flex-wrap items-center justify-between gap-4">
+            <div className="inline-flex items-center gap-3 rounded-full border border-rule-strong bg-paper/70 px-4 py-2">
+              <StatusDot tone="moss" label={<EText path="footer.availability" label="Availability status" />} />
+              <span aria-hidden className="h-3 w-px bg-rule-strong" />
+              <span className="font-mono text-xs text-graphite tabular">IST {clock}</span>
             </div>
-            <MonoTag className="mt-2 block text-graphite-mid tabular">IST {clock} · GMT+5:30</MonoTag>
-            <a
-              href={LIVE_SITE}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-4 inline-block font-geist-mono text-caption uppercase tracking-[-0.02em] text-warm-granite underline decoration-ash-stroke underline-offset-4 transition-colors duration-150 hover:text-chalk"
-            >
-              therealreze.vercel.app
-            </a>
           </div>
 
-          <nav aria-label="Navigate">
-            <h4 className="font-geist-mono text-caption font-medium uppercase tracking-[0.08em] text-bone">Navigate</h4>
-            <ul className="mt-5 space-y-3">
-              {NAV_LINKS.map((l) => (
-                <li key={l.label}>
-                  <a href={l.href} className="text-body-sm text-warm-granite transition-colors duration-150 hover:text-chalk">
-                    {l.label}
-                  </a>
-                </li>
-              ))}
-              <li>
-                <a href="#ask" className="text-body-sm text-warm-granite transition-colors duration-150 hover:text-chalk">Ask (AMA)</a>
-              </li>
-              <li>
-                <a href="#links" className="text-body-sm text-warm-granite transition-colors duration-150 hover:text-chalk">Links</a>
-              </li>
-            </ul>
-          </nav>
-
-          <nav aria-label="Channels">
-            <h4 className="font-geist-mono text-caption font-medium uppercase tracking-[0.08em] text-bone">Channels</h4>
-            <ul className="mt-5 space-y-3">
-              {topChannels.map((s) => (
-                <li key={s.name}>
-                  <a href={s.url} target={s.url.startsWith("#") ? undefined : "_blank"} rel="noreferrer" className="text-body-sm text-warm-granite transition-colors duration-150 hover:text-chalk">
-                    {s.name} — {s.handle}
-                  </a>
-                </li>
-              ))}
-              <li>
-                <a href="https://github.com/4nx3b/Vercel-Website" target="_blank" rel="noreferrer" className="text-body-sm text-warm-granite transition-colors duration-150 hover:text-chalk">
-                  Source
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-
-        {/* Oversized watermark */}
-        <div aria-hidden className="pointer-events-none mt-16 select-none overflow-hidden">
-          <div className="translate-y-[18%] text-center font-geist text-[30vw] leading-[0.8] tracking-[-0.04em] text-carbon-lift md:text-[240px]">
-            REZE
+          <div className="relative mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-rule pt-6">
+            <span className="font-mono text-xs text-graphite">© {new Date().getFullYear()} <EText path="brand.name" label="Site name" /></span>
+            <span className="flex items-center gap-4">
+              <EText path="footer.line" className="font-mono text-xs text-graphite" label="Footer line" />
+            </span>
           </div>
-        </div>
-
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-carbon-lift py-8 sm:flex-row">
-          <MonoTag className="text-graphite-mid">© 2026 therealreze · built like a system, not a page</MonoTag>
-          <div className="flex items-center gap-5">
-            <MonoTag className="hidden text-graphite-mid sm:block">Factory chrome · SIGNAL data</MonoTag>
-            <a href="https://github.com/4nx3b" target="_blank" rel="noreferrer" aria-label="GitHub" className="text-warm-granite transition-colors duration-150 hover:text-chalk">
-              <GitHubIcon className="h-4 w-4" />
-            </a>
-            <a href="https://t.me/therealreze" target="_blank" rel="noreferrer" aria-label="Telegram" className="text-warm-granite transition-colors duration-150 hover:text-chalk">
-              <TelegramIcon className="h-4 w-4" />
-            </a>
-          </div>
+          <p
+            className="sig mt-12 -mb-[0.24em] select-none whitespace-nowrap font-display leading-[0.8] tracking-[-0.03em]"
+            style={{ fontSize: "clamp(80px, 16vw, 240px)" }}
+          >
+            <EText path="footer.signature" label="Footer signature" />
+          </p>
+          <Blocks section="footer" />
         </div>
       </div>
     </footer>
