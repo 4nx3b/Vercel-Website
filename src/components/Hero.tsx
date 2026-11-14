@@ -8,8 +8,7 @@ import { Blocks, EImage, EText } from "../content/Editable";
 import { FigPhone, type FigPhoneHandle } from "./FigPhone";
 import { PartitionBench } from "./HeroBench";
 import { SakuraField, SpeedLines } from "./AnimeFx";
-import { buttonClass, Figure, Pill } from "./ui";
-import { EAnchor } from "../content/EAnchor";
+import { Button, Figure, Pill } from "./ui";
 
 /** Portrait art (user-supplied), resized to webp in public/art. */
 const PORTRAIT = {
@@ -148,22 +147,14 @@ export function Hero() {
               </span>
             </p>
             <div className="m-rise mt-7 flex flex-wrap items-center gap-3" style={{ ["--m-delay" as string]: "0.4s" }}>
-              <EAnchor path="hero.ctaPrimary" fallbackHref={primaryHref} className={buttonClass("ink", "min-h-[52px] px-7 text-[16px]")}>
-                {(label) => (
-                  <>
-                    {label}
-                    <ArrowRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
-                  </>
-                )}
-              </EAnchor>
-              <EAnchor path="hero.ctaSecondary" fallbackHref={secondaryHref} className={buttonClass("outline", "min-h-[52px] bg-paper/80 px-7 text-[16px]")}>
-                {(label) => (
-                  <>
-                    <MessageCircle aria-hidden className="h-4 w-4" strokeWidth={1.75} />
-                    {label}
-                  </>
-                )}
-              </EAnchor>
+              <Button href={primaryHref} onClick={(event) => editing && event.preventDefault()} variant="ink" className="min-h-[52px] px-7 text-[16px]">
+                <EText path="hero.ctaPrimary" label="Primary button" />
+                <ArrowRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+              </Button>
+              <Button href={secondaryHref} onClick={(event) => editing && event.preventDefault()} variant="outline" className="min-h-[52px] bg-paper/80 px-7 text-[16px]">
+                <MessageCircle aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+                <EText path="hero.ctaSecondary" label="Secondary button" />
+              </Button>
             </div>
           </div>
 

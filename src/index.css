@@ -2135,41 +2135,6 @@ html[data-editing] .edit-row {
   animation: fade-only 0.15s linear both;
 }
 
-/* EAnchor: editable links */
-.editable-link {
-  outline: 1px dashed var(--color-vermilion-ink);
-  outline-offset: 3px;
-}
-.edit-link-chip {
-  display: inline-flex;
-  min-width: 28px;
-  min-height: 28px;
-  margin-left: 6px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: var(--color-vermilion);
-  color: var(--color-on-accent);
-  font: 600 13px/1 var(--font-mono);
-  cursor: pointer;
-}
-.edit-link-chip:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
-.edit-pick {
-  min-height: 36px;
-  border-radius: 999px;
-  border: 1px solid var(--color-rule-strong);
-  padding-inline: 10px;
-  font: 500 12px/1 var(--font-mono);
-  color: var(--color-ink-soft);
-}
-.edit-pick[aria-pressed="true"] {
-  border-color: var(--color-ink);
-  color: var(--color-ink);
-}
-
 /* Scroll reveal — content stays visible without JS */
 html.js [data-reveal] {
   opacity: 0;

@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Menu, Moon, Sun, X } from "lucide-react";
 import { cn } from "../utils/cn";
-import { IstClock } from "./IstClock";
-import { EAnchor } from "../content/EAnchor";
+import { useIstClock } from "../hooks/useInView";
 import { supportsViewTimeline } from "../hooks/useScrollVar";
 import { Wordmark } from "./Wordmark";
 import { buttonClass } from "./ui";
 import { HeaderPlayer } from "./MusicPlayer";
 import { useTheme, type Theme } from "../hooks/useTheme";
-import { useContent, useField } from "../content/store";
+import { useContent } from "../content/store";
 import { EditingBanner, OwnerPanel } from "../content/OwnerPanel";
 import { EText } from "../content/Editable";
 
@@ -68,32 +67,23 @@ export function Nav() {
   const visibleBuiltins = new Set(pageSections.flatMap((section) => section.kind === "builtin" && section.visible !== false ? [section.component] : []));
   const builtinTargets: Record<string, string> = { work: "work", about: "about", play: "about", ask: "ask" };
   const customNavLinks = pageSections.flatMap((section, index) => section.kind === "custom" && section.visible !== false && section.showInNav
-    ? [{ key: `custom-${section.id}`, href: `#site-${section.id.replace(/[^a-z0-9_-]/gi, "-")}`, path: `layout.sections.${index}.${section.navLabel.trim() ? "navLabel" : "title"}`, fallback: section.navLabel || section.title, custom: true }]
+    ? [{ key: `custom-${section.id}`, href: `#site-${section.id.replace(/[^a-z0-9_-]/gi, "-")}`, path: `layout.sections.${index}.${section.navLabel.trim() ? "navLabel" : "title"}`, fallback: section.navLabel || section.title }]
     : []);
   const navLinks = [
     ...content.nav.links.flatMap((link, index) => {
       const target = link.href.startsWith("#") ? builtinTargets[link.href.slice(1)] : undefined;
       if (target && !visibleBuiltins.has(target as "work" | "about" | "ask")) return [];
-      return [{ key: `site-${index}`, href: link.href, path: `nav.links.${index}`, fallback: link.label, custom: false }];
+      return [{ key: `site-${link.href}-${index}`, href: link.href, path: `nav.links.${index}.label`, fallback: link.label }];
     }),
     ...customNavLinks,
   ];
   const brandHref = visibleBuiltins.has("hero") ? "#top" : "#main";
   const ctaHref = visibleBuiltins.has("ask") ? "#ask" : customNavLinks[0]?.href || "#main";
-  const setNavLinks = useField<{ label: string; href: string }[]>("nav.links")[1];
-  const addNavLink = () => setNavLinks([...content.nav.links, { label: "New link", href: "#main" }]);
-  const removeNavLink = (i: number) => setNavLinks(content.nav.links.filter((_, k) => k !== i));
-  const moveNavLink = (i: number, d: number) => {
-    const j = i + d;
-    if (j < 0 || j >= content.nav.links.length) return;
-    const next = [...content.nav.links];
-    [next[i], next[j]] = [next[j], next[i]];
-    setNavLinks(next);
-  };
   const ownerRef = useRef(owner);
   ownerRef.current = owner;
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const clock = useIstClock();
   const menuBtn = useRef<HTMLButtonElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
 
@@ -229,36 +219,25 @@ export function Nav() {
         <ul className="hidden items-center gap-8 lg:flex">
           {navLinks.map((link, index) => (
             <li key={link.key}>
-              {link.custom ? (
-                <a href={link.href} onClick={(event) => editing && event.preventDefault()} className="text-[15px] text-[var(--text-2)] transition-colors duration-[var(--dur-2)] hover:text-[var(--text)]">
-                  <EText path={link.path} fallback={link.fallback} label={`Navigation link ${index + 1}`} />
-                </a>
-              ) : (
-                <EAnchor path={link.path} fallbackHref="#main" className="text-[15px] text-[var(--text-2)] transition-colors duration-[var(--dur-2)] hover:text-[var(--text)]" />
-              )}
+              <a
+                href={link.href}
+                onClick={(event) => editing && event.preventDefault()}
+                className="text-[15px] text-[var(--text-2)] transition-colors duration-[var(--dur-2)] hover:text-[var(--text)]"
+              >
+                <EText path={link.path} fallback={link.fallback} label={`Navigation link ${index + 1}`} />
+              </a>
             </li>
           ))}
-          {editing && (
-            <li>
-              <button type="button" className="edit-add !mt-0" onClick={addNavLink}>
-                + Link
-              </button>
-            </li>
-          )}
         </ul>
 
         <div className="hidden items-center gap-5 lg:flex">
           <HeaderPlayer />
-          <IstClock className="hidden font-mono text-xs text-[var(--text-3)] tabular 2xl:inline" />
+          <span className="hidden font-mono text-xs text-[var(--text-3)] tabular 2xl:inline">IST {clock}</span>
           <ThemeIconButton />
-          <EAnchor path="nav.cta" fallbackHref={ctaHref} allowHide={false} className={buttonClass("ink", "nav-cta min-h-10 px-5 text-[15px]")}>
-            {(label) => (
-              <>
-                {label}
-                <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
-              </>
-            )}
-          </EAnchor>
+          <a href={ctaHref} onClick={(event) => editing && event.preventDefault()} className={buttonClass("ink", "nav-cta min-h-10 px-5 text-[15px]")}>
+            <EText path="nav.cta" label="Header call to action" />
+            <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+          </a>
         </div>
 
         <div className="ml-auto flex items-center gap-3 lg:hidden">
@@ -318,51 +297,29 @@ export function Nav() {
         </div>
         <ul className="flex flex-col px-5 py-4">
           {navLinks.map((link, index) => (
-            <li key={link.key} className="flex items-center gap-1 border-b border-rule">
-              {link.custom ? (
-                <a href={link.href} onClick={(event) => (editing ? event.preventDefault() : close())} className="flex min-h-14 flex-1 items-baseline gap-4 py-3 font-display text-page text-ink transition-colors duration-[var(--dur-2)] hover:text-vermilion-ink">
-                  <span className="font-mono text-xs text-graphite tabular">{String(index + 1).padStart(2, "0")}</span>
-                  <EText path={link.path} fallback={link.fallback} label={`Navigation link ${index + 1}`} />
-                </a>
-              ) : (
-                <EAnchor path={link.path} fallbackHref="#main" onNavigate={close} className="flex min-h-14 flex-1 items-baseline gap-4 py-3 font-display text-page text-ink transition-colors duration-[var(--dur-2)] hover:text-vermilion-ink">
-                  {(label) => (
-                    <>
-                      <span className="font-mono text-xs text-graphite tabular">{String(index + 1).padStart(2, "0")}</span>
-                      {label}
-                    </>
-                  )}
-                </EAnchor>
-              )}
-              {editing && !link.custom && (
-                <span className="edit-tools" role="group" aria-label={`Navigation link ${index + 1} controls`}>
-                  <button type="button" aria-label="Move link up" disabled={index === 0} onClick={() => moveNavLink(index, -1)}>↑</button>
-                  <button type="button" aria-label="Move link down" disabled={index >= content.nav.links.length - 1} onClick={() => moveNavLink(index, 1)}>↓</button>
-                  <button type="button" aria-label="Remove link" onClick={() => removeNavLink(index)}>×</button>
-                </span>
-              )}
+            <li key={link.key} className="border-b border-rule">
+              <a
+                href={link.href}
+                onClick={(event) => {
+                  if (editing) event.preventDefault();
+                  else close();
+                }}
+                className="flex min-h-14 items-baseline gap-4 py-3 font-display text-page text-ink transition-colors duration-[var(--dur-2)] hover:text-vermilion-ink"
+              >
+                <span className="font-mono text-xs text-graphite tabular">{String(index + 1).padStart(2, "0")}</span>
+                <EText path={link.path} fallback={link.fallback} label={`Navigation link ${index + 1}`} />
+              </a>
             </li>
           ))}
-          {editing && (
-            <li className="pt-3">
-              <button type="button" className="edit-add !mt-0" onClick={addNavLink}>
-                + Add navigation link
-              </button>
-            </li>
-          )}
         </ul>
         <div className="mt-auto flex flex-col gap-4 border-t border-rule p-5">
           <OwnerPanel />
           <ThemeSwitch />
-          <IstClock className="font-mono text-xs text-graphite tabular" />
-          <EAnchor path="nav.cta" fallbackHref={ctaHref} allowHide={false} onNavigate={close} className={buttonClass("ink", "w-full")}>
-            {(label) => (
-              <>
-                {label}
-                <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
-              </>
-            )}
-          </EAnchor>
+          <span className="font-mono text-xs text-graphite tabular">IST {clock}</span>
+          <a href={ctaHref} onClick={(event) => (editing ? event.preventDefault() : close())} className={buttonClass("ink", "w-full")}>
+            <EText path="nav.cta" label="Header call to action" />
+            <ArrowUpRight aria-hidden className="h-4 w-4" strokeWidth={1.75} />
+          </a>
         </div>
       </div>
     </>

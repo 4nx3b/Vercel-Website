@@ -62,16 +62,12 @@ export type CustomPageSection = {
 };
 export type PageSection = BuiltinPageSection | CustomPageSection;
 
-export type LinkMeta = { href: string; newTab?: boolean; hidden?: boolean };
-
 export const DEFAULTS = {
   version: 3,
   brand: { name: "v3rsi0n", logotype: "V3RSI0N" },
   nav: {
     links: NAV_LINKS.map((link) => ({ ...link })),
     cta: "Ask me",
-    ctaLink: { href: "#ask" } as Partial<LinkMeta>,
-    brandLink: { href: "#top" } as Partial<LinkMeta>,
   },
   hero: {
     kicker: HERO.kicker,
@@ -85,9 +81,7 @@ export const DEFAULTS = {
     flag: HERO.flag,
     country: HERO.country,
     ctaPrimary: HERO.ctaPrimary,
-    ctaPrimaryLink: { href: "#work" } as Partial<LinkMeta>,
     ctaSecondary: HERO.ctaSecondary,
-    ctaSecondaryLink: { href: "#ask" } as Partial<LinkMeta>,
     portrait: "art/hero-portrait-900.webp",
     portraitAlt: "Anime illustration: a blue-haired bassist sitting on a laundromat bench beside her bass",
     stickerOne: "Flash it, don’t fear it",
