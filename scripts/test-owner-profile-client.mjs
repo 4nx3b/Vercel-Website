@@ -4,9 +4,9 @@
  *
  *   node scripts/test-owner-profile-client.mjs
  *
- * The API/database are mocked. This verifies that Vercel's API path is preferred,
- * while a denied/missing API falls back to Firestore siteOwner/profile using the
- * signed-in owner's ID token (the path used by static hosts such as Wasmer).
+ * The API/database are mocked. This verifies Vercel uses its same-origin API,
+ * while miuka and Wasmer route to the shared Vercel API and only use the
+ * signed-in owner's direct Firestore write as a fallback.
  */
 import assert from "node:assert/strict";
 import { createServer } from "vite";
@@ -23,10 +23,17 @@ const ownerProfile = "https://firestore.googleapis.com/v1/projects/therealreze-2
 const response = (body, status = 200, contentType = "application/json") =>
   new Response(typeof body === "string" ? body : JSON.stringify(body), { status, headers: { "Content-Type": contentType } });
 
-async function runScenario(name, apiResponses, expectDirectWrite) {
+async function runScenario({ name, hostname, apiResponses, expectDirectWrite, expectApiWrite }) {
   const vite = await createServer({ server: { middlewareMode: true }, appType: "custom", logLevel: "silent" });
+  const previousWindow = globalThis.window;
+  const previousStorage = globalThis.localStorage;
+  const previousFetch = globalThis.fetch;
   try {
+    globalThis.window = { location: { hostname } };
     globalThis.localStorage = new MemoryStorage();
+    const api = await vite.ssrLoadModule("/src/lib/site-content-api.ts");
+    const apiRoot = api.siteContentApiUrlForHost(hostname);
+    const apiProfileUrl = api.siteContentApiUrlForHost(hostname, "?profile=1");
     const owner = await vite.ssrLoadModule("/src/lib/owner.ts");
     owner.setOwnerAuth({
       email: "asaxxhiii@gmail.com",
@@ -42,7 +49,7 @@ async function runScenario(name, apiResponses, expectDirectWrite) {
       const method = String(init.method || "GET").toUpperCase();
       calls.push({ url, method, headers: init.headers || {}, body: String(init.body || "") });
 
-      if (url.startsWith("/api/site-content?profile=1")) {
+      if (url.startsWith(apiProfileUrl)) {
         const planned = apiResponses[apiIndex++];
         if (!planned) throw new Error(`Unexpected profile API request: ${method}`);
         return planned();
@@ -61,15 +68,25 @@ async function runScenario(name, apiResponses, expectDirectWrite) {
       assert.equal(JSON.parse(directWrite.body).fields.avatar.stringValue, AVATAR);
     }
 
-    const apiWrite = calls.find((call) => call.url.startsWith("/api/site-content?profile=1") && call.method === "POST");
-    if (name === "Vercel API success") {
-      assert.ok(apiWrite, "Vercel should save through its same-origin API when it succeeds");
+    const apiWrite = calls.find((call) => call.url.startsWith(apiProfileUrl) && call.method === "POST");
+    assert.equal(Boolean(apiWrite), expectApiWrite, `${name}: shared API write mismatch`);
+    if (apiWrite) {
       assert.equal(apiWrite.headers.Authorization, "Bearer owner-id-token");
       assert.equal(JSON.parse(apiWrite.body).avatar, AVATAR);
+      assert.equal(apiWrite.url, apiProfileUrl);
+    }
+    if (["v3rsi0n.wasmer.app", "v3rsi0n.miuka.moe"].includes(hostname)) {
+      assert.ok(apiRoot.startsWith("https://v3rsi0n.vercel.app/"), `${name}: should use the canonical Vercel API`);
     }
     console.log(`  ✓ ${name}`);
   } finally {
     await vite.close();
+    if (previousWindow === undefined) delete globalThis.window;
+    else globalThis.window = previousWindow;
+    if (previousStorage === undefined) delete globalThis.localStorage;
+    else globalThis.localStorage = previousStorage;
+    if (previousFetch === undefined) delete globalThis.fetch;
+    else globalThis.fetch = previousFetch;
   }
 }
 
@@ -79,7 +96,9 @@ const apiSave = () => response({ resource: "siteOwner/profile", ok: true, update
 const apiDenied = () => response({ error: { message: "service-account write denied", code: "http_403" } }, 403);
 
 console.log("Shared profile client write paths");
-await runScenario("Vercel API success", [apiRead, apiSave], false);
-await runScenario("Vercel API 403 falls back to Firestore", [apiRead, apiDenied], true);
-await runScenario("Wasmer missing API falls back to Firestore", [apiMissing], true);
+await runScenario({ name: "Vercel uses its same-origin API", hostname: "v3rsi0n.vercel.app", apiResponses: [apiRead, apiSave], expectDirectWrite: false, expectApiWrite: true });
+await runScenario({ name: "miuka uses the canonical Vercel API", hostname: "v3rsi0n.miuka.moe", apiResponses: [apiRead, apiSave], expectDirectWrite: false, expectApiWrite: true });
+await runScenario({ name: "Wasmer uses the canonical Vercel API", hostname: "v3rsi0n.wasmer.app", apiResponses: [apiRead, apiSave], expectDirectWrite: false, expectApiWrite: true });
+await runScenario({ name: "API 403 falls back to Firestore", hostname: "v3rsi0n.vercel.app", apiResponses: [apiRead, apiDenied], expectDirectWrite: true, expectApiWrite: true });
+await runScenario({ name: "Wasmer API failure falls back to Firestore", hostname: "v3rsi0n.wasmer.app", apiResponses: [apiMissing], expectDirectWrite: true, expectApiWrite: false });
 console.log("all passed");

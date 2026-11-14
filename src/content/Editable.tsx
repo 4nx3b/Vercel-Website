@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, ImagePlus, Plus, Trash2, Type } from "lucide-react"
 import { cn } from "../utils/cn";
 import { FIREBASE } from "../lib/data";
 import { apiErrorMessage, refreshTokenIfNeeded } from "../lib/owner";
+import { siteContentApiUrl } from "../lib/site-content-api";
 import { getPath, loadSiteImageData, useContent, useField, type Block, type SectionId } from "./store";
 
 /* ------------------------------------------------------------------ *
@@ -244,10 +245,10 @@ function EditableRow({ children, onUp, onDown, onRemove, first, last, label }: {
 const MAX_W = 1600;
 const MAX_BYTES = 700 * 1024;
 
-/** `fs:siteImages/<id>` resolves through the host API, then shared Firestore on static hosts. */
+/** `fs:siteImages/<id>` resolves through the shared API, then direct Firestore if needed. */
 export function resolveSrc(src: string | undefined) {
   if (!src) return src;
-  if (src.startsWith("fs:siteImages/")) return `/api/site-content?image=${encodeURIComponent(src.slice("fs:siteImages/".length))}`;
+  if (src.startsWith("fs:siteImages/")) return siteContentApiUrl(`?image=${encodeURIComponent(src.slice("fs:siteImages/".length))}`);
   return src;
 }
 export function useResolvedSrc(src: string | undefined) {
@@ -354,7 +355,7 @@ async function uploadImage(dataUrl: string): Promise<string> {
   let response: Response | null = null;
   let data: any = null;
   try {
-    response = await fetch("/api/site-content?image=1", {
+    response = await fetch(siteContentApiUrl("?image=1"), {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ data: dataUrl }),

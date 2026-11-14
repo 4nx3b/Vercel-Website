@@ -48,19 +48,19 @@ globalThis.fetch = async (input, init = {}) => {
 };
 
 /* ---- adapters: one call shape for both runtimes ---- */
-async function vercelCall(handler, { method = "GET", path = "/api/site-content", token, body }) {
+async function vercelCall(handler, { method = "GET", path = "/api/site-content", token, body, origin }) {
   const raw = body === undefined ? "" : JSON.stringify(body);
   const req = Object.assign(Readable.from(raw ? [Buffer.from(raw)] : []), {
     method,
     url: path,
-    headers: token ? { authorization: `Bearer ${token}` } : {},
+    headers: { ...(token ? { authorization: `Bearer ${token}` } : {}), ...(origin ? { origin } : {}) },
   });
   return await new Promise((resolve) => {
     const res = {
       statusCode: 0,
       headers: {},
       setHeader(k, v) { this.headers[k.toLowerCase()] = v; },
-      end(b) { let j = null; try { j = b ? JSON.parse(String(b)) : null; } catch { j = { binary: true }; } resolve({ status: this.statusCode, json: j }); },
+      end(b) { let j = null; try { j = b ? JSON.parse(String(b)) : null; } catch { j = { binary: true }; } resolve({ status: this.statusCode, json: j, headers: this.headers }); },
     };
     handler(req, res);
   });
@@ -109,6 +109,20 @@ async function suite(name, call) {
 process.env.FIREBASE_SERVICE_ACCOUNT_KEY = SA;
 const vercel = (await import("../api/site-content.js")).default;
 await suite("Vercel  api/site-content.js", (r) => vercelCall(vercel, r));
+
+for (const origin of ["https://v3rsi0n.miuka.moe", "https://v3rsi0n.wasmer.app"]) {
+  const preflight = await vercelCall(vercel, { method: "OPTIONS", origin });
+  const ok = preflight.status === 204 && preflight.headers["access-control-allow-origin"] === origin &&
+    preflight.headers["access-control-allow-methods"]?.includes("POST") &&
+    preflight.headers["access-control-allow-headers"]?.toLowerCase().includes("authorization");
+  if (!ok) failed++;
+  console.log(`  ${ok ? "✓" : "✗"} CORS preflight permits ${origin}`);
+}
+const blockedOrigin = await vercelCall(vercel, { method: "OPTIONS", origin: "https://not-allowed.example" });
+const blocksUnknownOrigin = blockedOrigin.status === 204 && !blockedOrigin.headers["access-control-allow-origin"];
+if (!blocksUnknownOrigin) failed++;
+console.log(`  ${blocksUnknownOrigin ? "✓" : "✗"} CORS does not allow an unconfigured origin`);
+
 const cf = await import("../functions/api/site-content.js");
 await suite("Cloudflare  functions/api/site-content.js", (r) => cfCall(cf.onRequest, r));
 
